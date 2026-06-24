@@ -1,0 +1,237 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String // ADMIN, GATE_CLERK, YARD_PLANNER, PTI_INSPECTOR, FINANCE, VIEWER
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  gateTransactionsIn  GateTransaction[]   @relation("GateClerkIn")
+  gateTransactionsOut GateTransaction[]   @relation("GateClerkOut")
+  movements           ContainerMovement[]
+  ptiInspections      PTIInspection[]
+  auditLogs           AuditLog[]
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  contactName String?
+  phone       String?
+  email       String?
+  address     String?
+  createdAt   DateTime @default(now())
+
+  gateTransactions GateTransaction[]
+  invoices         Invoice[]
+}
+
+model ShippingLine {
+  id   String @id @default(cuid())
+  code String @unique
+  name String
+
+  containers       Container[]
+  gateTransactions GateTransaction[]
+}
+
+model ContainerType {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  description String
+  lengthFt    Int
+  isReefer    Boolean @default(false)
+
+  containers Container[]
+}
+
+model Container {
+  id              String   @id @default(cuid())
+  containerNumber String   @unique
+  containerTypeId String
+  containerType   ContainerType @relation(fields: [containerTypeId], references: [id])
+  shippingLineId  String?
+  shippingLine    ShippingLine? @relation(fields: [shippingLineId], references: [id])
+  status          String // EMPTY, FULL, DAMAGED, IN_REPAIR, BLOCKED
+  isoCode         String?
+  grossWeightKg   Float?
+  tareWeightKg    Float?
+  createdAt       DateTime @default(now())
+
+  inventory        Inventory?
+  movements        ContainerMovement[]
+  gateTransactions GateTransaction[]
+  reeferLogs       ReeferMonitoring[]
+  ptiRequests      PTIRequest[]
+  repairs          Repair[]
+}
+
+model Location {
+  id           String  @id @default(cuid())
+  block        String
+  row          String
+  bay          String
+  tier         Int
+  code         String  @unique
+  isReeferSlot Boolean @default(false)
+  maxStack     Int     @default(5)
+
+  inventory     Inventory?
+  movementsTo   ContainerMovement[] @relation("ToLocation")
+  movementsFrom ContainerMovement[] @relation("FromLocation")
+}
+
+model Inventory {
+  id          String   @id @default(cuid())
+  containerId String   @unique
+  container   Container @relation(fields: [containerId], references: [id])
+  locationId  String   @unique
+  location    Location  @relation(fields: [locationId], references: [id])
+  enteredAt   DateTime  @default(now())
+  status      String // IN_YARD, GATE_OUT, IN_TRANSIT
+}
+
+model GateTransaction {
+  id                 String    @id @default(cuid())
+  docNumber          String    @unique
+  type               String // GATE_IN, GATE_OUT
+  containerId        String
+  container          Container @relation(fields: [containerId], references: [id])
+  customerId         String?
+  customer           Customer? @relation(fields: [customerId], references: [id])
+  shippingLineId     String?
+  shippingLine       ShippingLine? @relation(fields: [shippingLineId], references: [id])
+  truckPlate         String
+  driverName         String
+  driverIdNumber     String?
+  sealNumber         String?
+  grossWeightKg      Float?
+  destination        String?
+  releaseOrderNo     String?
+  condition          String  @default("GOOD") // GOOD, DAMAGED
+  damageRemarks      String?
+  photoUrls          String? // JSON-encoded array
+  clerkInId          String?
+  clerkIn            User?   @relation("GateClerkIn", fields: [clerkInId], references: [id])
+  clerkOutId         String?
+  clerkOut           User?   @relation("GateClerkOut", fields: [clerkOutId], references: [id])
+  pdfPath            String?
+  status             String  @default("COMPLETED")
+  createdAt          DateTime @default(now())
+}
+
+model ContainerMovement {
+  id             String    @id @default(cuid())
+  docNumber      String    @unique
+  containerId    String
+  container      Container @relation(fields: [containerId], references: [id])
+  fromLocationId String?
+  fromLocation   Location? @relation("FromLocation", fields: [fromLocationId], references: [id])
+  toLocationId   String
+  toLocation     Location  @relation("ToLocation", fields: [toLocationId], references: [id])
+  reason         String // YARD_OPTIMIZATION, GATE_OUT_PREP, INSPECTION, REPAIR
+  equipment      String?
+  movedById      String?
+  movedBy        User?     @relation(fields: [movedById], references: [id])
+  pdfPath        String?
+  createdAt      DateTime  @default(now())
+}
+
+model ReeferMonitoring {
+  id          String    @id @default(cuid())
+  containerId String
+  container   Container @relation(fields: [containerId], references: [id])
+  setTempC    Float
+  actualTempC Float
+  humidity    Float?
+  powerStatus String // CONNECTED, DISCONNECTED, ALARM
+  recordedAt  DateTime  @default(now())
+}
+
+model PTIRequest {
+  id            String    @id @default(cuid())
+  docNumber     String    @unique
+  containerId   String
+  container     Container @relation(fields: [containerId], references: [id])
+  customerId    String?
+  priority      String    @default("NORMAL")
+  status        String    @default("PENDING") // PENDING, IN_PROGRESS, PASSED, FAILED
+  requestedAt   DateTime  @default(now())
+
+  inspection PTIInspection?
+}
+
+model PTIInspection {
+  id                 String     @id @default(cuid())
+  ptiRequestId       String     @unique
+  ptiRequest         PTIRequest @relation(fields: [ptiRequestId], references: [id])
+  inspectorId        String?
+  inspector          User?      @relation(fields: [inspectorId], references: [id])
+  checklistJson       String // JSON-encoded checklist results
+  result              String // PASS, FAIL
+  remarks             String?
+  certificatePdfPath String?
+  inspectedAt        DateTime   @default(now())
+}
+
+model Repair {
+  id            String    @id @default(cuid())
+  containerId   String
+  container     Container @relation(fields: [containerId], references: [id])
+  damageType    String
+  description   String?
+  estimatedCost Float?
+  status        String    @default("OPEN")
+  createdAt     DateTime  @default(now())
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  type      String // GATE_IN_EIR, GATE_OUT_EIR, MOVEMENT_ORDER, PTI_CERTIFICATE, INVOICE
+  refId     String
+  filePath  String
+  createdAt DateTime @default(now())
+}
+
+model Invoice {
+  id            String    @id @default(cuid())
+  invoiceNumber String    @unique
+  customerId    String
+  customer      Customer  @relation(fields: [customerId], references: [id])
+  description   String?
+  amount        Float
+  status        String    @default("UNPAID")
+  issuedAt      DateTime  @default(now())
+  dueAt         DateTime?
+  paidAt        DateTime?
+  pdfPath       String?
+}
+
+model Equipment {
+  id     String @id @default(cuid())
+  code   String @unique
+  type   String // RTG, REACH_STACKER, FORKLIFT, TRUCK
+  status String @default("AVAILABLE")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  metaJson  String?
+  createdAt DateTime @default(now())
+}

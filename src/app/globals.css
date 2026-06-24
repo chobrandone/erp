@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --surface: 255 255 255;
+  --surface-alt: 246 247 250;
+  --surface-raised: 255 255 255;
+  --border-color: 226 229 235;
+  --fg: 17 24 39;
+  --fg-muted: 107 114 128;
+  --fg-subtle: 156 163 175;
+}
+
+.dark {
+  --surface: 13 15 20;
+  --surface-alt: 19 22 29;
+  --surface-raised: 24 27 35;
+  --border-color: 38 42 53;
+  --fg: 237 239 244;
+  --fg-muted: 161 167 179;
+  --fg-subtle: 110 117 130;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter);
+
+  --color-surface: rgb(var(--surface));
+  --color-surface-alt: rgb(var(--surface-alt));
+  --color-surface-raised: rgb(var(--surface-raised));
+  --color-border-color: rgb(var(--border-color));
+  --color-fg: rgb(var(--fg));
+  --color-fg-muted: rgb(var(--fg-muted));
+  --color-fg-subtle: rgb(var(--fg-subtle));
+
+  --color-brand-50: #5415bc;
+  --color-brand-100: #0059ef;
+  --color-brand-200: #0080ff;
+  --color-brand-300: #009df8;
+  --color-brand-400: #00b7d7;
+  --color-brand-500: #00cdab;
+}
+
+body {
+  background: rgb(var(--surface-alt));
+  color: rgb(var(--fg));
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+.brand-gradient {
+  background-image: linear-gradient(
+    135deg,
+    #5415bc,
+    #0059ef,
+    #0080ff,
+    #009df8,
+    #00b7d7,
+    #00cdab
+  );
+}
+
+.brand-gradient-text {
+  background-image: linear-gradient(135deg, #5415bc, #00cdab);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
