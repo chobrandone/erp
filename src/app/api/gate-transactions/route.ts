@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { gateInSchema, gateOutSchema } from "@/lib/validations/gate";
 import { formatDocNumber } from "@/lib/pdf/docNumber";
-import { generatePdfFile, generateQrDataUrl } from "@/lib/pdf/generatePdf";
-import { GateInEIR } from "@/lib/pdf/templates/GateInEIR";
-import { GateOutEIR } from "@/lib/pdf/templates/GateOutEIR";
 
 export async function GET() {
   const transactions = await prisma.gateTransaction.findMany({
@@ -66,38 +63,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const customer = data.customerId ? await prisma.customer.findUnique({ where: { id: data.customerId } }) : null;
-    const shippingLine = data.shippingLineId
-      ? await prisma.shippingLine.findUnique({ where: { id: data.shippingLineId } })
-      : null;
-
-    const qrDataUrl = await generateQrDataUrl(docNumber);
-    const pdfPath = await generatePdfFile(
-      GateInEIR({
-        docNumber,
-        qrDataUrl,
-        generatedAt: new Date().toLocaleString(),
-        shippingLine: shippingLine?.name ?? "-",
-        customer: customer?.name ?? "-",
-        truckPlate: data.truckPlate,
-        driverName: data.driverName,
-        driverId: data.driverId ?? "-",
-        containerNumber: data.containerNumber,
-        isoType: containerType?.code ?? "-",
-        size: `${containerType?.lengthFt ?? "-"}ft`,
-        status: container.status,
-        condition: data.condition,
-        damageRemarks: data.damageRemarks ?? "-",
-        sealNumber: data.sealNumber ?? "-",
-        locationAssigned: freeLocation?.code ?? "Unassigned",
-      }),
-      "gate-in",
-      docNumber
-    );
-
-    await prisma.gateTransaction.update({ where: { id: transaction.id }, data: { pdfPath } });
-
-    return NextResponse.json({ transaction: { ...transaction, pdfPath } });
+    return NextResponse.json({ transaction });
   }
 
   if (body.type === "GATE_OUT") {
@@ -133,30 +99,7 @@ export async function POST(req: NextRequest) {
     }
     await prisma.container.update({ where: { id: container.id }, data: { status: "EMPTY" } });
 
-    const qrDataUrl = await generateQrDataUrl(docNumber);
-    const pdfPath = await generatePdfFile(
-      GateOutEIR({
-        docNumber,
-        qrDataUrl,
-        generatedAt: new Date().toLocaleString(),
-        containerNumber: container.containerNumber,
-        containerType: container.containerType.code,
-        currentLocation: container.inventory?.location.code ?? "-",
-        releaseOrderNo: data.releaseOrderNo,
-        destination: data.destination,
-        customer: "-",
-        truckPlate: data.truckPlate,
-        driverName: data.driverName,
-        condition: data.condition,
-        remarks: data.damageRemarks ?? "-",
-      }),
-      "gate-out",
-      docNumber
-    );
-
-    await prisma.gateTransaction.update({ where: { id: transaction.id }, data: { pdfPath } });
-
-    return NextResponse.json({ transaction: { ...transaction, pdfPath } });
+    return NextResponse.json({ transaction });
   }
 
   return NextResponse.json({ error: "Invalid type" }, { status: 400 });

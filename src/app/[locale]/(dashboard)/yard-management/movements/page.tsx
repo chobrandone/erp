@@ -25,18 +25,15 @@ export default async function MovementsPage() {
     { header: tc("date"), accessor: (r) => formatDateTime(r.createdAt) },
     {
       header: tc("actions"),
-      accessor: (r) =>
-        r.pdfPath ? (
-          <a
-            href={`/api/movements/${r.id}/pdf`}
-            target="_blank"
-            className="flex items-center gap-1 text-brand-100 hover:underline"
-          >
-            <FileText size={14} /> {tc("print")}
-          </a>
-        ) : (
-          "-"
-        ),
+      accessor: (r) => (
+        <a
+          href={`/api/movements/${r.id}/pdf`}
+          target="_blank"
+          className="flex items-center gap-1 text-brand-100 hover:underline"
+        >
+          <FileText size={14} /> {tc("print")}
+        </a>
+      ),
     },
   ];
 

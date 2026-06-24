@@ -17,21 +17,22 @@ export default async function DocumentManagementPage() {
   const t = await getTranslations("documents");
   const tc = await getTranslations("common");
 
-  const [gateTx, movements, inspections] = await Promise.all([
+  const [gateTx, movements, inspections, invoices] = await Promise.all([
     prisma.gateTransaction.findMany({
-      where: { pdfPath: { not: null } },
       include: { container: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.containerMovement.findMany({
-      where: { pdfPath: { not: null } },
       include: { container: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.pTIInspection.findMany({
-      where: { certificatePdfPath: { not: null } },
       include: { ptiRequest: { include: { container: true } } },
       orderBy: { inspectedAt: "desc" },
+    }),
+    prisma.invoice.findMany({
+      include: { customer: true },
+      orderBy: { issuedAt: "desc" },
     }),
   ]);
 
@@ -53,9 +54,16 @@ export default async function DocumentManagementPage() {
     ...inspections.map((i) => ({
       id: `pti-${i.id}`,
       type: "PTI_CERTIFICATE",
-      reference: `${i.ptiRequest.docNumber} — ${i.ptiRequest.container.containerNumber}`,
+      reference: `${i.certificateNumber ?? i.id} — ${i.ptiRequest.container.containerNumber}`,
       generatedOn: i.inspectedAt,
       pdfUrl: `/api/pti-inspections/${i.id}/pdf`,
+    })),
+    ...invoices.map((inv) => ({
+      id: `inv-${inv.id}`,
+      type: "INVOICE",
+      reference: `${inv.invoiceNumber} — ${inv.customer.name}`,
+      generatedOn: inv.issuedAt,
+      pdfUrl: `/api/invoices/${inv.id}/pdf`,
     })),
   ].sort((a, b) => b.generatedOn.getTime() - a.generatedOn.getTime());
 

@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { movementSchema } from "@/lib/validations/movement";
 import { formatDocNumber } from "@/lib/pdf/docNumber";
-import { generatePdfFile, generateQrDataUrl } from "@/lib/pdf/generatePdf";
-import { MovementOrder } from "@/lib/pdf/templates/MovementOrder";
 
 export async function GET() {
   const movements = await prisma.containerMovement.findMany({
@@ -51,30 +49,5 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const [fromLocation, toLocation] = await Promise.all([
-    fromLocationId ? prisma.location.findUnique({ where: { id: fromLocationId } }) : null,
-    prisma.location.findUnique({ where: { id: data.toLocationId } }),
-  ]);
-
-  const qrDataUrl = await generateQrDataUrl(docNumber);
-  const pdfPath = await generatePdfFile(
-    MovementOrder({
-      docNumber,
-      qrDataUrl,
-      generatedAt: new Date().toLocaleString(),
-      containerNumber: container.containerNumber,
-      containerType: container.containerType.code,
-      fromLocation: fromLocation?.code ?? "-",
-      toLocation: toLocation?.code ?? "-",
-      reason: data.reason.replace(/_/g, " "),
-      equipment: data.equipment ?? "-",
-      operator: "-",
-    }),
-    "movement-orders",
-    docNumber
-  );
-
-  await prisma.containerMovement.update({ where: { id: movement.id }, data: { pdfPath } });
-
-  return NextResponse.json({ movement: { ...movement, pdfPath } });
+  return NextResponse.json({ movement });
 }

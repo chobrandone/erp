@@ -1,17 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { promises as fs } from "fs";
-import path from "path";
+import { generateQrDataUrl, pdfResponse } from "@/lib/pdf/generatePdf";
+import { MovementOrder } from "@/lib/pdf/templates/MovementOrder";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const movement = await prisma.containerMovement.findUnique({ where: { id } });
-  if (!movement?.pdfPath) return NextResponse.json({ error: "PDF not found" }, { status: 404 });
-  const buffer = await fs.readFile(path.join(process.cwd(), movement.pdfPath));
-  return new NextResponse(buffer, {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${movement.docNumber}.pdf"`,
-    },
+  const movement = await prisma.containerMovement.findUnique({
+    where: { id },
+    include: { container: { include: { containerType: true } }, fromLocation: true, toLocation: true },
   });
+  if (!movement) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const qrDataUrl = await generateQrDataUrl(movement.docNumber);
+  return pdfResponse(
+    MovementOrder({
+      docNumber: movement.docNumber,
+      qrDataUrl,
+      generatedAt: new Date().toLocaleString(),
+      containerNumber: movement.container.containerNumber,
+      containerType: movement.container.containerType.code,
+      fromLocation: movement.fromLocation?.code ?? "-",
+      toLocation: movement.toLocation.code,
+      reason: movement.reason.replace(/_/g, " "),
+      equipment: movement.equipment ?? "-",
+      operator: "-",
+    }),
+    movement.docNumber
+  );
 }

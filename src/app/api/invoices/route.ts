@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generatePdfFile, generateQrDataUrl } from "@/lib/pdf/generatePdf";
-import { InvoicePdf } from "@/lib/pdf/templates/Invoice";
-import { formatDate } from "@/lib/utils";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -42,29 +39,5 @@ export async function POST(req: NextRequest) {
     include: { customer: true },
   });
 
-  const qrDataUrl = await generateQrDataUrl(invoiceNumber);
-  const pdfPath = await generatePdfFile(
-    InvoicePdf({
-      docNumber: invoiceNumber,
-      qrDataUrl,
-      generatedAt: new Date().toLocaleString(),
-      customerName: invoice.customer.name,
-      customerAddress: invoice.customer.address ?? "-",
-      description: invoice.description ?? "Container depot services",
-      amount: `$${invoice.amount.toFixed(2)}`,
-      status: "UNPAID",
-      issuedAt: formatDate(invoice.issuedAt),
-      dueAt: invoice.dueAt ? formatDate(invoice.dueAt) : "-",
-    }),
-    "invoices",
-    invoiceNumber
-  );
-
-  const updated = await prisma.invoice.update({
-    where: { id: invoice.id },
-    data: { pdfPath },
-    include: { customer: true },
-  });
-
-  return NextResponse.json({ invoice: updated });
+  return NextResponse.json({ invoice });
 }

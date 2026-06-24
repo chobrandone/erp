@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -126,7 +126,6 @@ model GateTransaction {
   clerkIn            User?   @relation("GateClerkIn", fields: [clerkInId], references: [id])
   clerkOutId         String?
   clerkOut           User?   @relation("GateClerkOut", fields: [clerkOutId], references: [id])
-  pdfPath            String?
   status             String  @default("COMPLETED")
   createdAt          DateTime @default(now())
 }
@@ -144,7 +143,6 @@ model ContainerMovement {
   equipment      String?
   movedById      String?
   movedBy        User?     @relation(fields: [movedById], references: [id])
-  pdfPath        String?
   createdAt      DateTime  @default(now())
 }
 
@@ -173,16 +171,16 @@ model PTIRequest {
 }
 
 model PTIInspection {
-  id                 String     @id @default(cuid())
-  ptiRequestId       String     @unique
-  ptiRequest         PTIRequest @relation(fields: [ptiRequestId], references: [id])
-  inspectorId        String?
-  inspector          User?      @relation(fields: [inspectorId], references: [id])
+  id                  String     @id @default(cuid())
+  ptiRequestId        String     @unique
+  ptiRequest          PTIRequest @relation(fields: [ptiRequestId], references: [id])
+  inspectorId         String?
+  inspector           User?      @relation(fields: [inspectorId], references: [id])
+  certificateNumber   String?    @unique
   checklistJson       String // JSON-encoded checklist results
   result              String // PASS, FAIL
   remarks             String?
-  certificatePdfPath String?
-  inspectedAt        DateTime   @default(now())
+  inspectedAt         DateTime   @default(now())
 }
 
 model Repair {
@@ -215,7 +213,6 @@ model Invoice {
   issuedAt      DateTime  @default(now())
   dueAt         DateTime?
   paidAt        DateTime?
-  pdfPath       String?
 }
 
 model Equipment {
