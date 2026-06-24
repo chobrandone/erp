@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import { GateTransactionDetailClient } from "./GateTransactionDetailClient";
+import { EditGateTransactionButton } from "@/components/gate/EditGateTransactionButton";
 
 export default async function GateTransactionDetailPage({
   params,
@@ -46,7 +47,23 @@ export default async function GateTransactionDetailPage({
           <span className="text-fg-muted">{tc("date")}</span>
           <span className="font-medium text-fg">{formatDateTime(transaction.createdAt)}</span>
         </div>
-        <GateTransactionDetailClient id={transaction.id} />
+        <div className="flex items-center gap-2 pt-2">
+          <GateTransactionDetailClient id={transaction.id} />
+          <EditGateTransactionButton
+            transaction={{
+              id: transaction.id,
+              type: transaction.type,
+              truckPlate: transaction.truckPlate,
+              driverName: transaction.driverName,
+              driverIdNumber: transaction.driverIdNumber,
+              sealNumber: transaction.sealNumber,
+              condition: transaction.condition,
+              damageRemarks: transaction.damageRemarks,
+              destination: transaction.destination,
+              releaseOrderNo: transaction.releaseOrderNo,
+            }}
+          />
+        </div>
       </div>
     </div>
   );

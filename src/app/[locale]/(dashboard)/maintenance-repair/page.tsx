@@ -3,11 +3,14 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { RepairForm } from "@/components/repair/RepairForm";
 import { RepairStatusSelect } from "@/components/repair/RepairStatusSelect";
+import { EditRepairButton } from "@/components/repair/EditRepairButton";
+import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 
 export default async function MaintenanceRepairPage() {
   const t = await getTranslations("repair");
+  const tc = await getTranslations("common");
 
   const [repairs, containers] = await Promise.all([
     prisma.repair.findMany({
@@ -26,6 +29,22 @@ export default async function MaintenanceRepairPage() {
     },
     { header: "Status", accessor: (r) => <RepairStatusSelect id={r.id} status={r.status} /> },
     { header: "Date", accessor: (r) => formatDate(r.createdAt) },
+    {
+      header: tc("actions"),
+      accessor: (r) => (
+        <div className="flex items-center gap-3">
+          <EditRepairButton
+            repair={{
+              id: r.id,
+              damageType: r.damageType,
+              description: r.description,
+              estimatedCost: r.estimatedCost,
+            }}
+          />
+          <ConfirmDeleteButton apiPath={`/api/repairs/${r.id}`} />
+        </div>
+      ),
+    },
   ];
 
   return (

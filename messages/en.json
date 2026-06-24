@@ -34,6 +34,9 @@
     "viewDetails": "View Details",
     "generatePdf": "Generate PDF",
     "createNew": "Create New",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this? This cannot be undone.",
+    "deleteFailed": "Could not delete this record.",
     "lightMode": "Light Mode",
     "darkMode": "Dark Mode",
     "language": "Language",
@@ -260,5 +263,15 @@
     "feature4": "Perform PTI inspections from the yard",
     "feature5": "Monitor reefer status on the move",
     "roadmapNote": "The mobile companion app will be built as a separate React Native/Flutter client consuming the same API used by this web ERP."
+  },
+  "auth": {
+    "title": "Container Depot ERP",
+    "subtitle": "Sign in to access the yard management system",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In",
+    "signingIn": "Signing in...",
+    "invalidCredentials": "Invalid email or password",
+    "demoHint": "Demo: admin@depot.local / admin123"
   }
 }

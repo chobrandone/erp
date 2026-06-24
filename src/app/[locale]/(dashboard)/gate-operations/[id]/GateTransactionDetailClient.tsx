@@ -13,7 +13,7 @@ export function GateTransactionDetailClient({ id }: { id: string }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 brand-gradient text-white text-sm font-medium px-4 py-2 rounded-lg mt-2"
+        className="flex items-center gap-1.5 border border-border-color text-fg text-sm font-medium px-4 py-2 rounded-lg hover:bg-surface-alt"
       >
         <FileText size={16} /> {t("print")}
       </button>

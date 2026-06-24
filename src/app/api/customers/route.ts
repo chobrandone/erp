@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/requireAuth";
 
 export async function GET() {
   const customers = await prisma.customer.findMany({ orderBy: { createdAt: "desc" } });
@@ -7,6 +8,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const { unauthorized } = await requireAuth();
+  if (unauthorized) return unauthorized;
+
   const body = await req.json();
   const count = await prisma.customer.count();
   const customer = await prisma.customer.create({

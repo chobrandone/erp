@@ -2,7 +2,17 @@ import { ThemeToggle } from "./ThemeToggle";
 import { LanguageToggle } from "./LanguageToggle";
 import { UserMenu } from "./UserMenu";
 
-export function Topbar({ title, subtitle }: { title?: string; subtitle?: string }) {
+export function Topbar({
+  title,
+  subtitle,
+  userName,
+  userRole,
+}: {
+  title?: string;
+  subtitle?: string;
+  userName: string;
+  userRole: string;
+}) {
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-4 lg:px-6 border-b border-border-color bg-surface/80 backdrop-blur">
       <div className="min-w-0">
@@ -16,7 +26,7 @@ export function Topbar({ title, subtitle }: { title?: string; subtitle?: string 
       <div className="flex items-center gap-2 shrink-0">
         <LanguageToggle />
         <ThemeToggle />
-        <UserMenu />
+        <UserMenu userName={userName} userRole={userRole} />
       </div>
     </header>
   );

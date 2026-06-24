@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 import { Plus, FileText } from "lucide-react";
+import { EditMovementButton } from "@/components/yard/EditMovementButton";
+import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 
 export default async function MovementsPage() {
   const t = await getTranslations("yard");
@@ -26,13 +28,17 @@ export default async function MovementsPage() {
     {
       header: tc("actions"),
       accessor: (r) => (
-        <a
-          href={`/api/movements/${r.id}/pdf`}
-          target="_blank"
-          className="flex items-center gap-1 text-brand-100 hover:underline"
-        >
-          <FileText size={14} /> {tc("print")}
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href={`/api/movements/${r.id}/pdf`}
+            target="_blank"
+            className="flex items-center gap-1 text-brand-100 hover:underline"
+          >
+            <FileText size={14} /> {tc("print")}
+          </a>
+          <EditMovementButton movement={{ id: r.id, reason: r.reason, equipment: r.equipment }} />
+          <ConfirmDeleteButton apiPath={`/api/movements/${r.id}`} />
+        </div>
       ),
     },
   ];

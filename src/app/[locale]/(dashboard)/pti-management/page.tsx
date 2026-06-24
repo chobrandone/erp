@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 import { Plus } from "lucide-react";
+import { EditPTIPriorityButton } from "@/components/pti/EditPTIPriorityButton";
+import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 
 export default async function PTIManagementPage() {
   const t = await getTranslations("pti");
@@ -20,7 +22,15 @@ export default async function PTIManagementPage() {
     { header: tc("documentNo"), accessor: (r) => r.docNumber },
     { header: "Container", accessor: (r) => r.container.containerNumber },
     { header: "Type", accessor: (r) => r.container.containerType.code },
-    { header: t("priority"), accessor: (r) => r.priority },
+    {
+      header: t("priority"),
+      accessor: (r) =>
+        r.inspection ? (
+          r.priority
+        ) : (
+          <EditPTIPriorityButton id={r.id} priority={r.priority} />
+        ),
+    },
     { header: tc("status"), accessor: (r) => <StatusBadge status={r.status} /> },
     { header: tc("date"), accessor: (r) => formatDateTime(r.requestedAt) },
     {
@@ -34,9 +44,12 @@ export default async function PTIManagementPage() {
             {t("viewCertificate")}
           </Link>
         ) : (
-          <Link href={`/pti-management/${r.id}/inspect`} className="text-brand-100 hover:underline">
-            {t("inspection")}
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href={`/pti-management/${r.id}/inspect`} className="text-brand-100 hover:underline">
+              {t("inspection")}
+            </Link>
+            <ConfirmDeleteButton apiPath={`/api/pti-requests/${r.id}`} />
+          </div>
         ),
     },
   ];

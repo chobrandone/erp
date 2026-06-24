@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { gateInSchema, gateOutSchema } from "@/lib/validations/gate";
 import { formatDocNumber } from "@/lib/pdf/docNumber";
+import { requireAuth } from "@/lib/requireAuth";
 
 export async function GET() {
   const transactions = await prisma.gateTransaction.findMany({
@@ -12,6 +13,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const { unauthorized } = await requireAuth();
+  if (unauthorized) return unauthorized;
+
   const body = await req.json();
 
   if (body.type === "GATE_IN") {

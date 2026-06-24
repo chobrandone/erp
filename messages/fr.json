@@ -34,6 +34,9 @@
     "viewDetails": "Voir les détails",
     "generatePdf": "Générer le PDF",
     "createNew": "Créer nouveau",
+    "delete": "Supprimer",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ceci ? Cette action est irréversible.",
+    "deleteFailed": "Impossible de supprimer cet enregistrement.",
     "lightMode": "Mode clair",
     "darkMode": "Mode sombre",
     "language": "Langue",
@@ -260,5 +263,15 @@
     "feature4": "Effectuer les inspections PTI depuis le parc",
     "feature5": "Surveiller l'état des reefers en déplacement",
     "roadmapNote": "L'application mobile compagnon sera développée comme un client React Native/Flutter distinct, consommant la même API que cet ERP web."
+  },
+  "auth": {
+    "title": "Container Depot ERP",
+    "subtitle": "Connectez-vous pour accéder au système de gestion du parc",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion...",
+    "invalidCredentials": "E-mail ou mot de passe invalide",
+    "demoHint": "Démo : admin@depot.local / admin123"
   }
 }

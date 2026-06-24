@@ -5,6 +5,8 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { InvoiceForm } from "@/components/billing/InvoiceForm";
 import { InvoiceStatusSelect } from "@/components/billing/InvoiceStatusSelect";
+import { EditInvoiceButton } from "@/components/billing/EditInvoiceButton";
+import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 import { BillingDateRangeFilter } from "@/components/billing/BillingDateRangeFilter";
 import { RevenueTrendChart } from "@/components/billing/RevenueTrendChart";
 import { prisma } from "@/lib/prisma";
@@ -18,6 +20,7 @@ export default async function BillingFinancePage({
 }) {
   const { from, to } = await searchParams;
   const t = await getTranslations("billing");
+  const tc = await getTranslations("common");
 
   const dateFilter =
     from || to
@@ -83,15 +86,29 @@ export default async function BillingFinancePage({
       },
     },
     {
-      header: "PDF",
+      header: tc("actions"),
       accessor: (r) => (
-        <a
-          href={`/api/invoices/${r.id}/pdf`}
-          target="_blank"
-          className="flex items-center gap-1 text-brand-100 hover:underline"
-        >
-          <FileText size={14} />
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href={`/api/invoices/${r.id}/pdf`}
+            target="_blank"
+            className="flex items-center gap-1 text-brand-100 hover:underline"
+            title={tc("print")}
+          >
+            <FileText size={14} />
+          </a>
+          <EditInvoiceButton
+            invoice={{
+              id: r.id,
+              customerId: r.customerId,
+              description: r.description,
+              amount: r.amount,
+              dueAt: r.dueAt ? r.dueAt.toISOString() : null,
+            }}
+            customers={customers.map((c) => ({ id: c.id, label: c.name }))}
+          />
+          <ConfirmDeleteButton apiPath={`/api/invoices/${r.id}`} />
+        </div>
       ),
     },
   ];

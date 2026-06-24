@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -21,14 +22,18 @@ async function main() {
   await prisma.containerType.deleteMany();
   await prisma.user.deleteMany();
 
-  const admin = await prisma.user.create({
-    data: {
-      name: "Admin User",
-      email: "admin@depot.local",
-      passwordHash: "dev-placeholder",
-      role: "ADMIN",
-    },
-  });
+  const passwordHash = await bcrypt.hash("admin123", 10);
+
+  const [admin] = await Promise.all(
+    [
+      { name: "Admin User", email: "admin@depot.local", role: "ADMIN" },
+      { name: "Gate Clerk", email: "gateclerk@depot.local", role: "GATE_CLERK" },
+      { name: "Yard Planner", email: "yardplanner@depot.local", role: "YARD_PLANNER" },
+      { name: "PTI Inspector", email: "ptiinspector@depot.local", role: "PTI_INSPECTOR" },
+      { name: "Reefer Technician", email: "reefertech@depot.local", role: "REEFER_TECHNICIAN" },
+      { name: "Finance Officer", email: "finance@depot.local", role: "FINANCE" },
+    ].map((u) => prisma.user.create({ data: { ...u, passwordHash } }))
+  );
 
   const containerTypes = await Promise.all(
     [
@@ -161,7 +166,13 @@ async function main() {
     }
   }
 
-  console.log("Seed complete:", { admin: admin.email, containers: sampleContainers.length, locations: locationData.length, customers: customers.length });
+  console.log("Seed complete:", {
+    admin: admin.email,
+    password: "admin123 (same for all seeded users)",
+    containers: sampleContainers.length,
+    locations: locationData.length,
+    customers: customers.length,
+  });
 }
 
 main()

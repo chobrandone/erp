@@ -9,23 +9,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const body = await req.json();
 
-  const repair = await prisma.repair.update({
+  const movement = await prisma.containerMovement.update({
     where: { id },
     data: {
-      ...(body.status !== undefined ? { status: body.status } : {}),
-      ...(body.damageType !== undefined ? { damageType: body.damageType } : {}),
-      ...(body.description !== undefined ? { description: body.description || null } : {}),
-      ...(body.estimatedCost !== undefined
-        ? { estimatedCost: body.estimatedCost === "" ? null : Number(body.estimatedCost) }
-        : {}),
+      ...(body.reason !== undefined ? { reason: body.reason } : {}),
+      ...(body.equipment !== undefined ? { equipment: body.equipment || null } : {}),
     },
   });
 
-  if (body.status === "COMPLETED") {
-    await prisma.container.update({ where: { id: repair.containerId }, data: { status: "EMPTY" } });
-  }
-
-  return NextResponse.json({ repair });
+  return NextResponse.json({ movement });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -33,6 +25,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (unauthorized) return unauthorized;
 
   const { id } = await params;
-  await prisma.repair.delete({ where: { id } });
+  await prisma.containerMovement.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }
