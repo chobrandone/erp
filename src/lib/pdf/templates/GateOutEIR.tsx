@@ -1,10 +1,12 @@
 import { Document, Page, View, Text } from "@react-pdf/renderer";
-import { styles, DocumentHeader, Field, SignatureBlock, DocFooter } from "./shared";
+import { styles, DocumentHeader, Field, SignatureBlock, CheckboxGroup, DocFooter } from "./shared";
 
 export type GateOutEIRData = {
   docNumber: string;
   qrDataUrl: string;
   generatedAt: string;
+  date: string;
+  time: string;
   containerNumber: string;
   containerType: string;
   currentLocation: string;
@@ -13,7 +15,7 @@ export type GateOutEIRData = {
   customer: string;
   truckPlate: string;
   driverName: string;
-  condition: string;
+  condition: "GOOD" | "DAMAGED";
   remarks: string;
 };
 
@@ -22,11 +24,16 @@ export function GateOutEIR(data: GateOutEIRData) {
     <Document>
       <Page size="A4" style={styles.page}>
         <DocumentHeader
-          docTitle="Equipment Interchange Receipt — Gate Out"
+          docTitle="Equipment Interchange Receipt (Gate Out)"
           docNumber={data.docNumber}
           qrDataUrl={data.qrDataUrl}
           generatedAt={data.generatedAt}
         />
+
+        <View style={styles.grid}>
+          <Field label="Date" value={data.date} />
+          <Field label="Time" value={data.time} />
+        </View>
 
         <Text style={styles.sectionTitle}>Container Details</Text>
         <View style={styles.grid}>
@@ -49,11 +56,13 @@ export function GateOutEIR(data: GateOutEIRData) {
         </View>
 
         <Text style={styles.sectionTitle}>Final Condition</Text>
-        <View style={styles.grid}>
-          <Field label="Condition" value={data.condition} />
-          <Field label="Remarks" value={data.remarks} full />
-        </View>
+        <CheckboxGroup
+          options={["Good Condition", "Damaged"]}
+          selected={data.condition === "GOOD" ? "Good Condition" : "Damaged"}
+        />
+        <Field label="Remarks" value={data.remarks} full />
 
+        <Text style={styles.sectionTitle}>Authorized Release</Text>
         <SignatureBlock leftLabel="Operations Officer Signature" rightLabel="Driver Signature" />
         <DocFooter page={1} totalPages={1} />
       </Page>

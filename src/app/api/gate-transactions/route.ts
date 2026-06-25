@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
           containerNumber: data.containerNumber,
           containerTypeId: data.containerTypeId,
           shippingLineId: data.shippingLineId || null,
-          status: data.condition === "DAMAGED" ? "DAMAGED" : "FULL",
+          status: data.condition === "DAMAGED" ? "DAMAGED" : data.status,
         },
       });
     }
@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
         grossWeightKg: data.grossWeightKg,
         condition: data.condition,
         damageRemarks: data.damageRemarks,
+        photosAttached: data.photosAttached,
       },
     });
 

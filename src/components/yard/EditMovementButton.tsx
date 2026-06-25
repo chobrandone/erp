@@ -6,10 +6,19 @@ import { useRouter } from "@/i18n/navigation";
 import { Pencil, X } from "lucide-react";
 import { inputClass } from "@/components/shared/FormSection";
 
+type Reason = "YARD_ALLOCATION" | "YARD_REPOSITION" | "PTI" | "REEFER_CONNECTION" | "REPAIR" | "GATE_OUT";
+
 export function EditMovementButton({
   movement,
 }: {
-  movement: { id: string; reason: string; equipment: string | null };
+  movement: {
+    id: string;
+    reason: string;
+    equipment: string | null;
+    operator: string | null;
+    supervisorName: string | null;
+    completed: boolean;
+  };
 }) {
   const t = useTranslations("yard");
   const tc = useTranslations("common");
@@ -17,8 +26,11 @@ export function EditMovementButton({
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
-    reason: movement.reason as "YARD_OPTIMIZATION" | "GATE_OUT_PREP" | "INSPECTION" | "REPAIR",
+    reason: movement.reason as Reason,
     equipment: movement.equipment ?? "",
+    operator: movement.operator ?? "",
+    supervisorName: movement.supervisorName ?? "",
+    completed: movement.completed,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -60,17 +72,38 @@ export function EditMovementButton({
                 <select
                   className={inputClass}
                   value={form.reason}
-                  onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value as typeof form.reason }))}
+                  onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value as Reason }))}
                 >
-                  <option value="YARD_OPTIMIZATION">{t("reasonYardOptimization")}</option>
-                  <option value="GATE_OUT_PREP">{t("reasonGateOutPrep")}</option>
-                  <option value="INSPECTION">{t("reasonInspection")}</option>
+                  <option value="YARD_ALLOCATION">{t("reasonYardAllocation")}</option>
+                  <option value="YARD_REPOSITION">{t("reasonYardReposition")}</option>
+                  <option value="PTI">{t("reasonPTI")}</option>
+                  <option value="REEFER_CONNECTION">{t("reasonReeferConnection")}</option>
                   <option value="REPAIR">{t("reasonRepair")}</option>
+                  <option value="GATE_OUT">{t("reasonGateOut")}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-fg-muted mb-1.5">{t("equipment")}</label>
                 <input className={inputClass} value={form.equipment} onChange={(e) => setForm((f) => ({ ...f, equipment: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-fg-muted mb-1.5">{t("operator")}</label>
+                <input className={inputClass} value={form.operator} onChange={(e) => setForm((f) => ({ ...f, operator: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-fg-muted mb-1.5">{t("supervisorName")}</label>
+                <input className={inputClass} value={form.supervisorName} onChange={(e) => setForm((f) => ({ ...f, supervisorName: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-fg-muted mb-1.5">{t("movementCompleted")}</label>
+                <select
+                  className={inputClass}
+                  value={form.completed ? "yes" : "no"}
+                  onChange={(e) => setForm((f) => ({ ...f, completed: e.target.value === "yes" }))}
+                >
+                  <option value="no">{tc("no")}</option>
+                  <option value="yes">{tc("yes")}</option>
+                </select>
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setOpen(false)} className="text-sm font-medium text-fg-muted hover:text-fg px-4 py-2 rounded-lg">

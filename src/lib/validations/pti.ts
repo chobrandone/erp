@@ -2,7 +2,14 @@ import { z } from "zod";
 
 export const ptiRequestSchema = z.object({
   containerId: z.string().min(1),
+  customerId: z.string().optional(),
+  shippingLineId: z.string().optional(),
   priority: z.enum(["NORMAL", "URGENT"]),
+  requiredDate: z.string().optional(),
+  inspectionType: z.enum(["STANDARD", "SPECIAL"]).default("STANDARD"),
+  remarks: z.string().optional(),
+  requestedBy: z.string().optional(),
+  approvedBy: z.string().optional(),
 });
 export type PTIRequestInput = z.infer<typeof ptiRequestSchema>;
 

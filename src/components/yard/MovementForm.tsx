@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
 
 type Option = { id: string; label: string };
+type Reason = "YARD_ALLOCATION" | "YARD_REPOSITION" | "PTI" | "REEFER_CONNECTION" | "REPAIR" | "GATE_OUT";
 
 export function MovementForm({
   containers,
@@ -22,8 +23,11 @@ export function MovementForm({
   const [form, setForm] = useState({
     containerId: containers[0]?.id ?? "",
     toLocationId: locations[0]?.id ?? "",
-    reason: "YARD_OPTIMIZATION" as "YARD_OPTIMIZATION" | "GATE_OUT_PREP" | "INSPECTION" | "REPAIR",
+    reason: "YARD_ALLOCATION" as Reason,
     equipment: "",
+    operator: "",
+    supervisorName: "",
+    completed: false,
   });
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -82,21 +86,47 @@ export function MovementForm({
           <select
             className={inputClass}
             value={form.reason}
-            onChange={(e) => update("reason", e.target.value as typeof form.reason)}
+            onChange={(e) => update("reason", e.target.value as Reason)}
           >
-            <option value="YARD_OPTIMIZATION">{t("reasonYardOptimization")}</option>
-            <option value="GATE_OUT_PREP">{t("reasonGateOutPrep")}</option>
-            <option value="INSPECTION">{t("reasonInspection")}</option>
+            <option value="YARD_ALLOCATION">{t("reasonYardAllocation")}</option>
+            <option value="YARD_REPOSITION">{t("reasonYardReposition")}</option>
+            <option value="PTI">{t("reasonPTI")}</option>
+            <option value="REEFER_CONNECTION">{t("reasonReeferConnection")}</option>
             <option value="REPAIR">{t("reasonRepair")}</option>
+            <option value="GATE_OUT">{t("reasonGateOut")}</option>
           </select>
         </FormField>
-        <FormField label={t("equipment")} full>
+        <FormField label={t("equipment")}>
           <input
             className={inputClass}
             value={form.equipment}
             onChange={(e) => update("equipment", e.target.value)}
             placeholder="Reach Stacker 2"
           />
+        </FormField>
+        <FormField label={t("operator")}>
+          <input
+            className={inputClass}
+            value={form.operator}
+            onChange={(e) => update("operator", e.target.value)}
+          />
+        </FormField>
+        <FormField label={t("supervisorName")}>
+          <input
+            className={inputClass}
+            value={form.supervisorName}
+            onChange={(e) => update("supervisorName", e.target.value)}
+          />
+        </FormField>
+        <FormField label={t("movementCompleted")}>
+          <select
+            className={inputClass}
+            value={form.completed ? "yes" : "no"}
+            onChange={(e) => update("completed", e.target.value === "yes")}
+          >
+            <option value="no">{tc("no")}</option>
+            <option value="yes">{tc("yes")}</option>
+          </select>
         </FormField>
       </FormSection>
 

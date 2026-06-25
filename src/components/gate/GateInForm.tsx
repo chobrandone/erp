@@ -31,8 +31,10 @@ export function GateInForm({
     driverId: "",
     sealNumber: "",
     grossWeightKg: "",
+    status: "FULL" as "EMPTY" | "FULL",
     condition: "GOOD" as "GOOD" | "DAMAGED",
     damageRemarks: "",
+    photosAttached: false,
   });
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -150,6 +152,16 @@ export function GateInForm({
             onChange={(e) => update("grossWeightKg", e.target.value)}
           />
         </FormField>
+        <FormField label={t("status")}>
+          <select
+            className={inputClass}
+            value={form.status}
+            onChange={(e) => update("status", e.target.value as "EMPTY" | "FULL")}
+          >
+            <option value="EMPTY">{t("statusEmpty")}</option>
+            <option value="FULL">{t("statusFull")}</option>
+          </select>
+        </FormField>
         <FormField label={t("condition")}>
           <select
             className={inputClass}
@@ -170,6 +182,16 @@ export function GateInForm({
             />
           </FormField>
         )}
+        <FormField label={t("photosAttached")}>
+          <select
+            className={inputClass}
+            value={form.photosAttached ? "yes" : "no"}
+            onChange={(e) => update("photosAttached", e.target.value === "yes")}
+          >
+            <option value="no">{tc("no")}</option>
+            <option value="yes">{tc("yes")}</option>
+          </select>
+        </FormField>
       </FormSection>
 
       {error && <p className="text-sm text-red-500">{error}</p>}

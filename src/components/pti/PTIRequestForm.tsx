@@ -7,7 +7,15 @@ import { FormSection, FormField, inputClass } from "@/components/shared/FormSect
 
 type Option = { id: string; label: string };
 
-export function PTIRequestForm({ containers }: { containers: Option[] }) {
+export function PTIRequestForm({
+  containers,
+  customers,
+  shippingLines,
+}: {
+  containers: Option[];
+  customers: Option[];
+  shippingLines: Option[];
+}) {
   const t = useTranslations("pti");
   const tc = useTranslations("common");
   const router = useRouter();
@@ -15,7 +23,14 @@ export function PTIRequestForm({ containers }: { containers: Option[] }) {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     containerId: containers[0]?.id ?? "",
+    customerId: "",
+    shippingLineId: "",
     priority: "NORMAL" as "NORMAL" | "URGENT",
+    requiredDate: "",
+    inspectionType: "STANDARD" as "STANDARD" | "SPECIAL",
+    remarks: "",
+    requestedBy: "",
+    approvedBy: "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -53,6 +68,34 @@ export function PTIRequestForm({ containers }: { containers: Option[] }) {
             ))}
           </select>
         </FormField>
+        <FormField label={t("customerLabel")}>
+          <select
+            className={inputClass}
+            value={form.customerId}
+            onChange={(e) => setForm((f) => ({ ...f, customerId: e.target.value }))}
+          >
+            <option value="">-</option>
+            {customers.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label={t("shippingLineLabel")}>
+          <select
+            className={inputClass}
+            value={form.shippingLineId}
+            onChange={(e) => setForm((f) => ({ ...f, shippingLineId: e.target.value }))}
+          >
+            <option value="">-</option>
+            {shippingLines.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </FormField>
         <FormField label={t("priority")}>
           <select
             className={inputClass}
@@ -62,6 +105,46 @@ export function PTIRequestForm({ containers }: { containers: Option[] }) {
             <option value="NORMAL">{t("normal")}</option>
             <option value="URGENT">{t("urgent")}</option>
           </select>
+        </FormField>
+        <FormField label={t("requiredDate")}>
+          <input
+            type="date"
+            className={inputClass}
+            value={form.requiredDate}
+            onChange={(e) => setForm((f) => ({ ...f, requiredDate: e.target.value }))}
+          />
+        </FormField>
+        <FormField label={t("inspectionType")}>
+          <select
+            className={inputClass}
+            value={form.inspectionType}
+            onChange={(e) => setForm((f) => ({ ...f, inspectionType: e.target.value as "STANDARD" | "SPECIAL" }))}
+          >
+            <option value="STANDARD">{t("standardPti")}</option>
+            <option value="SPECIAL">{t("specialPti")}</option>
+          </select>
+        </FormField>
+        <FormField label={t("remarks")} full>
+          <textarea
+            className={inputClass}
+            rows={3}
+            value={form.remarks}
+            onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))}
+          />
+        </FormField>
+        <FormField label={t("requestedBy")}>
+          <input
+            className={inputClass}
+            value={form.requestedBy}
+            onChange={(e) => setForm((f) => ({ ...f, requestedBy: e.target.value }))}
+          />
+        </FormField>
+        <FormField label={t("approvedBy")}>
+          <input
+            className={inputClass}
+            value={form.approvedBy}
+            onChange={(e) => setForm((f) => ({ ...f, approvedBy: e.target.value }))}
+          />
         </FormField>
       </FormSection>
 

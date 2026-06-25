@@ -39,6 +39,10 @@ export async function POST(req: NextRequest) {
       toLocationId: data.toLocationId,
       reason: data.reason,
       equipment: data.equipment,
+      operator: data.operator,
+      supervisorName: data.supervisorName,
+      completed: data.completed,
+      completionTime: data.completed ? new Date() : null,
     },
   });
 

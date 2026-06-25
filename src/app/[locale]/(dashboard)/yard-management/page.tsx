@@ -31,6 +31,12 @@ export default async function YardManagementPage() {
             >
               {t("movements")}
             </Link>
+            <Link
+              href="/yard-management/daily-stock-report"
+              className="text-sm font-medium text-fg-muted hover:text-fg border border-border-color rounded-lg px-4 py-2"
+            >
+              {t("dailyStockReport")}
+            </Link>
           </>
         }
       />

@@ -1,10 +1,12 @@
 import { Document, Page, View, Text } from "@react-pdf/renderer";
-import { styles, DocumentHeader, Field, SignatureBlock, PhotoPlaceholders, DocFooter } from "./shared";
+import { styles, DocumentHeader, Field, SignatureBlock, PhotoPlaceholders, CheckboxGroup, DocFooter } from "./shared";
 
 export type GateInEIRData = {
   docNumber: string;
   qrDataUrl: string;
   generatedAt: string;
+  date: string;
+  time: string;
   shippingLine: string;
   customer: string;
   truckPlate: string;
@@ -13,11 +15,12 @@ export type GateInEIRData = {
   containerNumber: string;
   isoType: string;
   size: string;
-  status: string;
-  condition: string;
+  status: "EMPTY" | "FULL";
+  condition: "GOOD" | "DAMAGED";
   damageRemarks: string;
   sealNumber: string;
   locationAssigned: string;
+  photosAttached: boolean;
 };
 
 export function GateInEIR(data: GateInEIRData) {
@@ -25,11 +28,16 @@ export function GateInEIR(data: GateInEIRData) {
     <Document>
       <Page size="A4" style={styles.page}>
         <DocumentHeader
-          docTitle="Equipment Interchange Receipt — Gate In"
+          docTitle="Equipment Interchange Receipt (Gate In)"
           docNumber={data.docNumber}
           qrDataUrl={data.qrDataUrl}
           generatedAt={data.generatedAt}
         />
+
+        <View style={styles.grid}>
+          <Field label="Date" value={data.date} />
+          <Field label="Time" value={data.time} />
+        </View>
 
         <Text style={styles.sectionTitle}>Customer Information</Text>
         <View style={styles.grid}>
@@ -45,18 +53,25 @@ export function GateInEIR(data: GateInEIRData) {
           <Field label="Container Number" value={data.containerNumber} />
           <Field label="ISO Type" value={data.isoType} />
           <Field label="Size" value={data.size} />
-          <Field label="Status" value={data.status} />
-          <Field label="Seal Number" value={data.sealNumber} />
-          <Field label="Location Assigned" value={data.locationAssigned} />
-          <Field label="Arrival Condition" value={data.condition} />
-          {data.condition === "DAMAGED" && (
-            <Field label="Damage Description" value={data.damageRemarks} full />
-          )}
+          <CheckboxGroup label="Status" options={["Empty", "Full"]} selected={data.status === "EMPTY" ? "Empty" : "Full"} />
         </View>
+
+        <Text style={styles.sectionTitle}>Arrival Condition</Text>
+        <CheckboxGroup
+          options={["Good Condition", "Damaged"]}
+          selected={data.condition === "GOOD" ? "Good Condition" : "Damaged"}
+        />
+        {data.condition === "DAMAGED" && <Field label="Damage Description" value={data.damageRemarks} full />}
+        <View style={styles.grid}>
+          <Field label="Seal Number" value={data.sealNumber} />
+          <Field label="Container Location Assigned" value={data.locationAssigned} />
+        </View>
+        <CheckboxGroup label="Photos Attached" options={["Yes", "No"]} selected={data.photosAttached ? "Yes" : "No"} />
 
         <Text style={styles.sectionTitle}>Photographs</Text>
         <PhotoPlaceholders count={4} />
 
+        <Text style={styles.sectionTitle}>Received By</Text>
         <SignatureBlock leftLabel="Gate Clerk Signature" rightLabel="Driver Signature" />
         <DocFooter page={1} totalPages={1} />
       </Page>

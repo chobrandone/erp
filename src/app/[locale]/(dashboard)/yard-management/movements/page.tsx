@@ -36,7 +36,16 @@ export default async function MovementsPage() {
           >
             <FileText size={14} /> {tc("print")}
           </a>
-          <EditMovementButton movement={{ id: r.id, reason: r.reason, equipment: r.equipment }} />
+          <EditMovementButton
+            movement={{
+              id: r.id,
+              reason: r.reason,
+              equipment: r.equipment,
+              operator: r.operator,
+              supervisorName: r.supervisorName,
+              completed: r.completed,
+            }}
+          />
           <ConfirmDeleteButton apiPath={`/api/movements/${r.id}`} />
         </div>
       ),

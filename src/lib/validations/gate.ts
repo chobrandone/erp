@@ -10,8 +10,10 @@ export const gateInSchema = z.object({
   driverId: z.string().optional(),
   sealNumber: z.string().optional(),
   grossWeightKg: z.coerce.number().optional(),
+  status: z.enum(["EMPTY", "FULL"]).default("FULL"),
   condition: z.enum(["GOOD", "DAMAGED"]),
   damageRemarks: z.string().optional(),
+  photosAttached: z.boolean().optional().default(false),
 });
 export type GateInInput = z.infer<typeof gateInSchema>;
 

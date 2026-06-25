@@ -35,6 +35,8 @@ model Customer {
 
   gateTransactions GateTransaction[]
   invoices         Invoice[]
+  releaseOrders    ReleaseOrder[]
+  ptiRequests      PTIRequest[]
 }
 
 model ShippingLine {
@@ -44,6 +46,8 @@ model ShippingLine {
 
   containers       Container[]
   gateTransactions GateTransaction[]
+  ptiRequests      PTIRequest[]
+  releaseOrders    ReleaseOrder[]
 }
 
 model ContainerType {
@@ -73,8 +77,13 @@ model Container {
   movements        ContainerMovement[]
   gateTransactions GateTransaction[]
   reeferLogs       ReeferMonitoring[]
+  reeferConnections ReeferConnection[]
   ptiRequests      PTIRequest[]
   repairs          Repair[]
+  damageSurveys    DamageSurvey[]
+  repairEstimates  RepairEstimate[]
+  repairWorkOrders RepairWorkOrder[]
+  releaseOrders    ReleaseOrder[]
 }
 
 model Location {
@@ -122,6 +131,7 @@ model GateTransaction {
   condition          String  @default("GOOD") // GOOD, DAMAGED
   damageRemarks      String?
   photoUrls          String? // JSON-encoded array
+  photosAttached     Boolean @default(false)
   clerkInId          String?
   clerkIn            User?   @relation("GateClerkIn", fields: [clerkInId], references: [id])
   clerkOutId         String?
@@ -139,33 +149,68 @@ model ContainerMovement {
   fromLocation   Location? @relation("FromLocation", fields: [fromLocationId], references: [id])
   toLocationId   String
   toLocation     Location  @relation("ToLocation", fields: [toLocationId], references: [id])
-  reason         String // YARD_OPTIMIZATION, GATE_OUT_PREP, INSPECTION, REPAIR
+  reason         String // YARD_ALLOCATION, YARD_REPOSITION, PTI, REEFER_CONNECTION, REPAIR, GATE_OUT
   equipment      String?
+  operator       String?
   movedById      String?
   movedBy        User?     @relation(fields: [movedById], references: [id])
+  supervisorName String?
+  completed      Boolean   @default(false)
+  completionTime DateTime?
   createdAt      DateTime  @default(now())
 }
 
 model ReeferMonitoring {
-  id          String    @id @default(cuid())
-  containerId String
-  container   Container @relation(fields: [containerId], references: [id])
-  setTempC    Float
-  actualTempC Float
-  humidity    Float?
-  powerStatus String // CONNECTED, DISCONNECTED, ALARM
-  recordedAt  DateTime  @default(now())
+  id               String    @id @default(cuid())
+  reportNo         String?   @unique
+  containerId      String
+  container        Container @relation(fields: [containerId], references: [id])
+  plugNumber       String?
+  setTempC         Float
+  actualTempC      Float
+  supplyAirTempC   Float?
+  returnAirTempC   Float?
+  ambientTempC     Float?
+  humidity         Float?
+  powerStatus      String // CONNECTED, DISCONNECTED, ALARM
+  alarmStatus      String    @default("NORMAL") // NORMAL, ALARM
+  alarmDescription String?
+  technician       String?
+  recordedAt       DateTime  @default(now())
+}
+
+model ReeferConnection {
+  id                String    @id @default(cuid())
+  referenceNo       String    @unique
+  containerId       String
+  container         Container @relation(fields: [containerId], references: [id])
+  plugNumber        String?
+  connectionTime    DateTime?
+  disconnectionTime DateTime?
+  connectedBy       String?
+  disconnectedBy    String?
+  powerStatus       String    @default("OPERATIONAL") // OPERATIONAL, FAULT
+  remarks           String?
+  createdAt         DateTime  @default(now())
 }
 
 model PTIRequest {
-  id            String    @id @default(cuid())
-  docNumber     String    @unique
-  containerId   String
-  container     Container @relation(fields: [containerId], references: [id])
-  customerId    String?
-  priority      String    @default("NORMAL")
-  status        String    @default("PENDING") // PENDING, IN_PROGRESS, PASSED, FAILED
-  requestedAt   DateTime  @default(now())
+  id             String    @id @default(cuid())
+  docNumber      String    @unique
+  containerId    String
+  container      Container @relation(fields: [containerId], references: [id])
+  customerId     String?
+  customer       Customer? @relation(fields: [customerId], references: [id])
+  shippingLineId String?
+  shippingLine   ShippingLine? @relation(fields: [shippingLineId], references: [id])
+  priority       String    @default("NORMAL")
+  status         String    @default("PENDING") // PENDING, IN_PROGRESS, PASSED, FAILED
+  requiredDate   DateTime?
+  inspectionType String    @default("STANDARD") // STANDARD, SPECIAL
+  remarks        String?
+  requestedBy    String?
+  approvedBy     String?
+  requestedAt    DateTime  @default(now())
 
   inspection PTIInspection?
 }
@@ -200,6 +245,70 @@ model Document {
   refId     String
   filePath  String
   createdAt DateTime @default(now())
+}
+
+model DamageSurvey {
+  id                String    @id @default(cuid())
+  surveyNo          String    @unique
+  containerId       String
+  container         Container @relation(fields: [containerId], references: [id])
+  location          String?
+  surveyDate        DateTime  @default(now())
+  surveyor          String?
+  frontEnd          String?
+  rearEnd           String?
+  roof              String?
+  floor             String?
+  leftSide          String?
+  rightSide         String?
+  severity          String    @default("MINOR") // MINOR, MODERATE, MAJOR
+  photosAttached    Boolean   @default(false)
+  repairRecommended Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+}
+
+model RepairEstimate {
+  id               String    @id @default(cuid())
+  estimateNo       String    @unique
+  containerId      String
+  container        Container @relation(fields: [containerId], references: [id])
+  workDescription  String
+  laborCost        Float     @default(0)
+  materialCost     Float     @default(0)
+  equipmentCost    Float     @default(0)
+  customerApproved Boolean   @default(false)
+  approvalDate     DateTime?
+  createdAt        DateTime  @default(now())
+}
+
+model RepairWorkOrder {
+  id                 String    @id @default(cuid())
+  workOrderNo        String    @unique
+  containerId        String
+  container          Container @relation(fields: [containerId], references: [id])
+  assignedTechnician String?
+  startDate          DateTime?
+  expectedCompletion DateTime?
+  workToBeDone       String
+  materialsRequired  String?
+  completionStatus   String    @default("OPEN") // OPEN, IN_PROGRESS, COMPLETED
+  createdAt          DateTime  @default(now())
+}
+
+model ReleaseOrder {
+  id                    String    @id @default(cuid())
+  releaseNo             String    @unique
+  containerId           String
+  container             Container @relation(fields: [containerId], references: [id])
+  customerId            String?
+  customer              Customer? @relation(fields: [customerId], references: [id])
+  shippingLineId        String?
+  shippingLine          ShippingLine? @relation(fields: [shippingLineId], references: [id])
+  authorizedReleaseDate DateTime?
+  destination           String?
+  approvedBy            String?
+  gateAuthorization     String    @default("APPROVED") // APPROVED, REJECTED
+  createdAt             DateTime  @default(now())
 }
 
 model Invoice {

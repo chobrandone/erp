@@ -18,6 +18,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const qrDataUrl = await generateQrDataUrl(transaction.docNumber);
   const generatedAt = new Date().toLocaleString();
+  const date = transaction.createdAt.toLocaleDateString();
+  const time = transaction.createdAt.toLocaleTimeString();
 
   if (transaction.type === "GATE_IN") {
     return pdfResponse(
@@ -25,6 +27,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         docNumber: transaction.docNumber,
         qrDataUrl,
         generatedAt,
+        date,
+        time,
         shippingLine: transaction.shippingLine?.name ?? "-",
         customer: transaction.customer?.name ?? "-",
         truckPlate: transaction.truckPlate,
@@ -33,11 +37,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         containerNumber: transaction.container.containerNumber,
         isoType: transaction.container.containerType.code,
         size: `${transaction.container.containerType.lengthFt}ft`,
-        status: transaction.container.status,
-        condition: transaction.condition,
+        status: transaction.container.status === "EMPTY" ? "EMPTY" : "FULL",
+        condition: transaction.condition as "GOOD" | "DAMAGED",
         damageRemarks: transaction.damageRemarks ?? "-",
         sealNumber: transaction.sealNumber ?? "-",
         locationAssigned: transaction.container.inventory?.location.code ?? "Unassigned",
+        photosAttached: transaction.photosAttached,
       }),
       transaction.docNumber
     );
@@ -48,6 +53,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       docNumber: transaction.docNumber,
       qrDataUrl,
       generatedAt,
+      date,
+      time,
       containerNumber: transaction.container.containerNumber,
       containerType: transaction.container.containerType.code,
       currentLocation: transaction.container.inventory?.location.code ?? "-",
@@ -56,7 +63,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       customer: transaction.customer?.name ?? "-",
       truckPlate: transaction.truckPlate,
       driverName: transaction.driverName,
-      condition: transaction.condition,
+      condition: transaction.condition as "GOOD" | "DAMAGED",
       remarks: transaction.damageRemarks ?? "-",
     }),
     transaction.docNumber

@@ -80,6 +80,19 @@ export const styles = StyleSheet.create({
     borderTopColor: "#E5E7EB",
     paddingTop: 6,
   },
+  checkboxGroupWrap: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 2, marginBottom: 8 },
+  checkboxOption: { flexDirection: "row", alignItems: "center", gap: 4 },
+  checkboxBox: {
+    width: 9,
+    height: 9,
+    borderWidth: 1,
+    borderColor: "#374151",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxBoxChecked: { backgroundColor: "#5415BC", borderColor: "#5415BC" },
+  checkboxMark: { fontSize: 7, color: "#fff", fontWeight: 700 },
+  checkboxOptionLabel: { fontSize: 9 },
 });
 
 export function DocumentHeader({
@@ -142,6 +155,35 @@ export function PhotoPlaceholders({ count = 4 }: { count?: number }) {
           <Text style={styles.photoLabel}>Photo {i + 1}</Text>
         </View>
       ))}
+    </View>
+  );
+}
+
+export function CheckboxGroup({
+  label,
+  options,
+  selected,
+}: {
+  label?: string;
+  options: string[];
+  selected: string;
+}) {
+  return (
+    <View style={styles.fieldFull}>
+      {label && <Text style={styles.fieldLabel}>{label}</Text>}
+      <View style={styles.checkboxGroupWrap}>
+        {options.map((opt) => {
+          const checked = opt === selected;
+          return (
+            <View key={opt} style={styles.checkboxOption}>
+              <View style={[styles.checkboxBox, checked ? styles.checkboxBoxChecked : {}]}>
+                {checked && <Text style={styles.checkboxMark}>X</Text>}
+              </View>
+              <Text style={styles.checkboxOptionLabel}>{opt}</Text>
+            </View>
+          );
+        })}
+      </View>
     </View>
   );
 }

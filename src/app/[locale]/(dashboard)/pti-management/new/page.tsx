@@ -5,7 +5,11 @@ import { prisma } from "@/lib/prisma";
 
 export default async function NewPTIRequestPage() {
   const t = await getTranslations("pti");
-  const containers = await prisma.container.findMany({ include: { containerType: true } });
+  const [containers, customers, shippingLines] = await Promise.all([
+    prisma.container.findMany({ include: { containerType: true } }),
+    prisma.customer.findMany(),
+    prisma.shippingLine.findMany(),
+  ]);
 
   return (
     <div>
@@ -15,6 +19,8 @@ export default async function NewPTIRequestPage() {
           id: c.id,
           label: `${c.containerNumber} (${c.containerType.code})`,
         }))}
+        customers={customers.map((c) => ({ id: c.id, label: c.name }))}
+        shippingLines={shippingLines.map((s) => ({ id: s.id, label: s.name }))}
       />
     </div>
   );

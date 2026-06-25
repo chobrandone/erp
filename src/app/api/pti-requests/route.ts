@@ -26,7 +26,14 @@ export async function POST(req: NextRequest) {
     data: {
       docNumber,
       containerId: data.containerId,
+      customerId: data.customerId || null,
+      shippingLineId: data.shippingLineId || null,
       priority: data.priority,
+      requiredDate: data.requiredDate ? new Date(data.requiredDate) : null,
+      inspectionType: data.inspectionType,
+      remarks: data.remarks || null,
+      requestedBy: data.requestedBy || null,
+      approvedBy: data.approvedBy || null,
       status: "PENDING",
     },
   });

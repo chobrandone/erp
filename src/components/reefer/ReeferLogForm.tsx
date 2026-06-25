@@ -14,10 +14,17 @@ export function ReeferLogForm({ containers }: { containers: Option[] }) {
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     containerId: containers[0]?.id ?? "",
+    plugNumber: "",
     setTempC: "-18",
     actualTempC: "-17.8",
+    supplyAirTempC: "",
+    returnAirTempC: "",
+    ambientTempC: "",
     humidity: "65",
     powerStatus: "CONNECTED" as "CONNECTED" | "DISCONNECTED" | "ALARM",
+    alarmStatus: "NORMAL" as "NORMAL" | "ALARM",
+    alarmDescription: "",
+    technician: "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -51,6 +58,13 @@ export function ReeferLogForm({ containers }: { containers: Option[] }) {
             ))}
           </select>
         </FormField>
+        <FormField label={t("plugNumber")}>
+          <input
+            className={inputClass}
+            value={form.plugNumber}
+            onChange={(e) => setForm((f) => ({ ...f, plugNumber: e.target.value }))}
+          />
+        </FormField>
         <FormField label={t("setPoint")}>
           <input
             type="number"
@@ -67,6 +81,33 @@ export function ReeferLogForm({ containers }: { containers: Option[] }) {
             className={inputClass}
             value={form.actualTempC}
             onChange={(e) => setForm((f) => ({ ...f, actualTempC: e.target.value }))}
+          />
+        </FormField>
+        <FormField label={t("supplyAir")}>
+          <input
+            type="number"
+            step="0.1"
+            className={inputClass}
+            value={form.supplyAirTempC}
+            onChange={(e) => setForm((f) => ({ ...f, supplyAirTempC: e.target.value }))}
+          />
+        </FormField>
+        <FormField label={t("returnAir")}>
+          <input
+            type="number"
+            step="0.1"
+            className={inputClass}
+            value={form.returnAirTempC}
+            onChange={(e) => setForm((f) => ({ ...f, returnAirTempC: e.target.value }))}
+          />
+        </FormField>
+        <FormField label={t("ambientTemp")}>
+          <input
+            type="number"
+            step="0.1"
+            className={inputClass}
+            value={form.ambientTempC}
+            onChange={(e) => setForm((f) => ({ ...f, ambientTempC: e.target.value }))}
           />
         </FormField>
         <FormField label={t("humidity")}>
@@ -87,6 +128,33 @@ export function ReeferLogForm({ containers }: { containers: Option[] }) {
             <option value="DISCONNECTED">{t("disconnected")}</option>
             <option value="ALARM">{t("alarm")}</option>
           </select>
+        </FormField>
+        <FormField label={t("alarmStatus")}>
+          <select
+            className={inputClass}
+            value={form.alarmStatus}
+            onChange={(e) => setForm((f) => ({ ...f, alarmStatus: e.target.value as "NORMAL" | "ALARM" }))}
+          >
+            <option value="NORMAL">{t("alarmNormal")}</option>
+            <option value="ALARM">{t("alarm")}</option>
+          </select>
+        </FormField>
+        {form.alarmStatus === "ALARM" && (
+          <FormField label={t("alarmDescription")} full>
+            <textarea
+              className={inputClass}
+              rows={2}
+              value={form.alarmDescription}
+              onChange={(e) => setForm((f) => ({ ...f, alarmDescription: e.target.value }))}
+            />
+          </FormField>
+        )}
+        <FormField label={t("technician")}>
+          <input
+            className={inputClass}
+            value={form.technician}
+            onChange={(e) => setForm((f) => ({ ...f, technician: e.target.value }))}
+          />
         </FormField>
       </FormSection>
       <button

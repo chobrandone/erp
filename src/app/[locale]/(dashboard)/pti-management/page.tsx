@@ -5,7 +5,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
-import { Plus } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 import { EditPTIPriorityButton } from "@/components/pti/EditPTIPriorityButton";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 
@@ -48,6 +48,13 @@ export default async function PTIManagementPage() {
             <Link href={`/pti-management/${r.id}/inspect`} className="text-brand-100 hover:underline">
               {t("inspection")}
             </Link>
+            <a
+              href={`/api/pti-requests/${r.id}/pdf`}
+              target="_blank"
+              className="flex items-center gap-1 text-brand-100 hover:underline"
+            >
+              <FileText size={14} /> {tc("print")}
+            </a>
             <ConfirmDeleteButton apiPath={`/api/pti-requests/${r.id}`} />
           </div>
         ),

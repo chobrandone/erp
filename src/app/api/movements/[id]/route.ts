@@ -14,6 +14,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     data: {
       ...(body.reason !== undefined ? { reason: body.reason } : {}),
       ...(body.equipment !== undefined ? { equipment: body.equipment || null } : {}),
+      ...(body.operator !== undefined ? { operator: body.operator || null } : {}),
+      ...(body.supervisorName !== undefined ? { supervisorName: body.supervisorName || null } : {}),
+      ...(body.completed !== undefined
+        ? { completed: body.completed, completionTime: body.completed ? new Date() : null }
+        : {}),
     },
   });
 
