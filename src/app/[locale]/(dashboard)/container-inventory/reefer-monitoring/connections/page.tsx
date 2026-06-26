@@ -3,16 +3,32 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ReeferConnectionForm } from "@/components/reefer/ReeferConnectionForm";
+import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
-export default async function ReeferConnectionsPage() {
+export default async function ReeferConnectionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const t = await getTranslations("reefer");
   const tc = await getTranslations("common");
 
   const [connections, containers] = await Promise.all([
     prisma.reeferConnection.findMany({
+      where: q
+        ? {
+            OR: [
+              { referenceNo: { contains: q } },
+              { plugNumber: { contains: q } },
+              { connectedBy: { contains: q } },
+              { container: { containerNumber: { contains: q } } },
+            ],
+          }
+        : {},
       include: { container: true },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -42,7 +58,11 @@ export default async function ReeferConnectionsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("connectionFormTitle")} subtitle={t("connectionFormSubtitle")} />
+      <PageHeader
+        title={t("connectionFormTitle")}
+        subtitle={t("connectionFormSubtitle")}
+        actions={<SearchBox initialQuery={q} />}
+      />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
           <ReeferConnectionForm

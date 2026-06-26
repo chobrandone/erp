@@ -21,6 +21,7 @@ export type GateInEIRData = {
   sealNumber: string;
   locationAssigned: string;
   photosAttached: boolean;
+  remarks: string;
 };
 
 export function GateInEIR(data: GateInEIRData) {
@@ -67,6 +68,7 @@ export function GateInEIR(data: GateInEIRData) {
           <Field label="Container Location Assigned" value={data.locationAssigned} />
         </View>
         <CheckboxGroup label="Photos Attached" options={["Yes", "No"]} selected={data.photosAttached ? "Yes" : "No"} />
+        <Field label="Remarks" value={data.remarks} full />
 
         <Text style={styles.sectionTitle}>Photographs</Text>
         <PhotoPlaceholders count={4} />

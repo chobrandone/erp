@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       supervisorName: data.supervisorName,
       completed: data.completed,
       completionTime: data.completed ? new Date() : null,
+      remarks: data.remarks,
     },
   });
 

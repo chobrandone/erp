@@ -14,6 +14,7 @@ export const gateInSchema = z.object({
   condition: z.enum(["GOOD", "DAMAGED"]),
   damageRemarks: z.string().optional(),
   photosAttached: z.boolean().optional().default(false),
+  remarks: z.string().optional(),
 });
 export type GateInInput = z.infer<typeof gateInSchema>;
 
@@ -25,5 +26,6 @@ export const gateOutSchema = z.object({
   driverName: z.string().min(1),
   condition: z.enum(["GOOD", "DAMAGED"]),
   damageRemarks: z.string().optional(),
+  remarks: z.string().optional(),
 });
 export type GateOutInput = z.infer<typeof gateOutSchema>;

@@ -19,6 +19,7 @@ export function RepairWorkOrderForm({ containers }: { containers: Option[] }) {
     expectedCompletion: "",
     workToBeDone: "",
     materialsRequired: "",
+    remarks: "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -76,6 +77,14 @@ export function RepairWorkOrderForm({ containers }: { containers: Option[] }) {
             rows={2}
             value={form.materialsRequired}
             onChange={(e) => setForm((f) => ({ ...f, materialsRequired: e.target.value }))}
+          />
+        </FormField>
+        <FormField label={tc("remarks")} full>
+          <textarea
+            className={inputClass}
+            rows={3}
+            value={form.remarks}
+            onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))}
           />
         </FormField>
       </FormSection>

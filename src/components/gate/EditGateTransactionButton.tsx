@@ -17,6 +17,7 @@ type Transaction = {
   damageRemarks: string | null;
   destination: string | null;
   releaseOrderNo: string | null;
+  remarks: string | null;
 };
 
 export function EditGateTransactionButton({ transaction }: { transaction: Transaction }) {
@@ -35,6 +36,7 @@ export function EditGateTransactionButton({ transaction }: { transaction: Transa
     damageRemarks: transaction.damageRemarks ?? "",
     destination: transaction.destination ?? "",
     releaseOrderNo: transaction.releaseOrderNo ?? "",
+    remarks: transaction.remarks ?? "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -125,6 +127,10 @@ export function EditGateTransactionButton({ transaction }: { transaction: Transa
                   <textarea className={inputClass} rows={3} value={form.damageRemarks} onChange={(e) => setForm((f) => ({ ...f, damageRemarks: e.target.value }))} />
                 </div>
               )}
+              <div>
+                <label className="block text-xs font-medium text-fg-muted mb-1.5">{tc("remarks")}</label>
+                <textarea className={inputClass} rows={3} value={form.remarks} onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))} />
+              </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setOpen(false)} className="text-sm font-medium text-fg-muted hover:text-fg px-4 py-2 rounded-lg">
                   {tc("cancel")}

@@ -28,6 +28,7 @@ export function MovementForm({
     operator: "",
     supervisorName: "",
     completed: false,
+    remarks: "",
   });
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -127,6 +128,14 @@ export function MovementForm({
             <option value="no">{tc("no")}</option>
             <option value="yes">{tc("yes")}</option>
           </select>
+        </FormField>
+        <FormField label={tc("remarks")} full>
+          <textarea
+            className={inputClass}
+            rows={3}
+            value={form.remarks}
+            onChange={(e) => update("remarks", e.target.value)}
+          />
         </FormField>
       </FormSection>
 

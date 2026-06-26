@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
       severity: body.severity || "MINOR",
       photosAttached: !!body.photosAttached,
       repairRecommended: !!body.repairRecommended,
+      remarks: body.remarks || null,
     },
   });
   return NextResponse.json({ survey });

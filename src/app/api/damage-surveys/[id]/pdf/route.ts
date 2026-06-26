@@ -30,6 +30,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       severity: survey.severity as "MINOR" | "MODERATE" | "MAJOR",
       photosAttached: survey.photosAttached,
       repairRecommended: survey.repairRecommended,
+      remarks: survey.remarks ?? "-",
     }),
     survey.surveyNo
   );

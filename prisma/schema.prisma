@@ -130,6 +130,7 @@ model GateTransaction {
   releaseOrderNo     String?
   condition          String  @default("GOOD") // GOOD, DAMAGED
   damageRemarks      String?
+  remarks            String?
   photoUrls          String? // JSON-encoded array
   photosAttached     Boolean @default(false)
   clerkInId          String?
@@ -157,6 +158,7 @@ model ContainerMovement {
   supervisorName String?
   completed      Boolean   @default(false)
   completionTime DateTime?
+  remarks        String?
   createdAt      DateTime  @default(now())
 }
 
@@ -176,6 +178,7 @@ model ReeferMonitoring {
   alarmStatus      String    @default("NORMAL") // NORMAL, ALARM
   alarmDescription String?
   technician       String?
+  remarks          String?
   recordedAt       DateTime  @default(now())
 }
 
@@ -264,6 +267,7 @@ model DamageSurvey {
   severity          String    @default("MINOR") // MINOR, MODERATE, MAJOR
   photosAttached    Boolean   @default(false)
   repairRecommended Boolean   @default(false)
+  remarks           String?
   createdAt         DateTime  @default(now())
 }
 
@@ -278,6 +282,7 @@ model RepairEstimate {
   equipmentCost    Float     @default(0)
   customerApproved Boolean   @default(false)
   approvalDate     DateTime?
+  remarks          String?
   createdAt        DateTime  @default(now())
 }
 
@@ -292,6 +297,7 @@ model RepairWorkOrder {
   workToBeDone       String
   materialsRequired  String?
   completionStatus   String    @default("OPEN") // OPEN, IN_PROGRESS, COMPLETED
+  remarks            String?
   createdAt          DateTime  @default(now())
 }
 
@@ -308,6 +314,7 @@ model ReleaseOrder {
   destination           String?
   approvedBy            String?
   gateAuthorization     String    @default("APPROVED") // APPROVED, REJECTED
+  remarks               String?
   createdAt             DateTime  @default(now())
 }
 

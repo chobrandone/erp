@@ -30,6 +30,7 @@ export type RepairEstimateData = {
   equipmentCost: string;
   totalCost: string;
   approvalDate: string;
+  remarks: string;
 };
 
 export function RepairEstimatePdf(data: RepairEstimateData) {
@@ -58,6 +59,8 @@ export function RepairEstimatePdf(data: RepairEstimateData) {
           <Field label="Material Cost" value={data.materialCost} />
           <Field label="Equipment Cost" value={data.equipmentCost} />
         </View>
+
+        <Field label="Remarks" value={data.remarks} full />
 
         <View style={local.totalRow}>
           <Text style={local.totalLabel}>TOTAL COST</Text>

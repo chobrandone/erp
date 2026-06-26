@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       equipmentCost: Number(body.equipmentCost) || 0,
       customerApproved: !!body.customerApproved,
       approvalDate: body.customerApproved ? new Date() : null,
+      remarks: body.remarks || null,
     },
   });
   return NextResponse.json({ estimate });

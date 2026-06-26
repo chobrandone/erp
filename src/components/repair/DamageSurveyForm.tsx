@@ -25,6 +25,7 @@ export function DamageSurveyForm({ containers }: { containers: Option[] }) {
     severity: "MINOR" as "MINOR" | "MODERATE" | "MAJOR",
     photosAttached: false,
     repairRecommended: false,
+    remarks: "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -112,6 +113,14 @@ export function DamageSurveyForm({ containers }: { containers: Option[] }) {
             <option value="no">{tc("no")}</option>
             <option value="yes">{tc("yes")}</option>
           </select>
+        </FormField>
+        <FormField label={tc("remarks")} full>
+          <textarea
+            className={inputClass}
+            rows={3}
+            value={form.remarks}
+            onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))}
+          />
         </FormField>
       </FormSection>
       <button

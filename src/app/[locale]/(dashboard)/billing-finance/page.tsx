@@ -9,6 +9,7 @@ import { EditInvoiceButton } from "@/components/billing/EditInvoiceButton";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 import { BillingDateRangeFilter } from "@/components/billing/BillingDateRangeFilter";
 import { RevenueTrendChart } from "@/components/billing/RevenueTrendChart";
+import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { Receipt, Wallet, TrendingUp, AlertCircle, FileText } from "lucide-react";
@@ -16,9 +17,9 @@ import { Receipt, Wallet, TrendingUp, AlertCircle, FileText } from "lucide-react
 export default async function BillingFinancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; q?: string }>;
 }) {
-  const { from, to } = await searchParams;
+  const { from, to, q } = await searchParams;
   const t = await getTranslations("billing");
   const tc = await getTranslations("common");
 
@@ -32,9 +33,19 @@ export default async function BillingFinancePage({
         }
       : {};
 
+  const searchFilter = q
+    ? {
+        OR: [
+          { invoiceNumber: { contains: q } },
+          { description: { contains: q } },
+          { customer: { name: { contains: q } } },
+        ],
+      }
+    : {};
+
   const [invoicesInRange, allUnpaid, customers] = await Promise.all([
     prisma.invoice.findMany({
-      where: dateFilter,
+      where: { ...dateFilter, ...searchFilter },
       include: { customer: true },
       orderBy: { issuedAt: "desc" },
     }),
@@ -115,9 +126,9 @@ export default async function BillingFinancePage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} extraParams={{ from, to }} />} />
 
-      <BillingDateRangeFilter initialFrom={from} initialTo={to} />
+      <BillingDateRangeFilter initialFrom={from} initialTo={to} initialQuery={q} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard title={t("totalOutstanding")} value={`$${totalOutstanding.toFixed(2)}`} icon={Receipt} accentIndex={1} />

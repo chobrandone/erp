@@ -2,16 +2,31 @@ import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { RepairEstimateForm } from "@/components/repair/RepairEstimateForm";
+import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
-export default async function RepairEstimatePage() {
+export default async function RepairEstimatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const t = await getTranslations("repairEstimate");
   const tc = await getTranslations("common");
 
   const [estimates, containers] = await Promise.all([
     prisma.repairEstimate.findMany({
+      where: q
+        ? {
+            OR: [
+              { estimateNo: { contains: q } },
+              { workDescription: { contains: q } },
+              { container: { containerNumber: { contains: q } } },
+            ],
+          }
+        : {},
       include: { container: true },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -44,7 +59,7 @@ export default async function RepairEstimatePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
           <RepairEstimateForm

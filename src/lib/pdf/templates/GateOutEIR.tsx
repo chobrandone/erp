@@ -16,6 +16,7 @@ export type GateOutEIRData = {
   truckPlate: string;
   driverName: string;
   condition: "GOOD" | "DAMAGED";
+  damageRemarks: string;
   remarks: string;
 };
 
@@ -60,6 +61,7 @@ export function GateOutEIR(data: GateOutEIRData) {
           options={["Good Condition", "Damaged"]}
           selected={data.condition === "GOOD" ? "Good Condition" : "Damaged"}
         />
+        <Field label="Damage Remarks" value={data.damageRemarks} full />
         <Field label="Remarks" value={data.remarks} full />
 
         <Text style={styles.sectionTitle}>Authorized Release</Text>

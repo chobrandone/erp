@@ -3,16 +3,31 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DamageSurveyForm } from "@/components/repair/DamageSurveyForm";
+import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
-export default async function DamageSurveyPage() {
+export default async function DamageSurveyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const t = await getTranslations("damageSurvey");
   const tc = await getTranslations("common");
 
   const [surveys, containers] = await Promise.all([
     prisma.damageSurvey.findMany({
+      where: q
+        ? {
+            OR: [
+              { surveyNo: { contains: q } },
+              { surveyor: { contains: q } },
+              { container: { containerNumber: { contains: q } } },
+            ],
+          }
+        : {},
       include: { container: true },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -42,7 +57,7 @@ export default async function DamageSurveyPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
           <DamageSurveyForm

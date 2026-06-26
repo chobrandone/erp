@@ -18,6 +18,7 @@ export function RepairEstimateForm({ containers }: { containers: Option[] }) {
     laborCost: "",
     materialCost: "",
     equipmentCost: "",
+    remarks: "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -68,6 +69,14 @@ export function RepairEstimateForm({ containers }: { containers: Option[] }) {
         </FormField>
         <FormField label={t("equipmentCost")}>
           <input type="number" step="0.01" className={inputClass} value={form.equipmentCost} onChange={(e) => setForm((f) => ({ ...f, equipmentCost: e.target.value }))} />
+        </FormField>
+        <FormField label={tc("remarks")} full>
+          <textarea
+            className={inputClass}
+            rows={3}
+            value={form.remarks}
+            onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))}
+          />
         </FormField>
       </FormSection>
       <button

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Plus, X, Pencil } from "lucide-react";
+import { Plus, X, Pencil, Search } from "lucide-react";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { inputClass } from "@/components/shared/FormSection";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
@@ -39,6 +39,7 @@ export function MasterDataPanel<T extends { id: string } & Record<string, unknow
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [query, setQuery] = useState("");
 
   const emptyForm = () =>
     Object.fromEntries(fields.map((f) => [f.key, f.type === "checkbox" ? false : ""]));
@@ -138,6 +139,16 @@ export function MasterDataPanel<T extends { id: string } & Record<string, unknow
         </form>
       )}
 
+      <div className="relative mb-3 max-w-xs">
+        <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-subtle" />
+        <input
+          className={`${inputClass} pl-8`}
+          placeholder={tc("searchPlaceholder")}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
       <DataTable
         columns={[
           ...columns.map<Column<T>>((col) => ({
@@ -167,7 +178,13 @@ export function MasterDataPanel<T extends { id: string } & Record<string, unknow
             ),
           },
         ]}
-        rows={initialRows}
+        rows={
+          query.trim()
+            ? initialRows.filter((row) =>
+                JSON.stringify(row).toLowerCase().includes(query.trim().toLowerCase())
+              )
+            : initialRows
+        }
       />
     </div>
   );

@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       workToBeDone: body.workToBeDone || "",
       materialsRequired: body.materialsRequired || null,
       completionStatus: "OPEN",
+      remarks: body.remarks || null,
     },
   });
   return NextResponse.json({ workOrder });

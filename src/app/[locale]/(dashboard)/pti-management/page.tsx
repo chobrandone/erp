@@ -8,12 +8,28 @@ import { Link } from "@/i18n/navigation";
 import { Plus, FileText } from "lucide-react";
 import { EditPTIPriorityButton } from "@/components/pti/EditPTIPriorityButton";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
+import { SearchBox } from "@/components/shared/SearchBox";
 
-export default async function PTIManagementPage() {
+export default async function PTIManagementPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const t = await getTranslations("pti");
   const tc = await getTranslations("common");
 
   const requests = await prisma.pTIRequest.findMany({
+    where: q
+      ? {
+          OR: [
+            { docNumber: { contains: q } },
+            { requestedBy: { contains: q } },
+            { approvedBy: { contains: q } },
+            { container: { containerNumber: { contains: q } } },
+          ],
+        }
+      : {},
     include: { container: { include: { containerType: true } }, inspection: true },
     orderBy: { requestedAt: "desc" },
   });
@@ -67,12 +83,15 @@ export default async function PTIManagementPage() {
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <Link
-            href="/pti-management/new"
-            className="flex items-center gap-1.5 brand-gradient text-white text-sm font-medium px-4 py-2 rounded-lg"
-          >
-            <Plus size={16} /> {t("newRequest")}
-          </Link>
+          <>
+            <SearchBox initialQuery={q} />
+            <Link
+              href="/pti-management/new"
+              className="flex items-center gap-1.5 brand-gradient text-white text-sm font-medium px-4 py-2 rounded-lg"
+            >
+              <Plus size={16} /> {t("newRequest")}
+            </Link>
+          </>
         }
       />
       <DataTable columns={cols} rows={requests} />

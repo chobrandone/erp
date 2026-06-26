@@ -5,15 +5,30 @@ import { RepairForm } from "@/components/repair/RepairForm";
 import { RepairStatusSelect } from "@/components/repair/RepairStatusSelect";
 import { EditRepairButton } from "@/components/repair/EditRepairButton";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
+import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 
-export default async function MaintenanceRepairPage() {
+export default async function MaintenanceRepairPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const t = await getTranslations("repair");
   const tc = await getTranslations("common");
 
   const [repairs, containers] = await Promise.all([
     prisma.repair.findMany({
+      where: q
+        ? {
+            OR: [
+              { damageType: { contains: q } },
+              { description: { contains: q } },
+              { container: { containerNumber: { contains: q } } },
+            ],
+          }
+        : {},
       include: { container: { include: { containerType: true } } },
       orderBy: { createdAt: "desc" },
     }),
@@ -49,7 +64,7 @@ export default async function MaintenanceRepairPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
           <RepairForm

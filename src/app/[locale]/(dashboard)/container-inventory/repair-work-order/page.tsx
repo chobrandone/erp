@@ -3,16 +3,32 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { RepairWorkOrderForm } from "@/components/repair/RepairWorkOrderForm";
 import { WorkOrderStatusSelect } from "@/components/repair/WorkOrderStatusSelect";
+import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
-export default async function RepairWorkOrderPage() {
+export default async function RepairWorkOrderPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const t = await getTranslations("repairWorkOrder");
   const tc = await getTranslations("common");
 
   const [workOrders, containers] = await Promise.all([
     prisma.repairWorkOrder.findMany({
+      where: q
+        ? {
+            OR: [
+              { workOrderNo: { contains: q } },
+              { assignedTechnician: { contains: q } },
+              { workToBeDone: { contains: q } },
+              { container: { containerNumber: { contains: q } } },
+            ],
+          }
+        : {},
       include: { container: true },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -42,7 +58,7 @@ export default async function RepairWorkOrderPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
           <RepairWorkOrderForm

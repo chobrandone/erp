@@ -30,6 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(body.damageRemarks !== undefined ? { damageRemarks: body.damageRemarks || null } : {}),
       ...(body.destination !== undefined ? { destination: body.destination || null } : {}),
       ...(body.releaseOrderNo !== undefined ? { releaseOrderNo: body.releaseOrderNo || null } : {}),
+      ...(body.remarks !== undefined ? { remarks: body.remarks || null } : {}),
     },
   });
 

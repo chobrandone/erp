@@ -24,6 +24,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       workToBeDone: workOrder.workToBeDone.split("\n").filter(Boolean),
       materialsRequired: workOrder.materialsRequired ?? "-",
       completionStatus: workOrder.completionStatus as "OPEN" | "IN_PROGRESS" | "COMPLETED",
+      remarks: workOrder.remarks ?? "-",
     }),
     workOrder.workOrderNo
   );

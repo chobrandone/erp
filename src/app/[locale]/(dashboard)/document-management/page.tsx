@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
+import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/utils";
 import { FileText } from "lucide-react";
@@ -13,7 +14,12 @@ type DocRow = {
   pdfUrl: string;
 };
 
-export default async function DocumentManagementPage() {
+export default async function DocumentManagementPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const t = await getTranslations("documents");
   const tc = await getTranslations("common");
 
@@ -67,6 +73,10 @@ export default async function DocumentManagementPage() {
     })),
   ].sort((a, b) => b.generatedOn.getTime() - a.generatedOn.getTime());
 
+  const filteredRows = q
+    ? rows.filter((r) => `${r.type} ${r.reference}`.toLowerCase().includes(q.toLowerCase()))
+    : rows;
+
   const cols: Column<DocRow>[] = [
     { header: t("type"), accessor: (r) => r.type.replace(/_/g, " ") },
     { header: t("reference"), accessor: (r) => r.reference },
@@ -87,8 +97,8 @@ export default async function DocumentManagementPage() {
 
   return (
     <div>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
-      <DataTable columns={cols} rows={rows} />
+      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
+      <DataTable columns={cols} rows={filteredRows} />
     </div>
   );
 }

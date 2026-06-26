@@ -12,6 +12,7 @@ export type ReleaseOrderData = {
   destination: string;
   approvedBy: string;
   gateAuthorization: "APPROVED" | "REJECTED";
+  remarks: string;
 };
 
 export function ReleaseOrderPdf(data: ReleaseOrderData) {
@@ -40,6 +41,7 @@ export function ReleaseOrderPdf(data: ReleaseOrderData) {
           selected={data.gateAuthorization === "APPROVED" ? "Approved" : "Rejected"}
         />
 
+        <Field label="Remarks" value={data.remarks} full />
         <SignatureBlock leftLabel="Signature" rightLabel="" />
         <DocFooter page={1} totalPages={1} />
       </Page>

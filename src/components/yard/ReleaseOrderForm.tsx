@@ -28,6 +28,7 @@ export function ReleaseOrderForm({
     destination: "",
     approvedBy: "",
     gateAuthorization: "APPROVED" as "APPROVED" | "REJECTED",
+    remarks: "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -120,6 +121,14 @@ export function ReleaseOrderForm({
             <option value="APPROVED">{tc("approved")}</option>
             <option value="REJECTED">{tc("rejected")}</option>
           </select>
+        </FormField>
+        <FormField label={tc("remarks")} full>
+          <textarea
+            className={inputClass}
+            rows={3}
+            value={form.remarks}
+            onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))}
+          />
         </FormField>
       </FormSection>
       <button

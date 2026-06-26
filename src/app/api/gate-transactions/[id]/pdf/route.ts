@@ -43,6 +43,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         sealNumber: transaction.sealNumber ?? "-",
         locationAssigned: transaction.container.inventory?.location.code ?? "Unassigned",
         photosAttached: transaction.photosAttached,
+        remarks: transaction.remarks ?? "-",
       }),
       transaction.docNumber
     );
@@ -64,7 +65,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       truckPlate: transaction.truckPlate,
       driverName: transaction.driverName,
       condition: transaction.condition as "GOOD" | "DAMAGED",
-      remarks: transaction.damageRemarks ?? "-",
+      damageRemarks: transaction.damageRemarks ?? "-",
+      remarks: transaction.remarks ?? "-",
     }),
     transaction.docNumber
   );

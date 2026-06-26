@@ -21,6 +21,7 @@ export function GateOutForm({ containers }: { containers: ContainerOption[] }) {
     driverName: "",
     condition: "GOOD" as "GOOD" | "DAMAGED",
     damageRemarks: "",
+    remarks: "",
   });
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -106,7 +107,7 @@ export function GateOutForm({ containers }: { containers: ContainerOption[] }) {
           </select>
         </FormField>
         {form.condition === "DAMAGED" && (
-          <FormField label="Remarks" full>
+          <FormField label="Damage Description" full>
             <textarea
               className={inputClass}
               rows={3}
@@ -115,6 +116,14 @@ export function GateOutForm({ containers }: { containers: ContainerOption[] }) {
             />
           </FormField>
         )}
+        <FormField label={tc("remarks")} full>
+          <textarea
+            className={inputClass}
+            rows={3}
+            value={form.remarks}
+            onChange={(e) => update("remarks", e.target.value)}
+          />
+        </FormField>
       </FormSection>
 
       {error && <p className="text-sm text-red-500">{error}</p>}

@@ -19,6 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(body.completed !== undefined
         ? { completed: body.completed, completionTime: body.completed ? new Date() : null }
         : {}),
+      ...(body.remarks !== undefined ? { remarks: body.remarks || null } : {}),
     },
   });
 

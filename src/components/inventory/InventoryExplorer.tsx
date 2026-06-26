@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Search } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, Column } from "@/components/shared/DataTable";
+import { inputClass } from "@/components/shared/FormSection";
 import { formatDate } from "@/lib/utils";
 
 type Row = {
@@ -30,6 +32,7 @@ export function InventoryExplorer({
   const [line, setLine] = useState("ALL");
   const [type, setType] = useState("ALL");
   const [status, setStatus] = useState("ALL");
+  const [query, setQuery] = useState("");
 
   const filtered = useMemo(
     () =>
@@ -37,9 +40,11 @@ export function InventoryExplorer({
         (r) =>
           (line === "ALL" || r.lineName === line) &&
           (type === "ALL" || r.typeCode === type) &&
-          (status === "ALL" || r.status === status)
+          (status === "ALL" || r.status === status) &&
+          (!query.trim() ||
+            JSON.stringify(r).toLowerCase().includes(query.trim().toLowerCase()))
       ),
-    [rows, line, type, status]
+    [rows, line, type, status, query]
   );
 
   const statuses = useMemo(() => Array.from(new Set(rows.map((r) => r.status))), [rows]);
@@ -61,6 +66,15 @@ export function InventoryExplorer({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
+        <div className="relative">
+          <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-subtle" />
+          <input
+            className={`${inputClass} pl-8 w-56`}
+            placeholder={tc("searchPlaceholder")}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
         <select
           value={line}
           onChange={(e) => setLine(e.target.value)}

@@ -16,6 +16,7 @@ export type RepairWorkOrderData = {
   workToBeDone: string[];
   materialsRequired: string;
   completionStatus: "OPEN" | "IN_PROGRESS" | "COMPLETED";
+  remarks: string;
 };
 
 export function RepairWorkOrderPdf(data: RepairWorkOrderData) {
@@ -52,6 +53,7 @@ export function RepairWorkOrderPdf(data: RepairWorkOrderData) {
           selected={statusLabel}
         />
 
+        <Field label="Remarks" value={data.remarks} full />
         <SignatureBlock leftLabel="Supervisor Signature" rightLabel="" />
         <DocFooter page={1} totalPages={1} />
       </Page>

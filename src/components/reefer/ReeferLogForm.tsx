@@ -25,6 +25,7 @@ export function ReeferLogForm({ containers }: { containers: Option[] }) {
     alarmStatus: "NORMAL" as "NORMAL" | "ALARM",
     alarmDescription: "",
     technician: "",
+    remarks: "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -154,6 +155,14 @@ export function ReeferLogForm({ containers }: { containers: Option[] }) {
             className={inputClass}
             value={form.technician}
             onChange={(e) => setForm((f) => ({ ...f, technician: e.target.value }))}
+          />
+        </FormField>
+        <FormField label={tc("remarks")} full>
+          <textarea
+            className={inputClass}
+            rows={3}
+            value={form.remarks}
+            onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))}
           />
         </FormField>
       </FormSection>

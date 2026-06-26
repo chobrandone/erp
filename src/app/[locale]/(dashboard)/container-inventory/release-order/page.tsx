@@ -3,16 +3,33 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ReleaseOrderForm } from "@/components/yard/ReleaseOrderForm";
+import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
-export default async function ReleaseOrderPage() {
+export default async function ReleaseOrderPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const t = await getTranslations("releaseOrder");
   const tc = await getTranslations("common");
 
   const [releaseOrders, containers, customers, shippingLines] = await Promise.all([
     prisma.releaseOrder.findMany({
+      where: q
+        ? {
+            OR: [
+              { releaseNo: { contains: q } },
+              { destination: { contains: q } },
+              { approvedBy: { contains: q } },
+              { container: { containerNumber: { contains: q } } },
+              { customer: { name: { contains: q } } },
+            ],
+          }
+        : {},
       include: { container: true, customer: true, shippingLine: true },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -45,7 +62,7 @@ export default async function ReleaseOrderPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
           <ReleaseOrderForm

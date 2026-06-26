@@ -18,6 +18,7 @@ export type DamageSurveyData = {
   severity: "MINOR" | "MODERATE" | "MAJOR";
   photosAttached: boolean;
   repairRecommended: boolean;
+  remarks: string;
 };
 
 export function DamageSurveyPdf(data: DamageSurveyData) {
@@ -57,6 +58,7 @@ export function DamageSurveyPdf(data: DamageSurveyData) {
           selected={data.repairRecommended ? "Yes" : "No"}
         />
 
+        <Field label="Remarks" value={data.remarks} full />
         <SignatureBlock leftLabel="Surveyor Signature" rightLabel="" />
         <DocFooter page={1} totalPages={1} />
       </Page>

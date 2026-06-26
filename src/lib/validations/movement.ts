@@ -8,5 +8,6 @@ export const movementSchema = z.object({
   operator: z.string().optional(),
   supervisorName: z.string().optional(),
   completed: z.boolean().optional().default(false),
+  remarks: z.string().optional(),
 });
 export type MovementInput = z.infer<typeof movementSchema>;

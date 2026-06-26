@@ -28,6 +28,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       supervisorName: movement.supervisorName ?? "-",
       completed: movement.completed,
       completionTime: movement.completionTime ? movement.completionTime.toLocaleString() : "-",
+      remarks: movement.remarks ?? "-",
     }),
     movement.docNumber
   );

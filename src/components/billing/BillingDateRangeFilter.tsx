@@ -9,9 +9,11 @@ import { inputClass } from "@/components/shared/FormSection";
 export function BillingDateRangeFilter({
   initialFrom,
   initialTo,
+  initialQuery,
 }: {
   initialFrom?: string;
   initialTo?: string;
+  initialQuery?: string;
 }) {
   const t = useTranslations("billing");
   const router = useRouter();
@@ -23,6 +25,7 @@ export function BillingDateRangeFilter({
     const params = new URLSearchParams();
     if (from) params.set("from", from);
     if (to) params.set("to", to);
+    if (initialQuery) params.set("q", initialQuery);
     router.push(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`);
   }
 

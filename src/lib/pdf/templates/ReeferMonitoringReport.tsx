@@ -17,6 +17,7 @@ export type ReeferMonitoringReportData = {
   alarmStatus: "NORMAL" | "ALARM";
   alarmDescription: string;
   technician: string;
+  remarks: string;
 };
 
 export function ReeferMonitoringReportPdf(data: ReeferMonitoringReportData) {
@@ -55,6 +56,7 @@ export function ReeferMonitoringReportPdf(data: ReeferMonitoringReportData) {
         />
         <Field label="Alarm Description" value={data.alarmDescription} full />
         <Field label="Technician" value={data.technician} />
+        <Field label="Remarks" value={data.remarks} full />
 
         <DocFooter page={1} totalPages={1} />
       </Page>

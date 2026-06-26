@@ -31,6 +31,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       alarmStatus: log.alarmStatus as "NORMAL" | "ALARM",
       alarmDescription: log.alarmDescription ?? "-",
       technician: log.technician ?? "-",
+      remarks: log.remarks ?? "-",
     }),
     docNumber
   );

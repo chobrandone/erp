@@ -44,6 +44,8 @@
     "open": "Open",
     "inProgress": "In Progress",
     "completed": "Completed",
+    "remarks": "Remarks",
+    "searchPlaceholder": "Search...",
     "lightMode": "Light Mode",
     "darkMode": "Dark Mode",
     "language": "Language",

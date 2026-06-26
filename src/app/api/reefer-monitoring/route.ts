@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
       alarmStatus: body.alarmStatus || "NORMAL",
       alarmDescription: body.alarmDescription || null,
       technician: body.technician || null,
+      remarks: body.remarks || null,
     },
   });
   return NextResponse.json({ log });

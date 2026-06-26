@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       destination: body.destination || null,
       approvedBy: body.approvedBy || null,
       gateAuthorization: body.gateAuthorization || "APPROVED",
+      remarks: body.remarks || null,
     },
   });
   return NextResponse.json({ releaseOrder });

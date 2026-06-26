@@ -25,6 +25,7 @@ export type MovementOrderData = {
   supervisorName: string;
   completed: boolean;
   completionTime: string;
+  remarks: string;
 };
 
 export function MovementOrder(data: MovementOrderData) {
@@ -73,6 +74,8 @@ export function MovementOrder(data: MovementOrderData) {
           />
           <Field label="Completion Time" value={data.completionTime} />
         </View>
+
+        <Field label="Remarks" value={data.remarks} full />
 
         <DocFooter page={1} totalPages={1} />
       </Page>

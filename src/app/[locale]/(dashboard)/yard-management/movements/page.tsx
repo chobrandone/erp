@@ -7,12 +7,28 @@ import { Link } from "@/i18n/navigation";
 import { Plus, FileText } from "lucide-react";
 import { EditMovementButton } from "@/components/yard/EditMovementButton";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
+import { SearchBox } from "@/components/shared/SearchBox";
 
-export default async function MovementsPage() {
+export default async function MovementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const t = await getTranslations("yard");
   const tc = await getTranslations("common");
 
   const movements = await prisma.containerMovement.findMany({
+    where: q
+      ? {
+          OR: [
+            { docNumber: { contains: q } },
+            { equipment: { contains: q } },
+            { operator: { contains: q } },
+            { container: { containerNumber: { contains: q } } },
+          ],
+        }
+      : {},
     include: { container: true, fromLocation: true, toLocation: true },
     orderBy: { createdAt: "desc" },
     take: 50,
@@ -44,6 +60,7 @@ export default async function MovementsPage() {
               operator: r.operator,
               supervisorName: r.supervisorName,
               completed: r.completed,
+              remarks: r.remarks,
             }}
           />
           <ConfirmDeleteButton apiPath={`/api/movements/${r.id}`} />
@@ -57,12 +74,15 @@ export default async function MovementsPage() {
       <PageHeader
         title={t("movements")}
         actions={
-          <Link
-            href="/yard-management/movements/new"
-            className="flex items-center gap-1.5 brand-gradient text-white text-sm font-medium px-4 py-2 rounded-lg"
-          >
-            <Plus size={16} /> {t("newMovement")}
-          </Link>
+          <>
+            <SearchBox initialQuery={q} />
+            <Link
+              href="/yard-management/movements/new"
+              className="flex items-center gap-1.5 brand-gradient text-white text-sm font-medium px-4 py-2 rounded-lg"
+            >
+              <Plus size={16} /> {t("newMovement")}
+            </Link>
+          </>
         }
       />
       <DataTable columns={cols} rows={movements} />

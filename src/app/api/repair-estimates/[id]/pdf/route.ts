@@ -26,6 +26,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       equipmentCost: `$${estimate.equipmentCost.toFixed(2)}`,
       totalCost: `$${total.toFixed(2)}`,
       approvalDate: estimate.approvalDate ? estimate.approvalDate.toLocaleDateString() : "-",
+      remarks: estimate.remarks ?? "-",
     }),
     estimate.estimateNo
   );

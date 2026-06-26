@@ -18,6 +18,7 @@ export function EditMovementButton({
     operator: string | null;
     supervisorName: string | null;
     completed: boolean;
+    remarks: string | null;
   };
 }) {
   const t = useTranslations("yard");
@@ -31,6 +32,7 @@ export function EditMovementButton({
     operator: movement.operator ?? "",
     supervisorName: movement.supervisorName ?? "",
     completed: movement.completed,
+    remarks: movement.remarks ?? "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -104,6 +106,10 @@ export function EditMovementButton({
                   <option value="no">{tc("no")}</option>
                   <option value="yes">{tc("yes")}</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-fg-muted mb-1.5">{tc("remarks")}</label>
+                <textarea className={inputClass} rows={3} value={form.remarks} onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))} />
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setOpen(false)} className="text-sm font-medium text-fg-muted hover:text-fg px-4 py-2 rounded-lg">

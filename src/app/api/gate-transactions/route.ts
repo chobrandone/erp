@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
         condition: data.condition,
         damageRemarks: data.damageRemarks,
         photosAttached: data.photosAttached,
+        remarks: data.remarks,
       },
     });
 
@@ -96,6 +97,7 @@ export async function POST(req: NextRequest) {
         releaseOrderNo: data.releaseOrderNo,
         condition: data.condition,
         damageRemarks: data.damageRemarks,
+        remarks: data.remarks,
       },
     });
 

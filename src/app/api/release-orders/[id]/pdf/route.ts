@@ -26,6 +26,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       destination: releaseOrder.destination ?? "-",
       approvedBy: releaseOrder.approvedBy ?? "-",
       gateAuthorization: releaseOrder.gateAuthorization as "APPROVED" | "REJECTED",
+      remarks: releaseOrder.remarks ?? "-",
     }),
     releaseOrder.releaseNo
   );
