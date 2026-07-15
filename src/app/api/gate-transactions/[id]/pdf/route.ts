@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateQrDataUrl, pdfResponse } from "@/lib/pdf/generatePdf";
-import { GateInEIR } from "@/lib/pdf/templates/GateInEIR";
-import { GateOutEIR } from "@/lib/pdf/templates/GateOutEIR";
+import { generateQrDataUrl, liveDocUrl, pdfResponse } from "@/lib/pdf/generatePdf";
+import { ProcesVerbalEIR } from "@/lib/pdf/templates/EIRBody";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+const fmtDate = (d?: Date | null) =>
+  d ? d.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const transaction = await prisma.gateTransaction.findUnique({
     where: { id },
@@ -16,58 +18,51 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   });
   if (!transaction) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const qrDataUrl = await generateQrDataUrl(transaction.docNumber);
-  const generatedAt = new Date().toLocaleString();
-  const date = transaction.createdAt.toLocaleDateString();
-  const time = transaction.createdAt.toLocaleTimeString();
+  const t = transaction;
+  const qrDataUrl = await generateQrDataUrl(liveDocUrl(req));
+  const generatedAt = new Date().toLocaleString("fr-FR");
+  const isReefer = t.container.containerType.isReefer;
 
-  if (transaction.type === "GATE_IN") {
-    return pdfResponse(
-      GateInEIR({
-        docNumber: transaction.docNumber,
-        qrDataUrl,
-        generatedAt,
-        date,
-        time,
-        shippingLine: transaction.shippingLine?.name ?? "-",
-        customer: transaction.customer?.name ?? "-",
-        truckPlate: transaction.truckPlate,
-        driverName: transaction.driverName,
-        driverId: transaction.driverIdNumber ?? "-",
-        containerNumber: transaction.container.containerNumber,
-        isoType: transaction.container.containerType.code,
-        size: `${transaction.container.containerType.lengthFt}ft`,
-        status: transaction.container.status === "EMPTY" ? "EMPTY" : "FULL",
-        condition: transaction.condition as "GOOD" | "DAMAGED",
-        damageRemarks: transaction.damageRemarks ?? "-",
-        sealNumber: transaction.sealNumber ?? "-",
-        locationAssigned: transaction.container.inventory?.location.code ?? "Unassigned",
-        photosAttached: transaction.photosAttached,
-        remarks: transaction.remarks ?? "-",
-      }),
-      transaction.docNumber
-    );
-  }
+  // Entry vs exit both use the RTC procès-verbal layout.
+  const isGateIn = t.type === "GATE_IN";
 
   return pdfResponse(
-    GateOutEIR({
-      docNumber: transaction.docNumber,
+    ProcesVerbalEIR({
+      mode: isGateIn ? "ENTREE" : "SORTIE",
+      docNumber: t.docNumber,
       qrDataUrl,
       generatedAt,
-      date,
-      time,
-      containerNumber: transaction.container.containerNumber,
-      containerType: transaction.container.containerType.code,
-      currentLocation: transaction.container.inventory?.location.code ?? "-",
-      releaseOrderNo: transaction.releaseOrderNo ?? "-",
-      destination: transaction.destination ?? "-",
-      customer: transaction.customer?.name ?? "-",
-      truckPlate: transaction.truckPlate,
-      driverName: transaction.driverName,
-      condition: transaction.condition as "GOOD" | "DAMAGED",
-      damageRemarks: transaction.damageRemarks ?? "-",
-      remarks: transaction.remarks ?? "-",
+      region: t.region ?? "-",
+      dateEntree: isGateIn ? fmtDate(t.createdAt) : "-",
+      dateSortie: isGateIn ? "-" : fmtDate(t.createdAt),
+      statut: t.statut ?? "-",
+      containerNumber: t.container.containerNumber,
+      navire: t.navire ?? "-",
+      voyage: t.voyage ?? "-",
+      documentType: t.documentType ?? "",
+      documentNumber: t.documentNumber ?? "",
+      armementBl: t.shippingLine?.name ?? "-",
+      poids: t.grossWeightKg != null ? String(t.grossWeightKg) : (t.container.grossWeightKg != null ? String(t.container.grossWeightKg) : "-"),
+      pod: t.pod ?? "-",
+      tare: t.container.tareWeightKg != null ? String(t.container.tareWeightKg) : "-",
+      lieu: t.container.inventory?.location.code ?? "-",
+      acconier: t.acconier ?? "-",
+      codeIso: t.isoCode ?? t.container.isoCode ?? t.container.containerType.code,
+      immat: t.truckPlate,
+      destFinale: t.destination ?? "-",
+      plomb1: t.sealNumber ?? "-",
+      plomb2: t.sealNumber2 ?? "-",
+      marchandise: t.marchandise ?? "-",
+      reefer: isReefer,
+      temp: t.tempGate != null ? `${t.tempGate} °C` : "-",
+      oog: t.oog,
+      imdg: t.imdg ?? "-",
+      transitaire: t.transitaire ?? "-",
+      transporteur: t.customer?.name ?? "-",
+      condition: t.condition as "GOOD" | "DAMAGED",
+      damageRemarks: t.damageRemarks ?? "-",
+      gatePost: t.gatePost ?? "",
     }),
-    transaction.docNumber
+    t.docNumber
   );
 }

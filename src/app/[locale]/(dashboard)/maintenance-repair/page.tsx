@@ -7,6 +7,7 @@ import { EditRepairButton } from "@/components/repair/EditRepairButton";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
+import { formatXaf } from "@/lib/billing";
 import { formatDate } from "@/lib/utils";
 
 export default async function MaintenanceRepairPage({
@@ -40,7 +41,7 @@ export default async function MaintenanceRepairPage({
     { header: t("damageType"), accessor: (r) => r.damageType },
     {
       header: t("estimatedCost"),
-      accessor: (r) => (r.estimatedCost != null ? `$${r.estimatedCost.toFixed(2)}` : "-"),
+      accessor: (r) => (r.estimatedCost != null ? formatXaf(r.estimatedCost) : "-"),
     },
     { header: "Status", accessor: (r) => <RepairStatusSelect id={r.id} status={r.status} /> },
     { header: "Date", accessor: (r) => formatDate(r.createdAt) },

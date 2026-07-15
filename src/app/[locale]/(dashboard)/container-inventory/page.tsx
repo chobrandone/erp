@@ -4,7 +4,8 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { InventoryExplorer } from "@/components/inventory/InventoryExplorer";
 import { DropdownMenu } from "@/components/shared/DropdownMenu";
 import { prisma } from "@/lib/prisma";
-import { Boxes } from "lucide-react";
+import { DEFAULT_FREE_DAYS } from "@/lib/billing";
+import { Boxes, AlertTriangle } from "lucide-react";
 
 export default async function ContainerInventoryPage() {
   const t = await getTranslations("containerInventory");
@@ -12,7 +13,13 @@ export default async function ContainerInventoryPage() {
 
   const inventory = await prisma.inventory.findMany({
     include: {
-      container: { include: { containerType: true, shippingLine: true } },
+      container: {
+        include: {
+          containerType: true,
+          shippingLine: true,
+          gateTransactions: { where: { type: "GATE_IN" }, orderBy: { createdAt: "desc" }, take: 1 },
+        },
+      },
       location: true,
     },
     orderBy: { enteredAt: "desc" },
@@ -26,7 +33,12 @@ export default async function ContainerInventoryPage() {
     status: inv.container.status,
     locationCode: inv.location.code,
     enteredAt: inv.enteredAt.toISOString(),
+    freeDays: inv.container.gateTransactions[0]?.freeDays ?? DEFAULT_FREE_DAYS,
   }));
+
+  const overdueCount = rows.filter(
+    (r) => Math.floor((Date.now() - new Date(r.enteredAt).getTime()) / 86400000) > r.freeDays
+  ).length;
 
   const shippingLines = Array.from(new Set(rows.map((r) => r.lineName).filter((l) => l !== "-")));
   const containerTypes = Array.from(new Set(rows.map((r) => r.typeCode)));
@@ -52,8 +64,9 @@ export default async function ContainerInventoryPage() {
           />
         }
       />
-      <div className="mb-5">
+      <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <KPICard title={t("totalContainers")} value={rows.length} icon={Boxes} accentIndex={3} />
+        <KPICard title="Surestaries (dépassement)" value={overdueCount} icon={AlertTriangle} accentIndex={1} />
       </div>
       <InventoryExplorer rows={rows} shippingLines={shippingLines} containerTypes={containerTypes} />
     </div>

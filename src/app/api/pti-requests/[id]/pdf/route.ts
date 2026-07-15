@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateQrDataUrl, pdfResponse } from "@/lib/pdf/generatePdf";
+import { generateQrDataUrl, liveDocUrl, pdfResponse } from "@/lib/pdf/generatePdf";
 import { PTIRequestFormPdf } from "@/lib/pdf/templates/PTIRequestForm";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const request_ = await prisma.pTIRequest.findUnique({
     where: { id },
@@ -15,7 +15,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   });
   if (!request_) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const qrDataUrl = await generateQrDataUrl(request_.docNumber);
+  const qrDataUrl = await generateQrDataUrl(liveDocUrl(req));
   return pdfResponse(
     PTIRequestFormPdf({
       docNumber: request_.docNumber,

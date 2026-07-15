@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateQrDataUrl, pdfResponse } from "@/lib/pdf/generatePdf";
+import { generateQrDataUrl, liveDocUrl, pdfResponse } from "@/lib/pdf/generatePdf";
 import { PTICertificate } from "@/lib/pdf/templates/PTICertificate";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const inspection = await prisma.pTIInspection.findUnique({
     where: { id },
@@ -16,7 +16,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   );
   const docNumber = inspection.certificateNumber ?? `PTI-${inspection.id.slice(0, 8)}`;
 
-  const qrDataUrl = await generateQrDataUrl(docNumber);
+  const qrDataUrl = await generateQrDataUrl(liveDocUrl(req));
   return pdfResponse(
     PTICertificate({
       docNumber,

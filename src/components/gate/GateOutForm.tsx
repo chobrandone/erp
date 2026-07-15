@@ -22,6 +22,15 @@ export function GateOutForm({ containers }: { containers: ContainerOption[] }) {
     condition: "GOOD" as "GOOD" | "DAMAGED",
     damageRemarks: "",
     remarks: "",
+    // RTC / Port de Douala EIR (livraison) fields
+    navire: "",
+    voyage: "",
+    acconier: "",
+    transitaire: "",
+    documentType: "BEE" as "BL" | "BEE",
+    documentNumber: "",
+    gatePost: "",
+    sealNumber2: "",
   });
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -123,6 +132,40 @@ export function GateOutForm({ containers }: { containers: ContainerOption[] }) {
             value={form.remarks}
             onChange={(e) => update("remarks", e.target.value)}
           />
+        </FormField>
+      </FormSection>
+
+      <FormSection title="EIR — Procès-verbal de Livraison (Port de Douala)">
+        <FormField label="NAVIRE (Vessel)">
+          <input className={inputClass} value={form.navire} onChange={(e) => update("navire", e.target.value)} />
+        </FormField>
+        <FormField label="VGE (Voyage)">
+          <input className={inputClass} value={form.voyage} onChange={(e) => update("voyage", e.target.value)} />
+        </FormField>
+        <FormField label="ACCONIER">
+          <input className={inputClass} value={form.acconier} onChange={(e) => update("acconier", e.target.value)} />
+        </FormField>
+        <FormField label="TRANSITAIRE">
+          <input className={inputClass} value={form.transitaire} onChange={(e) => update("transitaire", e.target.value)} />
+        </FormField>
+        <FormField label="Type de document">
+          <select
+            className={inputClass}
+            value={form.documentType}
+            onChange={(e) => update("documentType", e.target.value as "BL" | "BEE")}
+          >
+            <option value="BEE">BEE (Bon d&apos;Enlèvement)</option>
+            <option value="BL">BL (Bill of Lading)</option>
+          </select>
+        </FormField>
+        <FormField label="N° du document (BEE / BL)">
+          <input className={inputClass} value={form.documentNumber} onChange={(e) => update("documentNumber", e.target.value)} />
+        </FormField>
+        <FormField label="N° PLOMB 2">
+          <input className={inputClass} value={form.sealNumber2} onChange={(e) => update("sealNumber2", e.target.value)} />
+        </FormField>
+        <FormField label="VU BST POSTE (Cachet porte)">
+          <input className={inputClass} value={form.gatePost} onChange={(e) => update("gatePost", e.target.value)} placeholder="POSTE 14" />
         </FormField>
       </FormSection>
 

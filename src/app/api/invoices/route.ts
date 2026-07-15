@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/requireAuth";
+import { invoiceTotals, DEFAULT_TVA_RATE } from "@/lib/billing";
+
+type LineInput = { description: string; quantity?: number; unitPrice: number; containerNumber?: string };
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -30,17 +33,46 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const count = await prisma.invoice.count();
-  const invoiceNumber = `INV-${new Date().getFullYear()}-${String(count + 1).padStart(6, "0")}`;
+  const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(count + 1).padStart(6, "0")}`;
+
+  const rawLines: LineInput[] = Array.isArray(body.lines) ? body.lines : [];
+  const lines = rawLines
+    .filter((l) => l.description && Number(l.unitPrice) >= 0)
+    .map((l) => ({
+      description: l.description,
+      quantity: Number(l.quantity) || 1,
+      unitPrice: Number(l.unitPrice),
+      containerNumber: l.containerNumber || null,
+      lineTotal: (Number(l.quantity) || 1) * Number(l.unitPrice),
+    }));
+
+  const tvaRate = body.tvaRate != null ? Number(body.tvaRate) : DEFAULT_TVA_RATE;
+
+  // Totals come from line items when supplied, else from a flat amount (HT).
+  const totals =
+    lines.length > 0
+      ? invoiceTotals(lines, tvaRate)
+      : (() => {
+          const subtotal = Number(body.amount) || 0;
+          const tvaAmount = (subtotal * tvaRate) / 100;
+          return { subtotal, tvaRate, tvaAmount, total: subtotal + tvaAmount };
+        })();
 
   const invoice = await prisma.invoice.create({
     data: {
       invoiceNumber,
       customerId: body.customerId,
       description: body.description || null,
-      amount: Number(body.amount),
+      currency: "XAF",
+      subtotal: totals.subtotal,
+      tvaRate: totals.tvaRate,
+      tvaAmount: totals.tvaAmount,
+      amount: totals.total,
+      paymentMethod: body.paymentMethod || null,
       dueAt: body.dueAt ? new Date(body.dueAt) : null,
+      ...(lines.length > 0 ? { lines: { create: lines } } : {}),
     },
-    include: { customer: true },
+    include: { customer: true, lines: true },
   });
 
   return NextResponse.json({ invoice });

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateQrDataUrl, pdfResponse } from "@/lib/pdf/generatePdf";
+import { generateQrDataUrl, liveDocUrl, pdfResponse } from "@/lib/pdf/generatePdf";
 import { DailyYardStockReportPdf } from "@/lib/pdf/templates/DailyYardStockReport";
 import { auth } from "@/auth";
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   const session = await auth();
   const generatedBy = session?.user?.name ?? "System";
 
@@ -33,7 +33,7 @@ export async function GET(_req: NextRequest) {
   const underPti = new Set(underPtiContainerIds.map((p) => p.containerId)).size;
 
   const docNumber = `DYR-${new Date().toISOString().slice(0, 10)}`;
-  const qrDataUrl = await generateQrDataUrl(docNumber);
+  const qrDataUrl = await generateQrDataUrl(liveDocUrl(req));
 
   return pdfResponse(
     DailyYardStockReportPdf({

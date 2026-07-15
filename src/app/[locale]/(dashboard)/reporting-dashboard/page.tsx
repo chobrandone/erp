@@ -4,6 +4,7 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { prisma } from "@/lib/prisma";
 import { formatDate, formatDateTime } from "@/lib/utils";
+import { formatXaf } from "@/lib/billing";
 
 export default async function ReportingDashboardPage() {
   const t = await getTranslations("reporting");
@@ -59,7 +60,7 @@ export default async function ReportingDashboardPage() {
   const financeCols: Column<(typeof invoices)[number]>[] = [
     { header: "Invoice No", accessor: (r) => r.invoiceNumber },
     { header: "Customer", accessor: (r) => r.customer.name },
-    { header: "Amount", accessor: (r) => `$${r.amount.toFixed(2)}` },
+    { header: "Amount", accessor: (r) => formatXaf(r.amount) },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
     { header: "Date", accessor: (r) => formatDate(r.issuedAt) },
   ];

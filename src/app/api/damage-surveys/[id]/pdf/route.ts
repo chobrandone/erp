@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateQrDataUrl, pdfResponse } from "@/lib/pdf/generatePdf";
+import { generateQrDataUrl, liveDocUrl, pdfResponse } from "@/lib/pdf/generatePdf";
 import { DamageSurveyPdf } from "@/lib/pdf/templates/DamageSurvey";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const survey = await prisma.damageSurvey.findUnique({
     where: { id },
@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   });
   if (!survey) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const qrDataUrl = await generateQrDataUrl(survey.surveyNo);
+  const qrDataUrl = await generateQrDataUrl(liveDocUrl(req));
   return pdfResponse(
     DamageSurveyPdf({
       docNumber: survey.surveyNo,

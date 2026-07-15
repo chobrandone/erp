@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateQrDataUrl, pdfResponse } from "@/lib/pdf/generatePdf";
+import { generateQrDataUrl, liveDocUrl, pdfResponse } from "@/lib/pdf/generatePdf";
 import { MovementOrder } from "@/lib/pdf/templates/MovementOrder";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const movement = await prisma.containerMovement.findUnique({
     where: { id },
@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   });
   if (!movement) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const qrDataUrl = await generateQrDataUrl(movement.docNumber);
+  const qrDataUrl = await generateQrDataUrl(liveDocUrl(req));
   return pdfResponse(
     MovementOrder({
       docNumber: movement.docNumber,

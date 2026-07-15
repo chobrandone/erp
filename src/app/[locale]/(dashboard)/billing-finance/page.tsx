@@ -12,6 +12,7 @@ import { RevenueTrendChart } from "@/components/billing/RevenueTrendChart";
 import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
+import { formatXaf } from "@/lib/billing";
 import { Receipt, Wallet, TrendingUp, AlertCircle, FileText } from "lucide-react";
 
 export default async function BillingFinancePage({
@@ -43,7 +44,7 @@ export default async function BillingFinancePage({
       }
     : {};
 
-  const [invoicesInRange, allUnpaid, customers] = await Promise.all([
+  const [invoicesInRange, allUnpaid, customers, billingRates] = await Promise.all([
     prisma.invoice.findMany({
       where: { ...dateFilter, ...searchFilter },
       include: { customer: true },
@@ -51,6 +52,7 @@ export default async function BillingFinancePage({
     }),
     prisma.invoice.findMany({ where: { status: "UNPAID" }, include: { customer: true } }),
     prisma.customer.findMany(),
+    prisma.billingRate.findMany({ where: { active: true }, orderBy: { category: "asc" } }),
   ]);
 
   const totalBilledRange = invoicesInRange.reduce((s, i) => s + i.amount, 0);
@@ -79,7 +81,7 @@ export default async function BillingFinancePage({
     { header: "Invoice No", accessor: (r) => r.invoiceNumber },
     { header: t("customer"), accessor: (r) => r.customer.name },
     { header: t("description"), accessor: (r) => r.description ?? "-" },
-    { header: t("amount"), accessor: (r) => `$${r.amount.toFixed(2)}` },
+    { header: t("amount"), accessor: (r) => formatXaf(r.amount) },
     { header: "Status", accessor: (r) => <InvoiceStatusSelect id={r.id} status={r.status} /> },
     { header: t("issuedOn"), accessor: (r) => formatDate(r.issuedAt) },
     {
@@ -131,10 +133,10 @@ export default async function BillingFinancePage({
       <BillingDateRangeFilter initialFrom={from} initialTo={to} initialQuery={q} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard title={t("totalOutstanding")} value={`$${totalOutstanding.toFixed(2)}`} icon={Receipt} accentIndex={1} />
-        <KPICard title={t("totalPaid")} value={`$${totalPaidRange.toFixed(2)}`} icon={Wallet} accentIndex={5} />
-        <KPICard title={t("netIncome")} value={`$${netIncome.toFixed(2)}`} icon={TrendingUp} accentIndex={4} />
-        <KPICard title={t("overdueAmount")} value={`$${overdueAmount.toFixed(2)}`} icon={AlertCircle} accentIndex={2} />
+        <KPICard title={t("totalOutstanding")} value={formatXaf(totalOutstanding)} icon={Receipt} accentIndex={1} />
+        <KPICard title={t("totalPaid")} value={formatXaf(totalPaidRange)} icon={Wallet} accentIndex={5} />
+        <KPICard title={t("netIncome")} value={formatXaf(netIncome)} icon={TrendingUp} accentIndex={4} />
+        <KPICard title={t("overdueAmount")} value={formatXaf(overdueAmount)} icon={AlertCircle} accentIndex={2} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -145,7 +147,10 @@ export default async function BillingFinancePage({
           <RevenueTrendChart data={revenueTrendData} />
         </div>
         <div className="rounded-xl border border-border-color bg-surface p-5">
-          <InvoiceForm customers={customers.map((c) => ({ id: c.id, label: c.name }))} />
+          <InvoiceForm
+            customers={customers.map((c) => ({ id: c.id, label: c.name }))}
+            rates={billingRates.map((r) => ({ code: r.code, service: r.service, rateXaf: r.rateXaf }))}
+          />
         </div>
       </div>
 

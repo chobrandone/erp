@@ -22,7 +22,7 @@ export function RevenueTrendChart({ data }: { data: { date: string; amount: numb
               borderRadius: 8,
               fontSize: 12,
             }}
-            formatter={(value) => [`$${Number(value).toFixed(2)}`, "Revenue"]}
+            formatter={(value) => [`${Math.round(Number(value)).toLocaleString("fr-FR").replace(/,/g, " ")} FCFA`, "Revenu"]}
           />
           <Area type="monotone" dataKey="amount" stroke="#00CDAB" strokeWidth={2.5} fill="url(#revenueFill)" />
         </AreaChart>

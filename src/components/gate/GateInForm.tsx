@@ -36,7 +36,28 @@ export function GateInForm({
     damageRemarks: "",
     photosAttached: false,
     remarks: "",
+    // RTC / Port de Douala EIR (procès-verbal) fields
+    statut: "FCL" as "FCL" | "LCL",
+    navire: "",
+    voyage: "",
+    pod: "",
+    isoCode: "",
+    acconier: "",
+    transitaire: "",
+    marchandise: "",
+    imdg: "",
+    region: "",
+    gatePost: "",
+    sealNumber2: "",
+    tempGate: "",
+    oog: false,
+    documentType: "BL" as "BL" | "BEE",
+    documentNumber: "",
+    freeDays: "11",
   });
+
+  const isReeferType = containerTypes.find((c) => c.id === form.containerTypeId)?.label?.toUpperCase().includes("REEFER") ||
+    containerTypes.find((c) => c.id === form.containerTypeId)?.label?.toUpperCase().includes("FRIGO");
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -200,6 +221,83 @@ export function GateInForm({
             value={form.remarks}
             onChange={(e) => update("remarks", e.target.value)}
           />
+        </FormField>
+      </FormSection>
+
+      <FormSection title="EIR — Procès-verbal (Port de Douala)">
+        <FormField label="STATUT">
+          <select
+            className={inputClass}
+            value={form.statut}
+            onChange={(e) => update("statut", e.target.value as "FCL" | "LCL")}
+          >
+            <option value="FCL">FCL</option>
+            <option value="LCL">LCL</option>
+          </select>
+        </FormField>
+        <FormField label="NAVIRE (Vessel)">
+          <input className={inputClass} value={form.navire} onChange={(e) => update("navire", e.target.value)} />
+        </FormField>
+        <FormField label="VGE (Voyage)">
+          <input className={inputClass} value={form.voyage} onChange={(e) => update("voyage", e.target.value)} />
+        </FormField>
+        <FormField label="POD (Port of Discharge)">
+          <input className={inputClass} value={form.pod} onChange={(e) => update("pod", e.target.value)} />
+        </FormField>
+        <FormField label="CODE ISO">
+          <input className={inputClass} value={form.isoCode} onChange={(e) => update("isoCode", e.target.value.toUpperCase())} placeholder="45G1" />
+        </FormField>
+        <FormField label="ACCONIER">
+          <input className={inputClass} value={form.acconier} onChange={(e) => update("acconier", e.target.value)} />
+        </FormField>
+        <FormField label="TRANSITAIRE">
+          <input className={inputClass} value={form.transitaire} onChange={(e) => update("transitaire", e.target.value)} />
+        </FormField>
+        <FormField label="RÉGION">
+          <input className={inputClass} value={form.region} onChange={(e) => update("region", e.target.value)} />
+        </FormField>
+        <FormField label="N° PLOMB 2">
+          <input className={inputClass} value={form.sealNumber2} onChange={(e) => update("sealNumber2", e.target.value)} />
+        </FormField>
+        <FormField label="MARCHANDISE (Cargo)" full>
+          <input className={inputClass} value={form.marchandise} onChange={(e) => update("marchandise", e.target.value)} />
+        </FormField>
+        <FormField label="Type de document">
+          <select
+            className={inputClass}
+            value={form.documentType}
+            onChange={(e) => update("documentType", e.target.value as "BL" | "BEE")}
+          >
+            <option value="BL">BL (Bill of Lading)</option>
+            <option value="BEE">BEE (Bon d&apos;Enlèvement)</option>
+          </select>
+        </FormField>
+        <FormField label="N° du document (BL / BEE)">
+          <input className={inputClass} value={form.documentNumber} onChange={(e) => update("documentNumber", e.target.value)} />
+        </FormField>
+        <FormField label="IMDG (Marchandise dangereuse)">
+          <input className={inputClass} value={form.imdg} onChange={(e) => update("imdg", e.target.value)} />
+        </FormField>
+        <FormField label="OOG (Hors gabarit)">
+          <select
+            className={inputClass}
+            value={form.oog ? "yes" : "no"}
+            onChange={(e) => update("oog", e.target.value === "yes")}
+          >
+            <option value="no">{tc("no")}</option>
+            <option value="yes">{tc("yes")}</option>
+          </select>
+        </FormField>
+        {isReeferType && (
+          <FormField label="TEMP (°C — Reefer)">
+            <input type="number" className={inputClass} value={form.tempGate} onChange={(e) => update("tempGate", e.target.value)} />
+          </FormField>
+        )}
+        <FormField label="Jours francs (Free Pool)">
+          <input type="number" className={inputClass} value={form.freeDays} onChange={(e) => update("freeDays", e.target.value)} />
+        </FormField>
+        <FormField label="VU BST POSTE (Cachet porte)">
+          <input className={inputClass} value={form.gatePost} onChange={(e) => update("gatePost", e.target.value)} placeholder="POSTE 14" />
         </FormField>
       </FormSection>
 

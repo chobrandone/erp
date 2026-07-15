@@ -61,8 +61,8 @@ model ContainerType {
 }
 
 model Container {
-  id              String   @id @default(cuid())
-  containerNumber String   @unique
+  id              String        @id @default(cuid())
+  containerNumber String        @unique
   containerTypeId String
   containerType   ContainerType @relation(fields: [containerTypeId], references: [id])
   shippingLineId  String?
@@ -71,19 +71,19 @@ model Container {
   isoCode         String?
   grossWeightKg   Float?
   tareWeightKg    Float?
-  createdAt       DateTime @default(now())
+  createdAt       DateTime      @default(now())
 
-  inventory        Inventory?
-  movements        ContainerMovement[]
-  gateTransactions GateTransaction[]
-  reeferLogs       ReeferMonitoring[]
+  inventory         Inventory?
+  movements         ContainerMovement[]
+  gateTransactions  GateTransaction[]
+  reeferLogs        ReeferMonitoring[]
   reeferConnections ReeferConnection[]
-  ptiRequests      PTIRequest[]
-  repairs          Repair[]
-  damageSurveys    DamageSurvey[]
-  repairEstimates  RepairEstimate[]
-  repairWorkOrders RepairWorkOrder[]
-  releaseOrders    ReleaseOrder[]
+  ptiRequests       PTIRequest[]
+  repairs           Repair[]
+  damageSurveys     DamageSurvey[]
+  repairEstimates   RepairEstimate[]
+  repairWorkOrders  RepairWorkOrder[]
+  releaseOrders     ReleaseOrder[]
 }
 
 model Location {
@@ -102,43 +102,61 @@ model Location {
 }
 
 model Inventory {
-  id          String   @id @default(cuid())
-  containerId String   @unique
+  id          String    @id @default(cuid())
+  containerId String    @unique
   container   Container @relation(fields: [containerId], references: [id])
-  locationId  String   @unique
+  locationId  String    @unique
   location    Location  @relation(fields: [locationId], references: [id])
   enteredAt   DateTime  @default(now())
   status      String // IN_YARD, GATE_OUT, IN_TRANSIT
 }
 
 model GateTransaction {
-  id                 String    @id @default(cuid())
-  docNumber          String    @unique
-  type               String // GATE_IN, GATE_OUT
-  containerId        String
-  container          Container @relation(fields: [containerId], references: [id])
-  customerId         String?
-  customer           Customer? @relation(fields: [customerId], references: [id])
-  shippingLineId     String?
-  shippingLine       ShippingLine? @relation(fields: [shippingLineId], references: [id])
-  truckPlate         String
-  driverName         String
-  driverIdNumber     String?
-  sealNumber         String?
-  grossWeightKg      Float?
-  destination        String?
-  releaseOrderNo     String?
-  condition          String  @default("GOOD") // GOOD, DAMAGED
-  damageRemarks      String?
-  remarks            String?
-  photoUrls          String? // JSON-encoded array
-  photosAttached     Boolean @default(false)
-  clerkInId          String?
-  clerkIn            User?   @relation("GateClerkIn", fields: [clerkInId], references: [id])
-  clerkOutId         String?
-  clerkOut           User?   @relation("GateClerkOut", fields: [clerkOutId], references: [id])
-  status             String  @default("COMPLETED")
-  createdAt          DateTime @default(now())
+  id             String        @id @default(cuid())
+  docNumber      String        @unique
+  type           String // GATE_IN, GATE_OUT
+  containerId    String
+  container      Container     @relation(fields: [containerId], references: [id])
+  customerId     String?
+  customer       Customer?     @relation(fields: [customerId], references: [id])
+  shippingLineId String?
+  shippingLine   ShippingLine? @relation(fields: [shippingLineId], references: [id])
+  truckPlate     String
+  driverName     String
+  driverIdNumber String?
+  sealNumber     String?
+  sealNumber2    String? // N° PLOMB2 on the RTC EIR
+  grossWeightKg  Float?
+  destination    String? // DEST.FINALE
+  releaseOrderNo String?
+  condition      String        @default("GOOD") // GOOD, DAMAGED
+  damageRemarks  String?
+  remarks        String?
+  photoUrls      String? // JSON-encoded array
+  photosAttached Boolean       @default(false)
+  // --- RTC / Port de Douala EIR (PROCES-VERBAL DE PRISE EN CHARGE) fields ---
+  navire         String? // NAVIRE (vessel name)
+  voyage         String? // VGE (voyage number)
+  statut         String? // FCL / LCL
+  pod            String? // Port of Discharge
+  acconier       String? // ACCONIER (stevedore)
+  transitaire    String? // TRANSITAIRE (freight forwarder)
+  marchandise    String? // MARCHANDISE (cargo description)
+  oog            Boolean       @default(false) // Out Of Gauge
+  imdg           String? // IMDG dangerous-goods code
+  region         String? // REGION code
+  gatePost       String? // VU BST POSTE N (gate post stamp)
+  tempGate       Float? // TEMP for reefer at gate
+  isoCode        String? // CODE ISO (e.g. 45G1)
+  documentType   String? // BL or BEE
+  documentNumber String? // BL number / BEE number
+  freeDays       Int? // free storage days (Free Pool) for demurrage calc
+  clerkInId      String?
+  clerkIn        User?         @relation("GateClerkIn", fields: [clerkInId], references: [id])
+  clerkOutId     String?
+  clerkOut       User?         @relation("GateClerkOut", fields: [clerkOutId], references: [id])
+  status         String        @default("COMPLETED")
+  createdAt      DateTime      @default(now())
 }
 
 model ContainerMovement {
@@ -198,37 +216,37 @@ model ReeferConnection {
 }
 
 model PTIRequest {
-  id             String    @id @default(cuid())
-  docNumber      String    @unique
+  id             String        @id @default(cuid())
+  docNumber      String        @unique
   containerId    String
-  container      Container @relation(fields: [containerId], references: [id])
+  container      Container     @relation(fields: [containerId], references: [id])
   customerId     String?
-  customer       Customer? @relation(fields: [customerId], references: [id])
+  customer       Customer?     @relation(fields: [customerId], references: [id])
   shippingLineId String?
   shippingLine   ShippingLine? @relation(fields: [shippingLineId], references: [id])
-  priority       String    @default("NORMAL")
-  status         String    @default("PENDING") // PENDING, IN_PROGRESS, PASSED, FAILED
+  priority       String        @default("NORMAL")
+  status         String        @default("PENDING") // PENDING, IN_PROGRESS, PASSED, FAILED
   requiredDate   DateTime?
-  inspectionType String    @default("STANDARD") // STANDARD, SPECIAL
+  inspectionType String        @default("STANDARD") // STANDARD, SPECIAL
   remarks        String?
   requestedBy    String?
   approvedBy     String?
-  requestedAt    DateTime  @default(now())
+  requestedAt    DateTime      @default(now())
 
   inspection PTIInspection?
 }
 
 model PTIInspection {
-  id                  String     @id @default(cuid())
-  ptiRequestId        String     @unique
-  ptiRequest          PTIRequest @relation(fields: [ptiRequestId], references: [id])
-  inspectorId         String?
-  inspector           User?      @relation(fields: [inspectorId], references: [id])
-  certificateNumber   String?    @unique
-  checklistJson       String // JSON-encoded checklist results
-  result              String // PASS, FAIL
-  remarks             String?
-  inspectedAt         DateTime   @default(now())
+  id                String     @id @default(cuid())
+  ptiRequestId      String     @unique
+  ptiRequest        PTIRequest @relation(fields: [ptiRequestId], references: [id])
+  inspectorId       String?
+  inspector         User?      @relation(fields: [inspectorId], references: [id])
+  certificateNumber String?    @unique
+  checklistJson     String // JSON-encoded checklist results
+  result            String // PASS, FAIL
+  remarks           String?
+  inspectedAt       DateTime   @default(now())
 }
 
 model Repair {
@@ -302,20 +320,20 @@ model RepairWorkOrder {
 }
 
 model ReleaseOrder {
-  id                    String    @id @default(cuid())
-  releaseNo             String    @unique
+  id                    String        @id @default(cuid())
+  releaseNo             String        @unique
   containerId           String
-  container             Container @relation(fields: [containerId], references: [id])
+  container             Container     @relation(fields: [containerId], references: [id])
   customerId            String?
-  customer              Customer? @relation(fields: [customerId], references: [id])
+  customer              Customer?     @relation(fields: [customerId], references: [id])
   shippingLineId        String?
   shippingLine          ShippingLine? @relation(fields: [shippingLineId], references: [id])
   authorizedReleaseDate DateTime?
   destination           String?
   approvedBy            String?
-  gateAuthorization     String    @default("APPROVED") // APPROVED, REJECTED
+  gateAuthorization     String        @default("APPROVED") // APPROVED, REJECTED
   remarks               String?
-  createdAt             DateTime  @default(now())
+  createdAt             DateTime      @default(now())
 }
 
 model Invoice {
@@ -324,11 +342,69 @@ model Invoice {
   customerId    String
   customer      Customer  @relation(fields: [customerId], references: [id])
   description   String?
-  amount        Float
+  currency      String    @default("XAF")
+  subtotal      Float     @default(0) // Montant HT
+  tvaRate       Float     @default(19.25) // Cameroon TVA %
+  tvaAmount     Float     @default(0)
+  amount        Float // Montant TTC
+  paymentMethod String? // Espèces, Virement, Mobile Money, BICEC, Autre
   status        String    @default("UNPAID")
   issuedAt      DateTime  @default(now())
   dueAt         DateTime?
   paidAt        DateTime?
+
+  lines InvoiceLine[]
+}
+
+model InvoiceLine {
+  id              String  @id @default(cuid())
+  invoiceId       String
+  invoice         Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description     String
+  quantity        Float   @default(1)
+  unitPrice       Float   @default(0)
+  lineTotal       Float   @default(0)
+  containerNumber String?
+}
+
+// Tariff table (XAF) — seeded from the client's Depot & Truck Transport Service Contract.
+model BillingRate {
+  id       String  @id @default(cuid())
+  code     String  @unique // e.g. STORAGE_EMPTY_20, LOLO_40, WASH_20, PTI_SHORT_20
+  service  String // human-readable service name
+  category String // STORAGE, LOLO, WASHING, CLEANING, PTI, TRUCKING, FOOD_GRADE, OTHER
+  size     String? // 20, 40
+  isReefer Boolean @default(false)
+  unit     String  @default("unit") // unit, teu_day
+  rateXaf  Float
+  active   Boolean @default(true)
+}
+
+model Vehicle {
+  id          String   @id @default(cuid())
+  plateNumber String   @unique
+  make        String?
+  model       String?
+  type        String   @default("TRUCK") // TRUCK, TRAILER
+  capacityTeu Int?
+  driverName  String?
+  driverPhone String?
+  status      String   @default("ACTIVE") // ACTIVE, MAINTENANCE, INACTIVE
+  createdAt   DateTime @default(now())
+
+  documents VehicleDocument[]
+}
+
+model VehicleDocument {
+  id         String    @id @default(cuid())
+  vehicleId  String
+  vehicle    Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  docType    String // DRIVER_LICENSE, INSURANCE, TECHNICAL_INSPECTION, CARTE_GRISE, VIGNETTE
+  reference  String?
+  issuedDate DateTime?
+  expiryDate DateTime
+  remarks    String?
+  createdAt  DateTime  @default(now())
 }
 
 model Equipment {

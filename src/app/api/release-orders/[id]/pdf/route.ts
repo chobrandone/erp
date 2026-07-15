@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateQrDataUrl, pdfResponse } from "@/lib/pdf/generatePdf";
+import { generateQrDataUrl, liveDocUrl, pdfResponse } from "@/lib/pdf/generatePdf";
 import { ReleaseOrderPdf } from "@/lib/pdf/templates/ReleaseOrder";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const releaseOrder = await prisma.releaseOrder.findUnique({
     where: { id },
@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   });
   if (!releaseOrder) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const qrDataUrl = await generateQrDataUrl(releaseOrder.releaseNo);
+  const qrDataUrl = await generateQrDataUrl(liveDocUrl(req));
   return pdfResponse(
     ReleaseOrderPdf({
       docNumber: releaseOrder.releaseNo,

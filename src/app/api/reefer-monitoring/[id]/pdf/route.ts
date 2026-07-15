@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateQrDataUrl, pdfResponse } from "@/lib/pdf/generatePdf";
+import { generateQrDataUrl, liveDocUrl, pdfResponse } from "@/lib/pdf/generatePdf";
 import { ReeferMonitoringReportPdf } from "@/lib/pdf/templates/ReeferMonitoringReport";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const log = await prisma.reeferMonitoring.findUnique({
     where: { id },
@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!log) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const docNumber = log.reportNo ?? `RMR-${log.id.slice(0, 8)}`;
-  const qrDataUrl = await generateQrDataUrl(docNumber);
+  const qrDataUrl = await generateQrDataUrl(liveDocUrl(req));
 
   return pdfResponse(
     ReeferMonitoringReportPdf({

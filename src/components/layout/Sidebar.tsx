@@ -14,6 +14,7 @@ import {
   BarChart3,
   Smartphone,
   Container,
+  Truck,
 } from "lucide-react";
 import { usePathname } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { key: "reeferManagement", href: "/reefer-management", icon: Snowflake, placeholder: false },
   { key: "ptiManagement", href: "/pti-management", icon: ClipboardCheck, placeholder: false },
   { key: "maintenanceRepair", href: "/maintenance-repair", icon: Wrench, placeholder: false },
+  { key: "fleetManagement", href: "/fleet-management", icon: Truck, placeholder: false },
   { key: "documentManagement", href: "/document-management", icon: FileText, placeholder: false },
   { key: "billingFinance", href: "/billing-finance", icon: Receipt, placeholder: false },
   { key: "reportingDashboard", href: "/reporting-dashboard", icon: BarChart3, placeholder: false },
@@ -45,7 +47,7 @@ export function Sidebar() {
         <div className="flex items-center justify-center w-9 h-9 rounded-lg brand-gradient text-white">
           <Container size={20} />
         </div>
-        <span className="font-semibold text-fg tracking-tight">Container ERP</span>
+        <span className="font-semibold text-fg tracking-tight">N.S. SARL — ERP</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 px-3 scrollbar-thin">

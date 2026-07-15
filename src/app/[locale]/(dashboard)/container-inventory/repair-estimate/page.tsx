@@ -4,6 +4,7 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { RepairEstimateForm } from "@/components/repair/RepairEstimateForm";
 import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
+import { formatXaf } from "@/lib/billing";
 import { formatDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
@@ -39,7 +40,7 @@ export default async function RepairEstimatePage({
     { header: "Container", accessor: (r) => r.container.containerNumber },
     {
       header: t("totalCost"),
-      accessor: (r) => `$${(r.laborCost + r.materialCost + r.equipmentCost).toFixed(2)}`,
+      accessor: (r) => formatXaf(r.laborCost + r.materialCost + r.equipmentCost),
     },
     { header: t("customerApproved"), accessor: (r) => (r.customerApproved ? tc("yes") : tc("no")) },
     { header: tc("date"), accessor: (r) => formatDate(r.createdAt) },

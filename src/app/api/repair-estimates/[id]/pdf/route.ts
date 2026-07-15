@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateQrDataUrl, pdfResponse } from "@/lib/pdf/generatePdf";
+import { generateQrDataUrl, liveDocUrl, pdfResponse } from "@/lib/pdf/generatePdf";
 import { RepairEstimatePdf } from "@/lib/pdf/templates/RepairEstimate";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const estimate = await prisma.repairEstimate.findUnique({
     where: { id },
@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!estimate) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const total = estimate.laborCost + estimate.materialCost + estimate.equipmentCost;
-  const qrDataUrl = await generateQrDataUrl(estimate.estimateNo);
+  const qrDataUrl = await generateQrDataUrl(liveDocUrl(req));
 
   return pdfResponse(
     RepairEstimatePdf({

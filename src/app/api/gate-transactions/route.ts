@@ -60,8 +60,31 @@ export async function POST(req: NextRequest) {
         damageRemarks: data.damageRemarks,
         photosAttached: data.photosAttached,
         remarks: data.remarks,
+        // RTC / Port de Douala EIR fields
+        navire: data.navire,
+        voyage: data.voyage,
+        statut: data.statut,
+        pod: data.pod,
+        acconier: data.acconier,
+        transitaire: data.transitaire,
+        marchandise: data.marchandise,
+        oog: data.oog,
+        imdg: data.imdg,
+        region: data.region,
+        gatePost: data.gatePost,
+        tempGate: data.tempGate,
+        isoCode: data.isoCode,
+        sealNumber2: data.sealNumber2,
+        documentType: data.documentType,
+        documentNumber: data.documentNumber,
+        freeDays: data.freeDays,
       },
     });
+
+    // Persist ISO code onto the container record when supplied.
+    if (data.isoCode && !container.isoCode) {
+      await prisma.container.update({ where: { id: container.id }, data: { isoCode: data.isoCode } });
+    }
 
     if (freeLocation) {
       await prisma.inventory.create({
@@ -98,6 +121,23 @@ export async function POST(req: NextRequest) {
         condition: data.condition,
         damageRemarks: data.damageRemarks,
         remarks: data.remarks,
+        // RTC / Port de Douala EIR fields
+        navire: data.navire,
+        voyage: data.voyage,
+        statut: data.statut,
+        pod: data.pod,
+        acconier: data.acconier,
+        transitaire: data.transitaire,
+        marchandise: data.marchandise,
+        oog: data.oog,
+        imdg: data.imdg,
+        region: data.region,
+        gatePost: data.gatePost,
+        tempGate: data.tempGate,
+        isoCode: data.isoCode,
+        sealNumber2: data.sealNumber2,
+        documentType: data.documentType,
+        documentNumber: data.documentNumber,
       },
     });
 

@@ -16,7 +16,10 @@ type Row = {
   status: string;
   locationCode: string;
   enteredAt: string;
+  freeDays: number;
 };
+
+const dwell = (enteredAt: string) => Math.max(0, Math.floor((Date.now() - new Date(enteredAt).getTime()) / 86400000));
 
 export function InventoryExplorer({
   rows,
@@ -57,8 +60,22 @@ export function InventoryExplorer({
     { header: t("location"), accessor: (r) => r.locationCode },
     {
       header: t("daysInYard"),
-      accessor: (r) =>
-        Math.max(1, Math.round((Date.now() - new Date(r.enteredAt).getTime()) / 86400000)),
+      accessor: (r) => {
+        const days = dwell(r.enteredAt);
+        const over = days - r.freeDays;
+        return (
+          <span className="flex items-center gap-1.5">
+            <span>{days}</span>
+            {over > 0 ? (
+              <span className="text-[11px] font-medium text-red-600 bg-red-500/10 rounded px-1.5 py-0.5">
+                +{over}j surestaries
+              </span>
+            ) : (
+              <span className="text-[11px] text-fg-subtle">{r.freeDays - days}j francs</span>
+            )}
+          </span>
+        );
+      },
     },
     { header: tc("date"), accessor: (r) => formatDate(r.enteredAt) },
   ];
