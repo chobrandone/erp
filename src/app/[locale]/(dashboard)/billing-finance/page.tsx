@@ -48,9 +48,10 @@ export default async function BillingFinancePage({
     prisma.invoice.findMany({
       where: { ...dateFilter, ...searchFilter },
       include: { customer: true },
+      omit: { receiptData: true },
       orderBy: { issuedAt: "desc" },
     }),
-    prisma.invoice.findMany({ where: { status: "UNPAID" }, include: { customer: true } }),
+    prisma.invoice.findMany({ where: { status: "UNPAID" }, include: { customer: true }, omit: { receiptData: true } }),
     prisma.customer.findMany(),
     prisma.billingRate.findMany({ where: { active: true }, orderBy: { category: "asc" } }),
   ]);
@@ -82,7 +83,17 @@ export default async function BillingFinancePage({
     { header: t("customer"), accessor: (r) => r.customer.name },
     { header: t("description"), accessor: (r) => r.description ?? "-" },
     { header: t("amount"), accessor: (r) => formatXaf(r.amount) },
-    { header: "Status", accessor: (r) => <InvoiceStatusSelect id={r.id} status={r.status} /> },
+    {
+      header: "Status",
+      accessor: (r) => (
+        <InvoiceStatusSelect
+          id={r.id}
+          status={r.status}
+          hasReceipt={r.receiptUploadedAt != null}
+          receiptVerified={r.receiptVerified}
+        />
+      ),
+    },
     { header: t("issuedOn"), accessor: (r) => formatDate(r.issuedAt) },
     {
       header: t("dueOn"),

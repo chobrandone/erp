@@ -337,21 +337,27 @@ model ReleaseOrder {
 }
 
 model Invoice {
-  id            String    @id @default(cuid())
-  invoiceNumber String    @unique
-  customerId    String
-  customer      Customer  @relation(fields: [customerId], references: [id])
-  description   String?
-  currency      String    @default("XAF")
-  subtotal      Float     @default(0) // Montant HT
-  tvaRate       Float     @default(19.25) // Cameroon TVA %
-  tvaAmount     Float     @default(0)
-  amount        Float // Montant TTC
-  paymentMethod String? // Espèces, Virement, Mobile Money, BICEC, Autre
-  status        String    @default("UNPAID")
-  issuedAt      DateTime  @default(now())
-  dueAt         DateTime?
-  paidAt        DateTime?
+  id                String    @id @default(cuid())
+  invoiceNumber     String    @unique
+  customerId        String
+  customer          Customer  @relation(fields: [customerId], references: [id])
+  description       String?
+  currency          String    @default("XAF")
+  subtotal          Float     @default(0) // Montant HT
+  tvaRate           Float     @default(19.25) // Cameroon TVA %
+  tvaAmount         Float     @default(0)
+  amount            Float // Montant TTC
+  paymentMethod     String? // Espèces, Virement, Mobile Money, BICEC, Autre
+  status            String    @default("UNPAID")
+  issuedAt          DateTime  @default(now())
+  dueAt             DateTime?
+  paidAt            DateTime?
+  // Payment receipt — required to mark an invoice PAID.
+  receiptData       Bytes?
+  receiptMime       String?
+  receiptName       String?
+  receiptVerified   Boolean   @default(false) // passed the "is this a receipt?" heuristic
+  receiptUploadedAt DateTime?
 
   lines InvoiceLine[]
 }
@@ -381,18 +387,42 @@ model BillingRate {
 }
 
 model Vehicle {
-  id          String   @id @default(cuid())
-  plateNumber String   @unique
-  make        String?
-  model       String?
-  type        String   @default("TRUCK") // TRUCK, TRAILER
-  capacityTeu Int?
-  driverName  String?
-  driverPhone String?
-  status      String   @default("ACTIVE") // ACTIVE, MAINTENANCE, INACTIVE
-  createdAt   DateTime @default(now())
+  id                String   @id @default(cuid())
+  plateNumber       String   @unique
+  make              String?
+  model             String?
+  type              String   @default("TRUCK") // TRUCK, TRAILER
+  capacityTeu       Int?
+  driverName        String?
+  driverPhone       String?
+  status            String   @default("ACTIVE") // ACTIVE, MAINTENANCE, INACTIVE
+  // Operational state: IN_PARK (available in yard) | IN_USE (on a trip) | MAINTENANCE
+  operationalStatus String   @default("IN_PARK")
+  odometerKm        Int?
+  createdAt         DateTime @default(now())
 
   documents VehicleDocument[]
+  trips     VehicleTrip[]
+}
+
+model VehicleTrip {
+  id               String    @id @default(cuid())
+  tripNo           String    @unique
+  vehicleId        String
+  vehicle          Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driverName       String
+  driverPhone      String?
+  cargoType        String    @default("CONTAINER") // CONTAINER, EQUIPMENT, GOODS, EMPTY
+  containerNumber  String? // the container / equipment carried
+  cargoDescription String?
+  origin           String?
+  destination      String
+  departureTime    DateTime  @default(now())
+  expectedReturn   DateTime?
+  returnTime       DateTime?
+  status           String    @default("ONGOING") // ONGOING, COMPLETED, CANCELLED
+  remarks          String?
+  createdAt        DateTime  @default(now())
 }
 
 model VehicleDocument {

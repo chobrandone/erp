@@ -14,6 +14,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const nextStatus = body.status ?? current.status;
 
+  // An invoice can only become PAID once a verified receipt is on file.
+  if (nextStatus === "PAID" && current.status !== "PAID" && !current.receiptData) {
+    return NextResponse.json(
+      { error: "RECEIPT_REQUIRED", message: "Upload the payment receipt to mark this invoice as paid." },
+      { status: 422 }
+    );
+  }
+
+  // Reverting to UNPAID clears the receipt so a fresh one is required next time.
+  const clearReceipt = nextStatus === "UNPAID" && current.status === "PAID";
+
   const invoice = await prisma.invoice.update({
     where: { id },
     data: {
@@ -23,6 +34,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(body.dueAt !== undefined ? { dueAt: body.dueAt ? new Date(body.dueAt) : null } : {}),
       status: nextStatus,
       paidAt: nextStatus === "PAID" ? current.paidAt ?? new Date() : null,
+      ...(clearReceipt
+        ? { receiptData: null, receiptMime: null, receiptName: null, receiptVerified: false, receiptUploadedAt: null }
+        : {}),
     },
     include: { customer: true },
   });
