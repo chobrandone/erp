@@ -358,6 +358,11 @@ model Invoice {
   receiptName       String?
   receiptVerified   Boolean   @default(false) // passed the "is this a receipt?" heuristic
   receiptUploadedAt DateTime?
+  // Soft-delete / sandbox — financial records are never hard-deleted by staff.
+  archived          Boolean   @default(false)
+  voidedAt          DateTime?
+  voidedBy          String? // name/email of the user who voided it
+  voidReason        String?
 
   lines InvoiceLine[]
 }

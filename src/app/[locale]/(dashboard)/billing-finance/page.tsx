@@ -6,14 +6,15 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { InvoiceForm } from "@/components/billing/InvoiceForm";
 import { InvoiceStatusSelect } from "@/components/billing/InvoiceStatusSelect";
 import { EditInvoiceButton } from "@/components/billing/EditInvoiceButton";
-import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
+import { VoidInvoiceButton, RestoreInvoiceButton, PurgeInvoiceButton } from "@/components/billing/InvoiceSandboxActions";
 import { BillingDateRangeFilter } from "@/components/billing/BillingDateRangeFilter";
 import { RevenueTrendChart } from "@/components/billing/RevenueTrendChart";
 import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
-import { formatDate } from "@/lib/utils";
+import { auth } from "@/auth";
+import { formatDate, formatDateTime } from "@/lib/utils";
 import { formatXaf } from "@/lib/billing";
-import { Receipt, Wallet, TrendingUp, AlertCircle, FileText } from "lucide-react";
+import { Receipt, Wallet, TrendingUp, AlertCircle, FileText, Archive } from "lucide-react";
 
 export default async function BillingFinancePage({
   searchParams,
@@ -23,6 +24,8 @@ export default async function BillingFinancePage({
   const { from, to, q } = await searchParams;
   const t = await getTranslations("billing");
   const tc = await getTranslations("common");
+  const session = await auth();
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
 
   const dateFilter =
     from || to
@@ -44,16 +47,17 @@ export default async function BillingFinancePage({
       }
     : {};
 
-  const [invoicesInRange, allUnpaid, customers, billingRates] = await Promise.all([
+  const [invoicesInRange, allUnpaid, customers, billingRates, sandbox] = await Promise.all([
     prisma.invoice.findMany({
-      where: { ...dateFilter, ...searchFilter },
+      where: { archived: false, ...dateFilter, ...searchFilter },
       include: { customer: true },
       omit: { receiptData: true },
       orderBy: { issuedAt: "desc" },
     }),
-    prisma.invoice.findMany({ where: { status: "UNPAID" }, include: { customer: true }, omit: { receiptData: true } }),
+    prisma.invoice.findMany({ where: { archived: false, status: "UNPAID" }, include: { customer: true }, omit: { receiptData: true } }),
     prisma.customer.findMany(),
     prisma.billingRate.findMany({ where: { active: true }, orderBy: { category: "asc" } }),
+    prisma.invoice.findMany({ where: { archived: true }, include: { customer: true }, omit: { receiptData: true }, orderBy: { voidedAt: "desc" } }),
   ]);
 
   const totalBilledRange = invoicesInRange.reduce((s, i) => s + i.amount, 0);
@@ -131,9 +135,32 @@ export default async function BillingFinancePage({
             }}
             customers={customers.map((c) => ({ id: c.id, label: c.name }))}
           />
-          <ConfirmDeleteButton apiPath={`/api/invoices/${r.id}`} />
+          <VoidInvoiceButton id={r.id} invoiceNumber={r.invoiceNumber} />
         </div>
       ),
+    },
+  ];
+
+  // Sandbox (voided/archived) invoices — nothing is ever hard-deleted by staff.
+  const sandboxCols: Column<(typeof sandbox)[number]>[] = [
+    { header: "Invoice No", accessor: (r) => r.invoiceNumber },
+    { header: t("customer"), accessor: (r) => r.customer.name },
+    { header: t("amount"), accessor: (r) => formatXaf(r.amount) },
+    { header: "Voided by", accessor: (r) => r.voidedBy ?? "-" },
+    { header: "Voided at", accessor: (r) => (r.voidedAt ? formatDateTime(r.voidedAt) : "-") },
+    { header: "Reason", accessor: (r) => <span className="text-xs text-fg-muted">{r.voidReason ?? "-"}</span> },
+    {
+      header: tc("actions"),
+      accessor: (r) =>
+        isAdmin ? (
+          <div className="flex items-center gap-3">
+            <a href={`/api/invoices/${r.id}/pdf`} target="_blank" className="text-brand-100" title={tc("print")}><FileText size={14} /></a>
+            <RestoreInvoiceButton id={r.id} />
+            <PurgeInvoiceButton id={r.id} invoiceNumber={r.invoiceNumber} />
+          </div>
+        ) : (
+          <span className="text-xs text-fg-subtle">Admin only</span>
+        ),
     },
   ];
 
@@ -166,6 +193,25 @@ export default async function BillingFinancePage({
       </div>
 
       <DataTable columns={cols} rows={invoicesInRange} />
+
+      {/* Sandbox — voided invoices are retained here, never hard-deleted. */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Archive size={16} className="text-amber-600" />
+          <h3 className="text-sm font-semibold text-fg-muted">
+            Sandbox — Voided invoices ({sandbox.length})
+          </h3>
+        </div>
+        <p className="text-xs text-fg-subtle">
+          Invoices moved here are retained for review. Restoring or permanent deletion is restricted to an
+          administrator; permanent deletion requires password confirmation and is recorded in the audit trail.
+        </p>
+        {sandbox.length > 0 ? (
+          <DataTable columns={sandboxCols} rows={sandbox} />
+        ) : (
+          <p className="text-sm text-fg-subtle rounded-lg border border-border-color p-4">No voided invoices.</p>
+        )}
+      </section>
     </div>
   );
 }
