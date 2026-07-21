@@ -14,10 +14,13 @@ export async function GET(req: NextRequest) {
   const to = sp.get("to");
   const date = sp.get("date"); // daily records
 
+  // A single `date` (daily export) takes precedence over a from/to range.
   const dateRange =
-    from || to
-      ? { gte: from ? new Date(from) : undefined, lte: to ? new Date(`${to}T23:59:59`) : undefined }
-      : undefined;
+    date && type !== "daily"
+      ? { gte: new Date(`${date}T00:00:00`), lte: new Date(`${date}T23:59:59`) }
+      : from || to
+        ? { gte: from ? new Date(from) : undefined, lte: to ? new Date(`${to}T23:59:59`) : undefined }
+        : undefined;
 
   const like = (s: string) => ({ contains: s, mode: "insensitive" as const });
 

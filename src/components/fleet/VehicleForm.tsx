@@ -8,16 +8,16 @@ import { Plus, Trash2 } from "lucide-react";
 
 type Doc = { docType: string; reference: string; expiryDate: string };
 
-const DOC_TYPES = [
-  { value: "INSURANCE", label: "Assurance" },
-  { value: "TECHNICAL_INSPECTION", label: "Visite technique" },
-  { value: "DRIVER_LICENSE", label: "Permis de conduire" },
-  { value: "CARTE_GRISE", label: "Carte grise" },
-  { value: "VIGNETTE", label: "Vignette" },
-];
-
 export function VehicleForm() {
   const tc = useTranslations("common");
+  const t = useTranslations("fleet");
+  const DOC_TYPES = [
+    { value: "INSURANCE", label: t("docInsurance") },
+    { value: "TECHNICAL_INSPECTION", label: t("docTechnicalInspection") },
+    { value: "DRIVER_LICENSE", label: t("docDriverLicense") },
+    { value: "CARTE_GRISE", label: t("docCarteGrise") },
+    { value: "VIGNETTE", label: t("docVignette") },
+  ];
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ plateNumber: "", make: "", model: "", driverName: "", driverPhone: "" });
@@ -49,29 +49,29 @@ export function VehicleForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <FormSection title="Nouveau véhicule">
-        <FormField label="Immatriculation" full>
+      <FormSection title={t("newVehicle")}>
+        <FormField label={t("plate")} full>
           <input required className={inputClass} value={form.plateNumber} onChange={(e) => set("plateNumber", e.target.value.toUpperCase())} placeholder="CE-101-NS" />
         </FormField>
-        <FormField label="Marque">
+        <FormField label={t("make")}>
           <input className={inputClass} value={form.make} onChange={(e) => set("make", e.target.value)} />
         </FormField>
-        <FormField label="Modèle">
+        <FormField label={t("model")}>
           <input className={inputClass} value={form.model} onChange={(e) => set("model", e.target.value)} />
         </FormField>
-        <FormField label="Chauffeur">
+        <FormField label={t("driver")}>
           <input className={inputClass} value={form.driverName} onChange={(e) => set("driverName", e.target.value)} />
         </FormField>
-        <FormField label="Téléphone chauffeur">
+        <FormField label={t("driverPhone")}>
           <input className={inputClass} value={form.driverPhone} onChange={(e) => set("driverPhone", e.target.value)} />
         </FormField>
       </FormSection>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-semibold text-fg-muted">Documents & échéances</h4>
+          <h4 className="text-sm font-semibold text-fg-muted">{t("docsAndExpiry")}</h4>
           <button type="button" onClick={addDoc} className="flex items-center gap-1 text-xs text-brand-100 hover:underline">
-            <Plus size={14} /> Ajouter
+            <Plus size={14} /> {t("add")}
           </button>
         </div>
         {docs.map((d, i) => (
@@ -88,9 +88,9 @@ export function VehicleForm() {
                 </button>
               )}
             </div>
-            <input className={inputClass} placeholder="Référence" value={d.reference} onChange={(e) => setDoc(i, { reference: e.target.value })} />
+            <input className={inputClass} placeholder={t("reference")} value={d.reference} onChange={(e) => setDoc(i, { reference: e.target.value })} />
             <div>
-              <label className="text-xs text-fg-subtle">Date d&apos;expiration</label>
+              <label className="text-xs text-fg-subtle">{t("expiryDate")}</label>
               <input type="date" className={inputClass} value={d.expiryDate} onChange={(e) => setDoc(i, { expiryDate: e.target.value })} />
             </div>
           </div>
@@ -98,7 +98,7 @@ export function VehicleForm() {
       </div>
 
       <button type="submit" disabled={submitting || !form.plateNumber} className="brand-gradient text-white font-medium text-sm px-5 py-2.5 rounded-lg disabled:opacity-60 w-full">
-        {submitting ? tc("loading") : "Enregistrer"}
+        {submitting ? tc("loading") : t("saveBtn")}
       </button>
     </form>
   );

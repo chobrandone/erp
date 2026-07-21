@@ -6,7 +6,7 @@ import { SearchBox } from "@/components/shared/SearchBox";
 import { Link } from "@/i18n/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Plus, FileSpreadsheet } from "lucide-react";
 
 export default async function GateOperationsPage({
   searchParams,
@@ -59,6 +59,13 @@ export default async function GateOperationsPage({
         actions={
           <>
             <SearchBox initialQuery={q} />
+            <a
+              href="/api/reports/export?type=gate"
+              target="_blank"
+              className="flex items-center gap-1.5 border border-border-color text-fg text-sm font-medium px-4 py-2 rounded-lg hover:bg-surface-alt"
+            >
+              <FileSpreadsheet size={16} /> {tc("exportExcel")}
+            </a>
             <Link
               href="/gate-operations/gate-in"
               className="flex items-center gap-1.5 brand-gradient text-white text-sm font-medium px-4 py-2 rounded-lg"
