@@ -155,7 +155,7 @@ async function main() {
 
   // --- Yard location grid ---
   const TIERS_PER_POSITION = 20; // capacity of each row-bay position
-  const blocks = ["A", "B", "C"];
+  const blocks = ["A", "B", "C", "D"];
   const rows = ["01", "02", "03", "04", "05"];
   const bays = ["01", "02", "03", "04", "05", "06", "07", "08"];
   const tiers = Array.from({ length: TIERS_PER_POSITION }, (_, i) => i + 1);

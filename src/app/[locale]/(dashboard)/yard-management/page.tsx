@@ -1,11 +1,15 @@
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { YardMapGrid } from "@/components/yard/YardMapGrid";
+import { AddBlockButton } from "@/components/yard/AddBlockButton";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { Link } from "@/i18n/navigation";
 
 export default async function YardManagementPage() {
   const t = await getTranslations("yard");
+  const session = await auth();
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
 
   const locations = await prisma.location.findMany({
     include: { inventory: { include: { container: true } } },
@@ -37,6 +41,7 @@ export default async function YardManagementPage() {
             >
               {t("dailyStockReport")}
             </Link>
+            {isAdmin && <AddBlockButton />}
           </>
         }
       />
