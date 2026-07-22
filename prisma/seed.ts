@@ -35,14 +35,15 @@ async function main() {
   const passwordHash = await bcrypt.hash("admin123", 10);
 
   // --- Real NEGOCE & SERVICES (N.S. SARL) staff (see client discovery questionnaire) ---
+  // permissions = JSON array of module slugs; null = full access (ADMIN).
   const [admin] = await Promise.all(
     [
-      { name: "MOUMAHA HUBERT NAZAIRE (Directeur Général)", email: "negoser@yahoo.fr", role: "ADMIN" },
-      { name: "Assistante de Direction", email: "assistante@ns-sarl.cm", role: "FINANCE" },
-      { name: "Responsable du Parc", email: "parc@ns-sarl.cm", role: "YARD_PLANNER" },
-      { name: "Fleet Manager", email: "fleet@ns-sarl.cm", role: "GATE_CLERK" },
+      { name: "MOUMAHA HUBERT NAZAIRE (Directeur Général)", email: "negoser@yahoo.fr", role: "ADMIN", permissions: null },
+      { name: "Assistante de Direction", email: "assistante@ns-sarl.cm", role: "FINANCE", permissions: JSON.stringify(["billing-finance", "reporting-dashboard", "document-management"]) },
+      { name: "Responsable du Parc", email: "parc@ns-sarl.cm", role: "YARD_PLANNER", permissions: JSON.stringify(["gate-operations", "yard-management", "container-inventory", "reefer-management", "pti-management"]) },
+      { name: "Fleet Manager", email: "fleet@ns-sarl.cm", role: "GATE_CLERK", permissions: JSON.stringify(["fleet-management", "gate-operations"]) },
       // Kept for the implementation team.
-      { name: "Administrateur Système", email: "admin@depot.local", role: "ADMIN" },
+      { name: "Administrateur Système", email: "admin@depot.local", role: "ADMIN", permissions: null },
     ].map((u) => prisma.user.create({ data: { ...u, passwordHash } }))
   );
 

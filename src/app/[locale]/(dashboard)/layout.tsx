@@ -1,7 +1,10 @@
+import { headers } from "next/headers";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { auth } from "@/auth";
 import { redirect } from "@/i18n/navigation";
+import { allowedSlugs, canAccessPath } from "@/lib/modules";
+import { backgroundForNow } from "@/lib/backgrounds";
 
 export default async function DashboardLayout({
   children,
@@ -16,14 +19,34 @@ export default async function DashboardLayout({
     redirect({ href: "/login", locale });
   }
 
-  const user = session!.user as { name?: string | null; role?: string };
+  const user = session!.user as { name?: string | null; role?: string; permissions?: string[] | null };
+  const access = { role: user.role, permissions: user.permissions };
+
+  // Enforce per-module access based on the requested path (set by middleware).
+  const rawPath = (await headers()).get("x-pathname") ?? "";
+  const pathAfterLocale = rawPath.replace(/^\/(en|fr)(?=\/|$)/, "");
+  if (pathAfterLocale && !canAccessPath(access, pathAfterLocale)) {
+    redirect({ href: "/", locale });
+  }
+
+  const allowed = allowedSlugs(access);
+  const bg = backgroundForNow();
 
   return (
-    <div className="flex min-h-screen bg-surface-alt">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar userName={user.name ?? "User"} userRole={user.role ?? "VIEWER"} />
-        <main className="flex-1 p-4 lg:p-6">{children}</main>
+    <div className="relative flex min-h-screen bg-surface-alt">
+      {bg && (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center opacity-[0.10] dark:opacity-[0.16]"
+          style={{ backgroundImage: `url("${bg}")` }}
+        />
+      )}
+      <div className="relative z-10 flex w-full min-h-screen">
+        <Sidebar role={user.role} allowed={allowed} />
+        <div className="flex-1 flex flex-col min-w-0">
+          <Topbar userName={user.name ?? "User"} userRole={user.role ?? "VIEWER"} />
+          <main className="flex-1 p-4 lg:p-6">{children}</main>
+        </div>
       </div>
     </div>
   );

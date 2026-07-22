@@ -13,7 +13,8 @@
     "billingFinance": "Facturation & Finance",
     "reportingDashboard": "Rapports & Tableaux de bord",
     "mobileYardOps": "Opérations mobiles",
-    "phase2": "Phase 2"
+    "phase2": "Phase 2",
+    "userManagement": "Gestion des Utilisateurs"
   },
   "common": {
     "save": "Enregistrer",

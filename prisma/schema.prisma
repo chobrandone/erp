@@ -13,6 +13,7 @@ model User {
   email        String   @unique
   passwordHash String
   role         String // ADMIN, GATE_CLERK, YARD_PLANNER, PTI_INSPECTOR, FINANCE, VIEWER
+  permissions  String? // JSON array of module slugs the user may access (ADMIN = all)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
 

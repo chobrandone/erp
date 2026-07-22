@@ -24,7 +24,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
 
-        return { id: user.id, name: user.name, email: user.email, role: user.role };
+        return { id: user.id, name: user.name, email: user.email, role: user.role, permissions: user.permissions };
       },
     }),
   ],
@@ -33,15 +33,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.role = (user as { role: string }).role;
         token.id = (user as { id: string }).id;
+        token.permissions = (user as { permissions?: string | null }).permissions ?? null;
       }
       return token;
     },
     session({ session, token }) {
       if (session.user) {
-        (session.user as typeof session.user & { role: string; id: string }).role =
-          token.role as string;
-        (session.user as typeof session.user & { role: string; id: string }).id =
-          token.id as string;
+        const u = session.user as typeof session.user & { role: string; id: string; permissions: string[] | null };
+        u.role = token.role as string;
+        u.id = token.id as string;
+        try {
+          const raw = token.permissions as string | null;
+          u.permissions = raw ? (JSON.parse(raw) as string[]) : null;
+        } catch {
+          u.permissions = null;
+        }
       }
       return session;
     },
