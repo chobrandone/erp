@@ -4,7 +4,9 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { SearchBox } from "@/components/shared/SearchBox";
 import { Link } from "@/i18n/navigation";
+import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { formatDateTime } from "@/lib/utils";
 import { Plus, FileSpreadsheet } from "lucide-react";
 
@@ -16,6 +18,7 @@ export default async function GateOperationsPage({
   const { q } = await searchParams;
   const t = await getTranslations("gateOperations");
   const tc = await getTranslations("common");
+  const isAdmin = (((await auth())?.user) as { role?: string } | undefined)?.role === "ADMIN";
 
   const transactions = await prisma.gateTransaction.findMany({
     where: q
@@ -44,9 +47,12 @@ export default async function GateOperationsPage({
     {
       header: tc("actions"),
       accessor: (r) => (
-        <Link href={`/gate-operations/${r.id}`} className="text-brand-100 hover:underline">
-          {tc("viewDetails")}
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href={`/gate-operations/${r.id}`} className="text-brand-100 hover:underline">
+            {tc("viewDetails")}
+          </Link>
+          {isAdmin && <ConfirmDeleteButton apiPath={`/api/gate-transactions/${r.id}`} />}
+        </div>
       ),
     },
   ];

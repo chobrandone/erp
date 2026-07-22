@@ -2,12 +2,17 @@ import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { SearchBox } from "@/components/shared/SearchBox";
+import { DocDeleteButton } from "@/components/documents/DocDeleteButton";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { formatDateTime } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
+type DocKind = "GATE_IN" | "GATE_OUT" | "MOVEMENT" | "PTI" | "INVOICE";
 type DocRow = {
   id: string;
+  kind: DocKind;
+  sourceId: string;
   type: string;
   reference: string;
   generatedOn: Date;
@@ -22,6 +27,8 @@ export default async function DocumentManagementPage({
   const { q } = await searchParams;
   const t = await getTranslations("documents");
   const tc = await getTranslations("common");
+  const session = await auth();
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
 
   const [gateTx, movements, inspections, invoices] = await Promise.all([
     prisma.gateTransaction.findMany({
@@ -45,6 +52,8 @@ export default async function DocumentManagementPage({
   const rows: DocRow[] = [
     ...gateTx.map((g) => ({
       id: `gt-${g.id}`,
+      kind: (g.type === "GATE_IN" ? "GATE_IN" : "GATE_OUT") as DocKind,
+      sourceId: g.id,
       type: g.type === "GATE_IN" ? "GATE_IN_EIR" : "GATE_OUT_EIR",
       reference: `${g.docNumber} — ${g.container.containerNumber}`,
       generatedOn: g.createdAt,
@@ -52,6 +61,8 @@ export default async function DocumentManagementPage({
     })),
     ...movements.map((m) => ({
       id: `mv-${m.id}`,
+      kind: "MOVEMENT" as DocKind,
+      sourceId: m.id,
       type: "MOVEMENT_ORDER",
       reference: `${m.docNumber} — ${m.container.containerNumber}`,
       generatedOn: m.createdAt,
@@ -59,6 +70,8 @@ export default async function DocumentManagementPage({
     })),
     ...inspections.map((i) => ({
       id: `pti-${i.id}`,
+      kind: "PTI" as DocKind,
+      sourceId: i.id,
       type: "PTI_CERTIFICATE",
       reference: `${i.certificateNumber ?? i.id} — ${i.ptiRequest.container.containerNumber}`,
       generatedOn: i.inspectedAt,
@@ -66,6 +79,8 @@ export default async function DocumentManagementPage({
     })),
     ...invoices.map((inv) => ({
       id: `inv-${inv.id}`,
+      kind: "INVOICE" as DocKind,
+      sourceId: inv.id,
       type: "INVOICE",
       reference: `${inv.invoiceNumber} — ${inv.customer.name}`,
       generatedOn: inv.issuedAt,
@@ -84,13 +99,16 @@ export default async function DocumentManagementPage({
     {
       header: tc("actions"),
       accessor: (r) => (
-        <a
-          href={r.pdfUrl}
-          target="_blank"
-          className="flex items-center gap-1 text-brand-100 hover:underline"
-        >
-          <FileText size={14} /> {tc("print")}
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href={r.pdfUrl}
+            target="_blank"
+            className="flex items-center gap-1 text-brand-100 hover:underline"
+          >
+            <FileText size={14} /> {tc("print")}
+          </a>
+          {isAdmin && <DocDeleteButton kind={r.kind} sourceId={r.sourceId} />}
+        </div>
       ),
     },
   ];

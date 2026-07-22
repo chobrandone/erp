@@ -21,7 +21,7 @@ export function ReeferLogForm({ containers }: { containers: Option[] }) {
     returnAirTempC: "",
     ambientTempC: "",
     humidity: "65",
-    powerStatus: "CONNECTED" as "CONNECTED" | "DISCONNECTED" | "ALARM",
+    powerStatus: "CONNECTED" as "CONNECTED" | "NOT_CONNECTED" | "DAMAGED" | "IN_REPAIRS",
     alarmStatus: "NORMAL" as "NORMAL" | "ALARM",
     alarmDescription: "",
     technician: "",
@@ -126,8 +126,9 @@ export function ReeferLogForm({ containers }: { containers: Option[] }) {
             onChange={(e) => setForm((f) => ({ ...f, powerStatus: e.target.value as typeof form.powerStatus }))}
           >
             <option value="CONNECTED">{t("connected")}</option>
-            <option value="DISCONNECTED">{t("disconnected")}</option>
-            <option value="ALARM">{t("alarm")}</option>
+            <option value="NOT_CONNECTED">{t("notConnected")}</option>
+            <option value="DAMAGED">{t("damaged")}</option>
+            <option value="IN_REPAIRS">{t("inRepairs")}</option>
           </select>
         </FormField>
         <FormField label={t("alarmStatus")}>

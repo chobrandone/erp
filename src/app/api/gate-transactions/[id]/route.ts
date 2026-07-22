@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/requireAuth";
+import { logAudit } from "@/lib/audit";
+
+type SessionUser = { id?: string; role?: string };
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -10,6 +13,22 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   });
   if (!transaction) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ transaction });
+}
+
+// Delete a gate transaction (EIR document). Admin only; recorded in the audit trail.
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { session, unauthorized } = await requireAuth();
+  if (unauthorized) return unauthorized;
+  const user = session!.user as SessionUser;
+  if (user.role !== "ADMIN") return NextResponse.json({ error: "Only an administrator can delete a gate document." }, { status: 403 });
+
+  const { id } = await params;
+  const existing = await prisma.gateTransaction.findUnique({ where: { id } });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  await logAudit({ userId: user.id, action: "GATE_TX_DELETE", entity: "GateTransaction", entityId: id, meta: { docNumber: existing.docNumber, type: existing.type } });
+  await prisma.gateTransaction.delete({ where: { id } });
+  return NextResponse.json({ success: true });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

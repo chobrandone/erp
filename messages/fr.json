@@ -196,7 +196,10 @@
     "reefer": "Reefer",
     "type": "Type",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "statusAvailable": "Disponible",
+    "statusNotAvailable": "Non disponible",
+    "statusMaintenance": "En maintenance"
   },
   "containerInventory": {
     "title": "Inventaire des conteneurs",
@@ -208,7 +211,11 @@
     "totalContainers": "Total des conteneurs",
     "agingReport": "Vieillissement du stock",
     "daysInYard": "Jours dans le parc",
-    "location": "Emplacement"
+    "location": "Emplacement",
+    "container": "Conteneur",
+    "daysFreeLeft": "jours francs restants",
+    "daysOverdue": "jours de surestaries",
+    "overdueKpi": "En dépassement (surestaries)"
   },
   "reefer": {
     "title": "Gestion des reefers",
@@ -250,7 +257,13 @@
     "operational": "Opérationnel",
     "fault": "Défaut",
     "remarks": "Remarques",
-    "submitConnection": "Enregistrer la connexion"
+    "submitConnection": "Enregistrer la connexion",
+    "notConnected": "Non connecté",
+    "damaged": "Endommagé",
+    "inRepairs": "En réparation",
+    "edit": "Modifier",
+    "needsAttention": "À surveiller",
+    "container": "Conteneur"
   },
   "repair": {
     "title": "Maintenance & Réparation",

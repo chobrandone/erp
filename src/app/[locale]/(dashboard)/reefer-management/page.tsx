@@ -4,13 +4,18 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ReeferLogForm } from "@/components/reefer/ReeferLogForm";
+import { ReeferActions } from "@/components/reefer/ReeferActions";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { formatDateTime } from "@/lib/utils";
 import { Snowflake, AlertTriangle } from "lucide-react";
 
 export default async function ReeferManagementPage() {
   const t = await getTranslations("reefer");
   const tc = await getTranslations("common");
+  const session = await auth();
+  const u = session?.user as { role?: string; permissions?: string[] | null } | undefined;
+  const canManage = u?.role === "ADMIN" || u?.permissions == null || (u?.permissions?.includes("reefer-management") ?? false);
 
   const [logs, reeferContainers] = await Promise.all([
     prisma.reeferMonitoring.findMany({
@@ -25,15 +30,28 @@ export default async function ReeferManagementPage() {
   ]);
 
   const connectedCount = logs.filter((l) => l.powerStatus === "CONNECTED").length;
-  const alarmCount = logs.filter((l) => l.powerStatus === "ALARM").length;
+  const issuesCount = logs.filter((l) => ["NOT_CONNECTED", "DAMAGED", "IN_REPAIRS"].includes(l.powerStatus) || l.alarmStatus === "ALARM").length;
 
   const cols: Column<(typeof logs)[number]>[] = [
-    { header: "Container", accessor: (r) => r.container.containerNumber },
+    { header: t("container"), accessor: (r) => r.container.containerNumber },
     { header: t("setPoint"), accessor: (r) => `${r.setTempC}°C` },
     { header: t("actualTemp"), accessor: (r) => `${r.actualTempC}°C` },
     { header: t("humidity"), accessor: (r) => (r.humidity != null ? `${r.humidity}%` : "-") },
     { header: t("powerStatus"), accessor: (r) => <StatusBadge status={r.powerStatus} /> },
     { header: t("recordedAt"), accessor: (r) => formatDateTime(r.recordedAt) },
+    {
+      header: tc("actions"),
+      accessor: (r) => (
+        <ReeferActions
+          canManage={canManage}
+          record={{
+            id: r.id, setTempC: r.setTempC, actualTempC: r.actualTempC, humidity: r.humidity,
+            plugNumber: r.plugNumber, powerStatus: r.powerStatus, alarmStatus: r.alarmStatus,
+            technician: r.technician, remarks: r.remarks,
+          }}
+        />
+      ),
+    },
   ];
 
   return (
@@ -42,7 +60,7 @@ export default async function ReeferManagementPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <KPICard title={t("connectedReefers")} value={connectedCount} icon={Snowflake} accentIndex={4} />
-        <KPICard title={t("alarms")} value={alarmCount} icon={AlertTriangle} accentIndex={2} />
+        <KPICard title={t("needsAttention")} value={issuesCount} icon={AlertTriangle} accentIndex={2} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

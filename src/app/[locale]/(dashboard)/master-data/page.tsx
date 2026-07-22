@@ -86,6 +86,16 @@ export default async function MasterDataPage() {
         fields={[
           { key: "code", label: t("code"), placeholder: "RS-03" },
           { key: "type", label: t("type"), placeholder: "REACH_STACKER" },
+          {
+            key: "status",
+            label: tc("status"),
+            type: "select",
+            options: [
+              { value: "AVAILABLE", label: t("statusAvailable") },
+              { value: "NOT_AVAILABLE", label: t("statusNotAvailable") },
+              { value: "MAINTENANCE", label: t("statusMaintenance") },
+            ],
+          },
         ]}
         columns={equipCols}
         initialRows={equipment}

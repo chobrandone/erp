@@ -53,7 +53,7 @@ export function InventoryExplorer({
   const statuses = useMemo(() => Array.from(new Set(rows.map((r) => r.status))), [rows]);
 
   const cols: Column<Row & { id: string }>[] = [
-    { header: "Container", accessor: (r) => r.containerNumber },
+    { header: t("container"), accessor: (r) => r.containerNumber },
     { header: t("filterByType"), accessor: (r) => r.typeCode },
     { header: t("filterByLine"), accessor: (r) => r.lineName },
     { header: tc("status"), accessor: (r) => <StatusBadge status={r.status} /> },
@@ -68,10 +68,10 @@ export function InventoryExplorer({
             <span>{days}</span>
             {over > 0 ? (
               <span className="text-[11px] font-medium text-red-600 bg-red-500/10 rounded px-1.5 py-0.5">
-                +{over}j surestaries
+                +{over} {t("daysOverdue")}
               </span>
             ) : (
-              <span className="text-[11px] text-fg-subtle">{r.freeDays - days}j francs</span>
+              <span className="text-[11px] text-fg-subtle">{Math.max(0, r.freeDays - days)} {t("daysFreeLeft")}</span>
             )}
           </span>
         );

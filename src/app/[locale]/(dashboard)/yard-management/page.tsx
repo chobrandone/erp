@@ -5,9 +5,11 @@ import { AddBlockButton } from "@/components/yard/AddBlockButton";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { Link } from "@/i18n/navigation";
+import { FileSpreadsheet } from "lucide-react";
 
 export default async function YardManagementPage() {
   const t = await getTranslations("yard");
+  const tc = await getTranslations("common");
   const session = await auth();
   const isAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
 
@@ -41,6 +43,13 @@ export default async function YardManagementPage() {
             >
               {t("dailyStockReport")}
             </Link>
+            <a
+              href="/api/reports/export?type=inventory"
+              target="_blank"
+              className="flex items-center gap-1.5 text-sm font-medium text-fg-muted hover:text-fg border border-border-color rounded-lg px-4 py-2"
+            >
+              <FileSpreadsheet size={15} /> {tc("exportExcel")}
+            </a>
             {isAdmin && <AddBlockButton />}
           </>
         }

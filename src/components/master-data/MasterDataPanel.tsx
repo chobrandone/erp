@@ -11,8 +11,9 @@ import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 export type FieldDef = {
   key: string;
   label: string;
-  type?: "text" | "number" | "checkbox";
+  type?: "text" | "number" | "checkbox" | "select";
   placeholder?: string;
+  options?: { value: string; label: string }[];
 };
 
 export type DisplayColumnDef = {
@@ -116,6 +117,16 @@ export function MasterDataPanel<T extends { id: string } & Record<string, unknow
                   />
                   <span className="text-sm text-fg">{f.label}</span>
                 </>
+              ) : f.type === "select" ? (
+                <select
+                  className={inputClass}
+                  value={(form[f.key] as string) || (f.options?.[0]?.value ?? "")}
+                  onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
+                >
+                  {(f.options ?? []).map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
               ) : (
                 <input
                   type={f.type ?? "text"}
