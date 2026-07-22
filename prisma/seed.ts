@@ -154,25 +154,26 @@ async function main() {
   }
 
   // --- Yard location grid ---
+  const TIERS_PER_POSITION = 20; // capacity of each row-bay position
   const blocks = ["A", "B", "C"];
   const rows = ["01", "02", "03", "04", "05"];
   const bays = ["01", "02", "03", "04", "05", "06", "07", "08"];
-  const tiers = [1, 2, 3, 4];
+  const tiers = Array.from({ length: TIERS_PER_POSITION }, (_, i) => i + 1);
 
   const locationData: {
-    block: string; row: string; bay: string; tier: number; code: string; isReeferSlot: boolean;
+    block: string; row: string; bay: string; tier: number; code: string; isReeferSlot: boolean; maxStack: number;
   }[] = [];
 
   for (const block of blocks)
     for (const row of rows)
       for (const bay of bays)
         for (const tier of tiers)
-          locationData.push({ block, row, bay, tier, code: `${block}-${row}-${bay}-${tier}`, isReeferSlot: false });
+          locationData.push({ block, row, bay, tier, code: `${block}-${row}-${bay}-${tier}`, isReeferSlot: false, maxStack: TIERS_PER_POSITION });
 
   for (const row of ["01", "02"])
     for (const bay of ["01", "02", "03", "04"])
-      for (const tier of [1, 2])
-        locationData.push({ block: "R", row, bay, tier, code: `R-${row}-${bay}-${tier}`, isReeferSlot: true });
+      for (const tier of tiers)
+        locationData.push({ block: "R", row, bay, tier, code: `R-${row}-${bay}-${tier}`, isReeferSlot: true, maxStack: TIERS_PER_POSITION });
 
   await prisma.location.createMany({ data: locationData });
 
