@@ -251,14 +251,18 @@ model PTIInspection {
 }
 
 model Repair {
-  id            String    @id @default(cuid())
-  containerId   String
-  container     Container @relation(fields: [containerId], references: [id])
-  damageType    String
-  description   String?
-  estimatedCost Float?
-  status        String    @default("OPEN")
-  createdAt     DateTime  @default(now())
+  id                   String    @id @default(cuid())
+  containerId          String
+  container            Container @relation(fields: [containerId], references: [id])
+  component            String? // ROOF, LEFT_SIDE, DOOR, FLOOR, ...
+  damageType           String // DENT, HOLE, CRACK, ...
+  severity             String? // MINOR, MODERATE, MAJOR
+  repairMethod         String? // WELD, PATCH, STRAIGHTEN, ...
+  repairResponsibility String? // CARRIER, CUSTOMER, DEPOT, SURVEYOR
+  description          String?
+  estimatedCost        Float?
+  status               String    @default("PENDING") // PENDING, APPROVED, REPAIRED, REJECTED, NOT_REPAIRABLE
+  createdAt            DateTime  @default(now())
 }
 
 model Document {

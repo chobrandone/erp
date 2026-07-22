@@ -1,10 +1,11 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { REPAIR_STATUSES } from "@/lib/repairOptions";
 
 export function RepairStatusSelect({ id, status }: { id: string; status: string }) {
-  const t = useTranslations("repair");
+  const locale = useLocale();
   const router = useRouter();
 
   async function update(next: string) {
@@ -22,9 +23,11 @@ export function RepairStatusSelect({ id, status }: { id: string; status: string 
       onChange={(e) => update(e.target.value)}
       className="rounded-lg border border-border-color bg-surface-alt px-2 py-1 text-xs text-fg"
     >
-      <option value="OPEN">{t("statusOpen")}</option>
-      <option value="IN_PROGRESS">{t("statusInProgress")}</option>
-      <option value="COMPLETED">{t("statusCompleted")}</option>
+      {REPAIR_STATUSES.map((s) => (
+        <option key={s.value} value={s.value}>
+          {locale.startsWith("fr") ? s.fr : s.en}
+        </option>
+      ))}
     </select>
   );
 }
