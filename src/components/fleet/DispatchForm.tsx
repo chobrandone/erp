@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
+import { useFormModalClose } from "@/components/shared/FormModal";
 import { Send } from "lucide-react";
 
 type VehicleOption = { id: string; label: string; driver: string };
 
 export function DispatchForm({ vehicles }: { vehicles: VehicleOption[] }) {
   const t = useTranslations("fleet");
+  const closeModal = useFormModalClose();
   const CARGO_TYPES = [
     { value: "CONTAINER", label: t("cargoContainer") },
     { value: "EQUIPMENT", label: t("cargoEquipment") },
@@ -50,6 +52,7 @@ export function DispatchForm({ vehicles }: { vehicles: VehicleOption[] }) {
       }
       setForm((f) => ({ ...f, containerNumber: "", cargoDescription: "", destination: "", expectedReturn: "", remarks: "" }));
       router.refresh();
+      closeModal();
     } finally {
       setBusy(false);
     }

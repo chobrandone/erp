@@ -12,6 +12,7 @@ import {
   REPAIR_RESPONSIBILITIES,
   type RepairOption,
 } from "@/lib/repairOptions";
+import { useFormModalClose } from "@/components/shared/FormModal";
 
 type Option = { id: string; label: string };
 
@@ -26,6 +27,7 @@ export function RepairForm({
   const tc = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
+  const closeModal = useFormModalClose();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [containerMode, setContainerMode] = useState<"existing" | "new">(
@@ -74,6 +76,7 @@ export function RepairForm({
         estimatedCost: "",
       }));
       router.refresh();
+      closeModal();
     } catch {
       setError("Something went wrong. Please check the form and try again.");
     } finally {

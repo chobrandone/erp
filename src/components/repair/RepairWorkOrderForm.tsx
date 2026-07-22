@@ -4,16 +4,18 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
+import { ContainerPicker, resolveContainerId, initialContainerValue, type ContainerPickerValue, type Option } from "@/components/shared/ContainerPicker";
+import { useFormModalClose } from "@/components/shared/FormModal";
 
-type Option = { id: string; label: string };
-
-export function RepairWorkOrderForm({ containers }: { containers: Option[] }) {
+export function RepairWorkOrderForm({ containers, containerTypes }: { containers: Option[]; containerTypes: Option[] }) {
   const t = useTranslations("repairWorkOrder");
   const tc = useTranslations("common");
   const router = useRouter();
+  const closeModal = useFormModalClose();
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [container, setContainer] = useState<ContainerPickerValue>(() => initialContainerValue(containers, containerTypes));
   const [form, setForm] = useState({
-    containerId: containers[0]?.id ?? "",
     assignedTechnician: "",
     startDate: "",
     expectedCompletion: "",
@@ -25,13 +27,22 @@ export function RepairWorkOrderForm({ containers }: { containers: Option[] }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
     try {
+      const containerId = await resolveContainerId(container);
       const res = await fetch("/api/repair-work-orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, containerId }),
       });
-      if (res.ok) router.refresh();
+      if (res.ok) {
+        router.refresh();
+        closeModal();
+      } else {
+        setError((await res.json().catch(() => null))?.error ?? tc("saveFailed"));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tc("saveFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -40,19 +51,7 @@ export function RepairWorkOrderForm({ containers }: { containers: Option[] }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormSection title={t("newWorkOrder")}>
-        <FormField label="Container" full>
-          <select
-            className={inputClass}
-            value={form.containerId}
-            onChange={(e) => setForm((f) => ({ ...f, containerId: e.target.value }))}
-          >
-            {containers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
+        <ContainerPicker containers={containers} containerTypes={containerTypes} value={container} onChange={setContainer} />
         <FormField label={t("assignedTechnician")}>
           <input className={inputClass} value={form.assignedTechnician} onChange={(e) => setForm((f) => ({ ...f, assignedTechnician: e.target.value }))} />
         </FormField>
@@ -88,6 +87,7 @@ export function RepairWorkOrderForm({ containers }: { containers: Option[] }) {
           />
         </FormField>
       </FormSection>
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <button
         type="submit"
         disabled={submitting}

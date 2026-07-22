@@ -6,6 +6,7 @@ import { RepairStatusSelect } from "@/components/repair/RepairStatusSelect";
 import { EditRepairButton } from "@/components/repair/EditRepairButton";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 import { SearchBox } from "@/components/shared/SearchBox";
+import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { getLocale } from "next-intl/server";
 import { formatXaf } from "@/lib/billing";
@@ -83,24 +84,22 @@ export default async function MaintenanceRepairPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
-          <RepairForm
-            containers={containers.map((c) => ({
-              id: c.id,
-              label: `${c.containerNumber} (${c.containerType.code})`,
-            }))}
-            containerTypes={containerTypes.map((ct) => ({
-              id: ct.id,
-              label: `${ct.code} — ${ct.description}`,
-            }))}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <DataTable columns={cols} rows={repairs} />
-        </div>
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <>
+            <SearchBox initialQuery={q} />
+            <FormModal triggerLabel={t("newRepair")} title={t("newRepair")}>
+              <RepairForm
+                containers={containers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }))}
+                containerTypes={containerTypes.map((ct) => ({ id: ct.id, label: `${ct.code} — ${ct.description}` }))}
+              />
+            </FormModal>
+          </>
+        }
+      />
+      <DataTable columns={cols} rows={repairs} />
     </div>
   );
 }

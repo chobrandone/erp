@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ReeferConnectionForm } from "@/components/reefer/ReeferConnectionForm";
 import { ReeferConnectionActions } from "@/components/reefer/ReeferConnectionActions";
 import { SearchBox } from "@/components/shared/SearchBox";
+import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { formatDateTime } from "@/lib/utils";
@@ -40,6 +41,9 @@ export default async function ReeferConnectionsPage({
     }),
     prisma.container.findMany({ where: { containerType: { isReefer: true } }, include: { containerType: true } }),
   ]);
+  const reeferTypes = await prisma.containerType.findMany({ where: { isReefer: true }, orderBy: { code: "asc" } });
+  const typeOpts = reeferTypes.map((ct) => ({ id: ct.id, label: `${ct.code} — ${ct.description}` }));
+  const containerOpts = containers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }));
 
   const cols: Column<(typeof connections)[number]>[] = [
     { header: t("referenceNo"), accessor: (r) => r.referenceNo },
@@ -81,21 +85,16 @@ export default async function ReeferConnectionsPage({
       <PageHeader
         title={t("connectionFormTitle")}
         subtitle={t("connectionFormSubtitle")}
-        actions={<SearchBox initialQuery={q} />}
+        actions={
+          <>
+            <SearchBox initialQuery={q} />
+            <FormModal triggerLabel={t("newConnection")} title={t("newConnection")}>
+              <ReeferConnectionForm containers={containerOpts} containerTypes={typeOpts} />
+            </FormModal>
+          </>
+        }
       />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
-          <ReeferConnectionForm
-            containers={containers.map((c) => ({
-              id: c.id,
-              label: `${c.containerNumber} (${c.containerType.code})`,
-            }))}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <DataTable columns={cols} rows={connections} />
-        </div>
-      </div>
+      <DataTable columns={cols} rows={connections} />
     </div>
   );
 }

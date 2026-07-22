@@ -4,16 +4,18 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
+import { ContainerPicker, resolveContainerId, initialContainerValue, type ContainerPickerValue, type Option } from "@/components/shared/ContainerPicker";
+import { useFormModalClose } from "@/components/shared/FormModal";
 
-type Option = { id: string; label: string };
-
-export function DamageSurveyForm({ containers }: { containers: Option[] }) {
+export function DamageSurveyForm({ containers, containerTypes }: { containers: Option[]; containerTypes: Option[] }) {
   const t = useTranslations("damageSurvey");
   const tc = useTranslations("common");
   const router = useRouter();
+  const closeModal = useFormModalClose();
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [container, setContainer] = useState<ContainerPickerValue>(() => initialContainerValue(containers, containerTypes));
   const [form, setForm] = useState({
-    containerId: containers[0]?.id ?? "",
     location: "",
     surveyor: "",
     frontEnd: "",
@@ -31,13 +33,22 @@ export function DamageSurveyForm({ containers }: { containers: Option[] }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
     try {
+      const containerId = await resolveContainerId(container);
       const res = await fetch("/api/damage-surveys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, containerId }),
       });
-      if (res.ok) router.refresh();
+      if (res.ok) {
+        router.refresh();
+        closeModal();
+      } else {
+        setError((await res.json().catch(() => null))?.error ?? tc("saveFailed"));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tc("saveFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -46,19 +57,7 @@ export function DamageSurveyForm({ containers }: { containers: Option[] }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormSection title={t("newSurvey")}>
-        <FormField label="Container" full>
-          <select
-            className={inputClass}
-            value={form.containerId}
-            onChange={(e) => setForm((f) => ({ ...f, containerId: e.target.value }))}
-          >
-            {containers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
+        <ContainerPicker containers={containers} containerTypes={containerTypes} value={container} onChange={setContainer} />
         <FormField label={t("location")}>
           <input className={inputClass} value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} />
         </FormField>
@@ -123,6 +122,7 @@ export function DamageSurveyForm({ containers }: { containers: Option[] }) {
           />
         </FormField>
       </FormSection>
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <button
         type="submit"
         disabled={submitting}

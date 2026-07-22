@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { RepairEstimateForm } from "@/components/repair/RepairEstimateForm";
 import { SearchBox } from "@/components/shared/SearchBox";
+import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { formatXaf } from "@/lib/billing";
 import { formatDate } from "@/lib/utils";
@@ -34,6 +35,9 @@ export default async function RepairEstimatePage({
     }),
     prisma.container.findMany({ include: { containerType: true } }),
   ]);
+  const containerTypes = await prisma.containerType.findMany({ orderBy: { code: "asc" } });
+  const containerOpts = containers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }));
+  const typeOpts = containerTypes.map((ct) => ({ id: ct.id, label: `${ct.code} — ${ct.description}` }));
 
   const cols: Column<(typeof estimates)[number]>[] = [
     { header: t("estimateNo"), accessor: (r) => r.estimateNo },
@@ -60,20 +64,19 @@ export default async function RepairEstimatePage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
-          <RepairEstimateForm
-            containers={containers.map((c) => ({
-              id: c.id,
-              label: `${c.containerNumber} (${c.containerType.code})`,
-            }))}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <DataTable columns={cols} rows={estimates} />
-        </div>
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <>
+            <SearchBox initialQuery={q} />
+            <FormModal triggerLabel={t("newEstimate")} title={t("newEstimate")}>
+              <RepairEstimateForm containers={containerOpts} containerTypes={typeOpts} />
+            </FormModal>
+          </>
+        }
+      />
+      <DataTable columns={cols} rows={estimates} />
     </div>
   );
 }

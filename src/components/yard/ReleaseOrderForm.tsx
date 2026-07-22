@@ -4,24 +4,28 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
-
-type Option = { id: string; label: string };
+import { ContainerPicker, resolveContainerId, initialContainerValue, type ContainerPickerValue, type Option } from "@/components/shared/ContainerPicker";
+import { useFormModalClose } from "@/components/shared/FormModal";
 
 export function ReleaseOrderForm({
   containers,
+  containerTypes,
   customers,
   shippingLines,
 }: {
   containers: Option[];
+  containerTypes: Option[];
   customers: Option[];
   shippingLines: Option[];
 }) {
   const t = useTranslations("releaseOrder");
   const tc = useTranslations("common");
   const router = useRouter();
+  const closeModal = useFormModalClose();
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [container, setContainer] = useState<ContainerPickerValue>(() => initialContainerValue(containers, containerTypes));
   const [form, setForm] = useState({
-    containerId: containers[0]?.id ?? "",
     customerId: "",
     shippingLineId: "",
     authorizedReleaseDate: "",
@@ -34,13 +38,22 @@ export function ReleaseOrderForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
     try {
+      const containerId = await resolveContainerId(container);
       const res = await fetch("/api/release-orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, containerId }),
       });
-      if (res.ok) router.refresh();
+      if (res.ok) {
+        router.refresh();
+        closeModal();
+      } else {
+        setError((await res.json().catch(() => null))?.error ?? tc("saveFailed"));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tc("saveFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -49,19 +62,7 @@ export function ReleaseOrderForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormSection title={t("newRelease")}>
-        <FormField label="Container" full>
-          <select
-            className={inputClass}
-            value={form.containerId}
-            onChange={(e) => setForm((f) => ({ ...f, containerId: e.target.value }))}
-          >
-            {containers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
+        <ContainerPicker containers={containers} containerTypes={containerTypes} value={container} onChange={setContainer} />
         <FormField label="Customer">
           <select
             className={inputClass}
@@ -131,6 +132,7 @@ export function ReleaseOrderForm({
           />
         </FormField>
       </FormSection>
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <button
         type="submit"
         disabled={submitting}

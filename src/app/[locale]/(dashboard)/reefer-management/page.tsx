@@ -5,6 +5,7 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ReeferLogForm } from "@/components/reefer/ReeferLogForm";
 import { ReeferActions } from "@/components/reefer/ReeferActions";
+import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { formatDateTime } from "@/lib/utils";
@@ -28,6 +29,8 @@ export default async function ReeferManagementPage() {
       include: { containerType: true },
     }),
   ]);
+  const reeferTypes = await prisma.containerType.findMany({ where: { isReefer: true }, orderBy: { code: "asc" } });
+  const typeOpts = reeferTypes.map((ct) => ({ id: ct.id, label: `${ct.code} — ${ct.description}` }));
 
   const connectedCount = logs.filter((l) => l.powerStatus === "CONNECTED").length;
   const issuesCount = logs.filter((l) => ["NOT_CONNECTED", "DAMAGED", "IN_REPAIRS"].includes(l.powerStatus) || l.alarmStatus === "ALARM").length;
@@ -56,26 +59,25 @@ export default async function ReeferManagementPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <FormModal triggerLabel={t("logReading")} title={t("logReading")}>
+            <ReeferLogForm
+              containers={reeferContainers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }))}
+              containerTypes={typeOpts}
+            />
+          </FormModal>
+        }
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <KPICard title={t("connectedReefers")} value={connectedCount} icon={Snowflake} accentIndex={4} />
         <KPICard title={t("needsAttention")} value={issuesCount} icon={AlertTriangle} accentIndex={2} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
-          <ReeferLogForm
-            containers={reeferContainers.map((c) => ({
-              id: c.id,
-              label: `${c.containerNumber} (${c.containerType.code})`,
-            }))}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <DataTable columns={cols} rows={logs} />
-        </div>
-      </div>
+      <DataTable columns={cols} rows={logs} />
     </div>
   );
 }

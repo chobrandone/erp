@@ -66,7 +66,7 @@ export function PTIRequestForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl">
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl mx-auto">
       <FormSection title={t("newRequest")}>
         <FormField label={tc("containerNumber")} full>
           <div className="mb-2 flex gap-4 text-sm">

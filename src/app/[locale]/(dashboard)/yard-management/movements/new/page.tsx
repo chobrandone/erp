@@ -6,8 +6,9 @@ import { prisma } from "@/lib/prisma";
 export default async function NewMovementPage() {
   const t = await getTranslations("yard");
 
-  const [containers, locations] = await Promise.all([
+  const [containers, containerTypes, locations] = await Promise.all([
     prisma.container.findMany({ where: { inventory: { isNot: null } }, include: { containerType: true } }),
+    prisma.containerType.findMany({ orderBy: { code: "asc" } }),
     prisma.location.findMany({ orderBy: [{ block: "asc" }, { row: "asc" }, { bay: "asc" }, { tier: "asc" }] }),
   ]);
 
@@ -19,6 +20,7 @@ export default async function NewMovementPage() {
           id: c.id,
           label: `${c.containerNumber} (${c.containerType.code})`,
         }))}
+        containerTypes={containerTypes.map((ct) => ({ id: ct.id, label: `${ct.code} — ${ct.description}` }))}
         locations={locations.map((l) => ({ id: l.id, label: l.code }))}
       />
     </div>

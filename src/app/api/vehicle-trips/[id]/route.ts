@@ -12,6 +12,39 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const trip = await prisma.vehicleTrip.findUnique({ where: { id } });
   if (!trip) return NextResponse.json({ error: "Trip not found" }, { status: 404 });
 
+  // Redispatch: the vehicle is sent onward to another location/customer without
+  // returning to the park. Close the current leg and open a new ongoing leg.
+  if (body.status === "REDISPATCH") {
+    if (!body.destination) return NextResponse.json({ error: "Destination is required." }, { status: 400 });
+
+    await prisma.vehicleTrip.update({
+      where: { id },
+      data: { status: "COMPLETED", returnTime: new Date() },
+    });
+
+    const count = await prisma.vehicleTrip.count();
+    const tripNo = `TRIP-${new Date().getFullYear()}-${String(count + 1).padStart(5, "0")}`;
+    const onward = await prisma.vehicleTrip.create({
+      data: {
+        tripNo,
+        vehicleId: trip.vehicleId,
+        driverName: body.driverName || trip.driverName,
+        driverPhone: trip.driverPhone,
+        cargoType: body.cargoType || trip.cargoType,
+        containerNumber: body.containerNumber ?? trip.containerNumber,
+        cargoDescription: body.cargoDescription ?? trip.cargoDescription,
+        origin: trip.destination, // the previous destination is the new origin
+        destination: body.destination,
+        expectedReturn: body.expectedReturn ? new Date(body.expectedReturn) : null,
+        remarks: body.remarks || null,
+      },
+    });
+
+    // Vehicle stays IN_USE.
+    await prisma.vehicle.update({ where: { id: trip.vehicleId }, data: { operationalStatus: "IN_USE" } });
+    return NextResponse.json({ trip: onward });
+  }
+
   const nextStatus = body.status === "CANCELLED" ? "CANCELLED" : "COMPLETED";
 
   const updated = await prisma.vehicleTrip.update({

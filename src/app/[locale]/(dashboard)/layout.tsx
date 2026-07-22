@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { redirect } from "@/i18n/navigation";
 import { allowedSlugs, canAccessPath } from "@/lib/modules";
 import { backgroundForNow } from "@/lib/backgrounds";
+import { buildNotifications } from "@/lib/notifications";
 
 export default async function DashboardLayout({
   children,
@@ -31,6 +32,8 @@ export default async function DashboardLayout({
 
   const allowed = allowedSlugs(access);
   const bg = backgroundForNow();
+  // Fleet document-renewal alerts, surfaced in the top-bar notification bell.
+  const notifications = allowed.includes("fleet-management") ? await buildNotifications(locale) : [];
 
   return (
     <div className="relative flex min-h-screen bg-surface-alt">
@@ -44,7 +47,7 @@ export default async function DashboardLayout({
       <div className="relative z-10 flex w-full min-h-screen">
         <Sidebar role={user.role} allowed={allowed} />
         <div className="flex-1 flex flex-col min-w-0">
-          <Topbar userName={user.name ?? "User"} userRole={user.role ?? "VIEWER"} />
+          <Topbar userName={user.name ?? "User"} userRole={user.role ?? "VIEWER"} notifications={notifications} />
           <main className="flex-1 p-4 lg:p-6">{children}</main>
         </div>
       </div>

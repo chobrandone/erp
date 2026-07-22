@@ -4,15 +4,17 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
+import { ContainerPicker, resolveContainerId, initialContainerValue, type ContainerPickerValue, type Option } from "@/components/shared/ContainerPicker";
 
-type Option = { id: string; label: string };
 type Reason = "YARD_ALLOCATION" | "YARD_REPOSITION" | "PTI" | "REEFER_CONNECTION" | "REPAIR" | "GATE_OUT";
 
 export function MovementForm({
   containers,
+  containerTypes,
   locations,
 }: {
   containers: Option[];
+  containerTypes: Option[];
   locations: Option[];
 }) {
   const t = useTranslations("yard");
@@ -20,8 +22,8 @@ export function MovementForm({
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [container, setContainer] = useState<ContainerPickerValue>(() => initialContainerValue(containers, containerTypes));
   const [form, setForm] = useState({
-    containerId: containers[0]?.id ?? "",
     toLocationId: locations[0]?.id ?? "",
     reason: "YARD_ALLOCATION" as Reason,
     equipment: "",
@@ -40,36 +42,25 @@ export function MovementForm({
     setSubmitting(true);
     setError(null);
     try {
+      const containerId = await resolveContainerId(container);
       const res = await fetch("/api/movements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, containerId }),
       });
       if (!res.ok) throw new Error("Failed");
       router.push("/yard-management/movements");
-    } catch {
-      setError("Something went wrong. Please check the form and try again.");
+    } catch (err) {
+      setError(err instanceof Error && err.message !== "Failed" ? err.message : "Something went wrong. Please check the form and try again.");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl">
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl mx-auto">
       <FormSection title={t("newMovement")}>
-        <FormField label="Container" full>
-          <select
-            className={inputClass}
-            value={form.containerId}
-            onChange={(e) => update("containerId", e.target.value)}
-          >
-            {containers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
+        <ContainerPicker containers={containers} containerTypes={containerTypes} value={container} onChange={setContainer} />
         <FormField label={t("to")}>
           <select
             className={inputClass}

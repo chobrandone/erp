@@ -4,6 +4,7 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { RepairWorkOrderForm } from "@/components/repair/RepairWorkOrderForm";
 import { WorkOrderStatusSelect } from "@/components/repair/WorkOrderStatusSelect";
 import { SearchBox } from "@/components/shared/SearchBox";
+import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
@@ -35,6 +36,9 @@ export default async function RepairWorkOrderPage({
     }),
     prisma.container.findMany({ include: { containerType: true } }),
   ]);
+  const containerTypes = await prisma.containerType.findMany({ orderBy: { code: "asc" } });
+  const containerOpts = containers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }));
+  const typeOpts = containerTypes.map((ct) => ({ id: ct.id, label: `${ct.code} — ${ct.description}` }));
 
   const cols: Column<(typeof workOrders)[number]>[] = [
     { header: t("workOrderNo"), accessor: (r) => r.workOrderNo },
@@ -58,20 +62,19 @@ export default async function RepairWorkOrderPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
-          <RepairWorkOrderForm
-            containers={containers.map((c) => ({
-              id: c.id,
-              label: `${c.containerNumber} (${c.containerType.code})`,
-            }))}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <DataTable columns={cols} rows={workOrders} />
-        </div>
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <>
+            <SearchBox initialQuery={q} />
+            <FormModal triggerLabel={t("newWorkOrder")} title={t("newWorkOrder")}>
+              <RepairWorkOrderForm containers={containerOpts} containerTypes={typeOpts} />
+            </FormModal>
+          </>
+        }
+      />
+      <DataTable columns={cols} rows={workOrders} />
     </div>
   );
 }

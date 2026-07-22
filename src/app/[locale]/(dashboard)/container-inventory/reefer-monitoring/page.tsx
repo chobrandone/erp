@@ -9,6 +9,7 @@ import { auth } from "@/auth";
 import { formatDateTime } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 import { SearchBox } from "@/components/shared/SearchBox";
+import { FormModal } from "@/components/shared/FormModal";
 import { FileText, Plug } from "lucide-react";
 
 export default async function ReeferMonitoringPage({
@@ -41,6 +42,9 @@ export default async function ReeferMonitoringPage({
     }),
     prisma.container.findMany({ where: { containerType: { isReefer: true } }, include: { containerType: true } }),
   ]);
+  const reeferTypes = await prisma.containerType.findMany({ where: { isReefer: true }, orderBy: { code: "asc" } });
+  const typeOpts = reeferTypes.map((ct) => ({ id: ct.id, label: `${ct.code} — ${ct.description}` }));
+  const containerOpts = containers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }));
 
   const cols: Column<(typeof logs)[number]>[] = [
     { header: t("reportNo"), accessor: (r) => r.reportNo ?? "-" },
@@ -89,22 +93,13 @@ export default async function ReeferMonitoringPage({
             >
               <Plug size={16} /> {t("connectionFormTitle")}
             </Link>
+            <FormModal triggerLabel={t("logReading")} title={t("logReading")}>
+              <ReeferLogForm containers={containerOpts} containerTypes={typeOpts} />
+            </FormModal>
           </>
         }
       />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
-          <ReeferLogForm
-            containers={containers.map((c) => ({
-              id: c.id,
-              label: `${c.containerNumber} (${c.containerType.code})`,
-            }))}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <DataTable columns={cols} rows={logs} />
-        </div>
-      </div>
+      <DataTable columns={cols} rows={logs} />
     </div>
   );
 }

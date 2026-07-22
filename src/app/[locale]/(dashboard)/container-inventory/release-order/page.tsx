@@ -4,6 +4,7 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ReleaseOrderForm } from "@/components/yard/ReleaseOrderForm";
 import { SearchBox } from "@/components/shared/SearchBox";
+import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
@@ -38,6 +39,9 @@ export default async function ReleaseOrderPage({
     prisma.customer.findMany(),
     prisma.shippingLine.findMany(),
   ]);
+  const containerTypes = await prisma.containerType.findMany({ orderBy: { code: "asc" } });
+  const containerOpts = containers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }));
+  const typeOpts = containerTypes.map((ct) => ({ id: ct.id, label: `${ct.code} — ${ct.description}` }));
 
   const cols: Column<(typeof releaseOrders)[number]>[] = [
     { header: t("releaseNo"), accessor: (r) => r.releaseNo },
@@ -62,22 +66,24 @@ export default async function ReleaseOrderPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1 rounded-xl border border-border-color bg-surface p-5">
-          <ReleaseOrderForm
-            containers={containers.map((c) => ({
-              id: c.id,
-              label: `${c.containerNumber} (${c.containerType.code})`,
-            }))}
-            customers={customers.map((c) => ({ id: c.id, label: c.name }))}
-            shippingLines={shippingLines.map((s) => ({ id: s.id, label: s.name }))}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <DataTable columns={cols} rows={releaseOrders} />
-        </div>
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <>
+            <SearchBox initialQuery={q} />
+            <FormModal triggerLabel={t("newRelease")} title={t("newRelease")}>
+              <ReleaseOrderForm
+                containers={containerOpts}
+                containerTypes={typeOpts}
+                customers={customers.map((c) => ({ id: c.id, label: c.name }))}
+                shippingLines={shippingLines.map((s) => ({ id: s.id, label: s.name }))}
+              />
+            </FormModal>
+          </>
+        }
+      />
+      <DataTable columns={cols} rows={releaseOrders} />
     </div>
   );
 }

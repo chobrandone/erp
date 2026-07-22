@@ -84,7 +84,7 @@ export function GateInForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl">
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl mx-auto">
       <FormSection title={t("title")}>
         <FormField label={t("containerNumber")}>
           <input

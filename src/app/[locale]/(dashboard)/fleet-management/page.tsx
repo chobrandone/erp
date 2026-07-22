@@ -5,7 +5,8 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { VehicleForm } from "@/components/fleet/VehicleForm";
 import { DispatchForm } from "@/components/fleet/DispatchForm";
-import { ReturnTripButton } from "@/components/fleet/TripActions";
+import { ReturnTripButton, RedispatchButton } from "@/components/fleet/TripActions";
+import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { Truck, AlertTriangle, ShieldCheck, ParkingSquare, Send, FileSpreadsheet, Printer, History } from "lucide-react";
@@ -70,6 +71,7 @@ export default async function FleetManagementPage() {
       accessor: (r) => (
         <div className="flex items-center gap-3">
           <a href={`/api/vehicle-trips/${r.id}/pdf`} target="_blank" title={t("printSheet")} className="text-brand-100"><Printer size={15} /></a>
+          <RedispatchButton tripId={r.id} />
           <ReturnTripButton tripId={r.id} label={t("returnToPark")} confirmText={t("confirmReturn")} />
         </div>
       ),
@@ -138,9 +140,17 @@ export default async function FleetManagementPage() {
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <a href="/api/reports/export?type=fleet" target="_blank" className="flex items-center gap-1.5 text-sm rounded-lg border border-border-color px-3 py-1.5 hover:bg-surface-alt">
-            <FileSpreadsheet size={15} /> {t("exportExcel")}
-          </a>
+          <>
+            <a href="/api/reports/export?type=fleet" target="_blank" className="flex items-center gap-1.5 text-sm rounded-lg border border-border-color px-3 py-1.5 hover:bg-surface-alt">
+              <FileSpreadsheet size={15} /> {t("exportExcel")}
+            </a>
+            <FormModal triggerLabel={t("dispatchBtn")} title={t("dispatchTitle")}>
+              <DispatchForm vehicles={dispatchVehicles} />
+            </FormModal>
+            <FormModal triggerLabel={t("newVehicle")} title={t("newVehicle")} triggerClassName="flex items-center gap-1.5 text-sm rounded-lg border border-border-color px-3 py-1.5 hover:bg-surface-alt">
+              <VehicleForm />
+            </FormModal>
+          </>
         }
       />
 
@@ -152,23 +162,7 @@ export default async function FleetManagementPage() {
         <KPICard title={t("docsExpired")} value={expiredCount} icon={ShieldCheck} accentIndex={2} />
       </div>
 
-      {expiring.length > 0 && (
-        <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-4">
-          <h3 className="text-sm font-semibold text-amber-600 flex items-center gap-2 mb-3">
-            <AlertTriangle size={16} /> {t("docAlertsTitle")}
-          </h3>
-          <ul className="space-y-1.5">
-            {expiring.slice(0, 12).map((e, i) => (
-              <li key={i} className="text-sm flex items-center justify-between">
-                <span><span className="font-medium">{e.plate}</span> — {DOC_LABELS[e.docType] ?? e.docType}</span>
-                <span className={e.daysLeft < 0 ? "text-red-600 font-medium" : "text-amber-600"}>
-                  {e.daysLeft < 0 ? `${t("expiredSinceDays")} ${Math.abs(e.daysLeft)}${t("agoDays")}` : `${t("expiresInDays")} ${e.daysLeft}${t("daysSuffix")}`} · {formatDate(e.expiry)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* Document-renewal alerts now surface in the top-bar notification bell. */}
 
       {/* IN USE */}
       <section className="space-y-3">
@@ -178,18 +172,13 @@ export default async function FleetManagementPage() {
         {useRows.length > 0 ? <DataTable columns={useCols} rows={useRows} /> : <p className="text-sm text-fg-subtle rounded-lg border border-border-color p-4">{t("noMission")}</p>}
       </section>
 
-      {/* IN PARK + dispatch */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 space-y-3">
-          <h3 className="text-sm font-semibold text-fg-muted flex items-center gap-2">
-            <ParkingSquare size={15} className="text-brand-100" /> {t("inParkTitle")} ({inPark.length})
-          </h3>
-          <DataTable columns={parkCols} rows={parkRows} />
-        </div>
-        <div className="rounded-xl border border-border-color bg-surface p-5">
-          <DispatchForm vehicles={dispatchVehicles} />
-        </div>
-      </div>
+      {/* IN PARK */}
+      <section className="space-y-3">
+        <h3 className="text-sm font-semibold text-fg-muted flex items-center gap-2">
+          <ParkingSquare size={15} className="text-brand-100" /> {t("inParkTitle")} ({inPark.length})
+        </h3>
+        <DataTable columns={parkCols} rows={parkRows} />
+      </section>
 
       {/* PER-VEHICLE SUMMARY */}
       <section className="space-y-3">
@@ -207,24 +196,17 @@ export default async function FleetManagementPage() {
         {allTrips.length > 0 ? <DataTable columns={histCols} rows={allTrips} /> : <p className="text-sm text-fg-subtle rounded-lg border border-border-color p-4">{t("none")}</p>}
       </section>
 
-      {/* Maintenance + add vehicle */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 space-y-3">
-          {maintenance.length > 0 && (
-            <>
-              <h3 className="text-sm font-semibold text-fg-muted">{t("maintenanceTitle")} ({maintenance.length})</h3>
-              <ul className="text-sm space-y-1">
-                {maintenance.map((v) => (
-                  <li key={v.id} className="rounded-lg border border-border-color px-3 py-2">{v.plateNumber} — {`${v.make ?? ""} ${v.model ?? ""}`.trim()}</li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
-        <div className="rounded-xl border border-border-color bg-surface p-5">
-          <VehicleForm />
-        </div>
-      </div>
+      {/* Maintenance */}
+      {maintenance.length > 0 && (
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold text-fg-muted">{t("maintenanceTitle")} ({maintenance.length})</h3>
+          <ul className="text-sm space-y-1">
+            {maintenance.map((v) => (
+              <li key={v.id} className="rounded-lg border border-border-color px-3 py-2">{v.plateNumber} — {`${v.make ?? ""} ${v.model ?? ""}`.trim()}</li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

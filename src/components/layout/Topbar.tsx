@@ -1,17 +1,20 @@
 import { ThemeToggle } from "./ThemeToggle";
 import { LanguageToggle } from "./LanguageToggle";
 import { UserMenu } from "./UserMenu";
+import { NotificationBell, type AppNotification } from "./NotificationBell";
 
 export function Topbar({
   title,
   subtitle,
   userName,
   userRole,
+  notifications = [],
 }: {
   title?: string;
   subtitle?: string;
   userName: string;
   userRole: string;
+  notifications?: AppNotification[];
 }) {
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-4 lg:px-6 border-b border-border-color bg-surface/80 backdrop-blur">
@@ -26,6 +29,7 @@ export function Topbar({
       <div className="flex items-center gap-2 shrink-0">
         <LanguageToggle />
         <ThemeToggle />
+        <NotificationBell notifications={notifications} />
         <UserMenu userName={userName} userRole={userRole} />
       </div>
     </header>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
+import { useFormModalClose } from "@/components/shared/FormModal";
 import { Plus, Trash2 } from "lucide-react";
 
 type Doc = { docType: string; reference: string; expiryDate: string };
@@ -11,6 +12,7 @@ type Doc = { docType: string; reference: string; expiryDate: string };
 export function VehicleForm() {
   const tc = useTranslations("common");
   const t = useTranslations("fleet");
+  const closeModal = useFormModalClose();
   const DOC_TYPES = [
     { value: "INSURANCE", label: t("docInsurance") },
     { value: "TECHNICAL_INSPECTION", label: t("docTechnicalInspection") },
@@ -41,6 +43,7 @@ export function VehicleForm() {
         setForm({ plateNumber: "", make: "", model: "", driverName: "", driverPhone: "" });
         setDocs([{ docType: "INSURANCE", reference: "", expiryDate: "" }]);
         router.refresh();
+        closeModal();
       }
     } finally {
       setSubmitting(false);
