@@ -10,7 +10,7 @@ export type PTIRequestFormData = {
   containerNumber: string;
   containerType: string;
   requiredDate: string;
-  inspectionType: "STANDARD" | "SPECIAL";
+  inspectionType: "STANDARD" | "SPECIAL" | "SMART";
   remarks: string;
   requestedBy: string;
   approvedBy: string;
@@ -37,8 +37,14 @@ export function PTIRequestFormPdf(data: PTIRequestFormData) {
 
         <CheckboxGroup
           label="Inspection Type"
-          options={["Standard PTI", "Special PTI"]}
-          selected={data.inspectionType === "STANDARD" ? "Standard PTI" : "Special PTI"}
+          options={["Standard PTI", "Special PTI", "Smart PTI"]}
+          selected={
+            data.inspectionType === "STANDARD"
+              ? "Standard PTI"
+              : data.inspectionType === "SPECIAL"
+                ? "Special PTI"
+                : "Smart PTI"
+          }
         />
 
         <Field label="Remarks" value={data.remarks} full />

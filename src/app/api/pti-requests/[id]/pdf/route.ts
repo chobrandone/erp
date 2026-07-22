@@ -26,7 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       containerNumber: request_.container.containerNumber,
       containerType: request_.container.containerType.code,
       requiredDate: request_.requiredDate ? request_.requiredDate.toLocaleDateString() : "-",
-      inspectionType: request_.inspectionType as "STANDARD" | "SPECIAL",
+      inspectionType: request_.inspectionType as "STANDARD" | "SPECIAL" | "SMART",
       remarks: request_.remarks ?? "-",
       requestedBy: request_.requestedBy ?? "-",
       approvedBy: request_.approvedBy ?? "-",

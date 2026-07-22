@@ -19,13 +19,33 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const data = ptiRequestSchema.parse(body);
 
+  // Resolve the container: use the selected existing one, or find/create it
+  // from the typed-in container number + chosen container type.
+  let containerId = data.containerId ?? "";
+  if (!containerId) {
+    const containerNumber = data.containerNumber!.trim().toUpperCase();
+    const existing = await prisma.container.findUnique({ where: { containerNumber } });
+    if (existing) {
+      containerId = existing.id;
+    } else {
+      const created = await prisma.container.create({
+        data: {
+          containerNumber,
+          containerTypeId: data.containerTypeId!,
+          status: "EMPTY",
+        },
+      });
+      containerId = created.id;
+    }
+  }
+
   const count = await prisma.pTIRequest.count();
   const docNumber = formatDocNumber("PTI-REQ", count + 1);
 
   const request_ = await prisma.pTIRequest.create({
     data: {
       docNumber,
-      containerId: data.containerId,
+      containerId,
       customerId: data.customerId || null,
       shippingLineId: data.shippingLineId || null,
       priority: data.priority,
