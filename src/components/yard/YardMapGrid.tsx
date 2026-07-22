@@ -46,8 +46,10 @@ export function YardMapGrid({ locations }: { locations: LocationWithInventory[] 
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         {blockKeys.map((b) => {
-          const occupied = blocks.get(b)!.filter((l) => l.inventory).length;
-          const total = blocks.get(b)!.length;
+          // Count positions (row-bay) rather than individual stack slots.
+          const locs = blocks.get(b)!;
+          const total = new Set(locs.map((l) => `${l.row}-${l.bay}`)).size;
+          const occupied = new Set(locs.filter((l) => l.inventory).map((l) => `${l.row}-${l.bay}`)).size;
           return (
             <button
               key={b}
