@@ -3,7 +3,9 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ReeferLogForm } from "@/components/reefer/ReeferLogForm";
+import { ReeferActions } from "@/components/reefer/ReeferActions";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { formatDateTime } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 import { SearchBox } from "@/components/shared/SearchBox";
@@ -17,6 +19,9 @@ export default async function ReeferMonitoringPage({
   const { q } = await searchParams;
   const t = await getTranslations("reefer");
   const tc = await getTranslations("common");
+  const session = await auth();
+  const u = session?.user as { role?: string; permissions?: string[] | null } | undefined;
+  const canManage = u?.role === "ADMIN" || u?.permissions == null || (u?.permissions?.includes("reefer-management") ?? false);
 
   const [logs, containers] = await Promise.all([
     prisma.reeferMonitoring.findMany({
@@ -43,18 +48,29 @@ export default async function ReeferMonitoringPage({
     { header: t("plugNumber"), accessor: (r) => r.plugNumber ?? "-" },
     { header: t("setPoint"), accessor: (r) => `${r.setTempC}°C` },
     { header: t("actualTemp"), accessor: (r) => `${r.actualTempC}°C` },
+    { header: t("powerStatus"), accessor: (r) => <StatusBadge status={r.powerStatus} /> },
     { header: t("alarmStatus"), accessor: (r) => <StatusBadge status={r.alarmStatus} /> },
     { header: t("recordedAt"), accessor: (r) => formatDateTime(r.recordedAt) },
     {
       header: tc("actions"),
       accessor: (r) => (
-        <a
-          href={`/api/reefer-monitoring/${r.id}/pdf`}
-          target="_blank"
-          className="flex items-center gap-1 text-brand-100 hover:underline"
-        >
-          <FileText size={14} /> {tc("print")}
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href={`/api/reefer-monitoring/${r.id}/pdf`}
+            target="_blank"
+            className="flex items-center gap-1 text-brand-100 hover:underline"
+          >
+            <FileText size={14} /> {tc("print")}
+          </a>
+          <ReeferActions
+            canManage={canManage}
+            record={{
+              id: r.id, setTempC: r.setTempC, actualTempC: r.actualTempC, humidity: r.humidity,
+              plugNumber: r.plugNumber, powerStatus: r.powerStatus, alarmStatus: r.alarmStatus,
+              technician: r.technician, remarks: r.remarks,
+            }}
+          />
+        </div>
       ),
     },
   ];

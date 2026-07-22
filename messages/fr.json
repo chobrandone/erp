@@ -39,6 +39,7 @@
     "delete": "Supprimer",
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer ceci ? Cette action est irréversible.",
     "deleteFailed": "Impossible de supprimer cet enregistrement.",
+    "saveFailed": "Impossible d'enregistrer vos modifications.",
     "yes": "Oui",
     "no": "Non",
     "approved": "Approuvé",
