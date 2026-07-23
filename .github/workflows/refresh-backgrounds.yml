@@ -1,0 +1,47 @@
+name: Refresh background images
+
+# Pulls fresh maritime / logistics background image links from Unsplash and
+# commits them. The push to main triggers Vercel's normal redeploy, so the new
+# wallpapers go live automatically — no manual step.
+
+on:
+  schedule:
+    # 06:00 UTC on the 1st and 15th of each month (~every two weeks).
+    - cron: "0 6 1,15 * *"
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-backgrounds
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch fresh Unsplash background links
+        env:
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+        run: node scripts/fetch-online-backgrounds.mjs
+
+      - name: Commit & push if changed
+        run: |
+          if git diff --quiet -- src/lib/backgrounds.online.generated.ts; then
+            echo "No background changes — nothing to commit."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add src/lib/backgrounds.online.generated.ts
+            git commit -m "chore: auto-refresh Unsplash background links [skip ci]"
+            git push
+          fi
