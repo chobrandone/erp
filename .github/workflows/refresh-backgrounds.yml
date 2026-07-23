@@ -3,12 +3,21 @@ name: Refresh background images
 # Pulls fresh maritime / logistics background image links from Unsplash and
 # commits them. The push to main triggers Vercel's normal redeploy, so the new
 # wallpapers go live automatically — no manual step.
+#
+# GitHub cron is calendar-based, so it can't say "every 14 days" directly.
+# Instead this runs daily and self-gates: it only refreshes when at least 14
+# days have passed since the generated file was last updated, giving a true
+# rolling two-week cadence anchored to the last change.
 
 on:
   schedule:
-    # 06:00 UTC on the 1st and 15th of each month (~every two weeks).
-    - cron: "0 6 1,15 * *"
-  workflow_dispatch: {} # allow manual runs from the Actions tab
+    - cron: "0 6 * * *" # daily 06:00 UTC; the job gates itself to every 14 days
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Refresh now even if fewer than 14 days have passed"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -23,18 +32,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so we can read the file's last-update date
+
+      - name: Decide whether 14 days have passed
+        id: gate
+        run: |
+          force="${{ github.event.inputs.force }}"
+          last=$(git log -1 --format=%ct -- src/lib/backgrounds.online.generated.ts 2>/dev/null || echo 0)
+          now=$(date +%s)
+          days=$(( (now - last) / 86400 ))
+          echo "Background links last updated ${days} day(s) ago."
+          if [ "$force" = "true" ] || [ "$days" -ge 14 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Fewer than 14 days — skipping this run."
+          fi
 
       - name: Setup Node
+        if: steps.gate.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Fetch fresh Unsplash background links
+        if: steps.gate.outputs.run == 'true'
         env:
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
         run: node scripts/fetch-online-backgrounds.mjs
 
       - name: Commit & push if changed
+        if: steps.gate.outputs.run == 'true'
         run: |
           if git diff --quiet -- src/lib/backgrounds.online.generated.ts; then
             echo "No background changes — nothing to commit."
