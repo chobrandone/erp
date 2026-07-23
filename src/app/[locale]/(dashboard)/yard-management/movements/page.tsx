@@ -7,7 +7,6 @@ import { Link } from "@/i18n/navigation";
 import { Plus, FileText } from "lucide-react";
 import { EditMovementButton } from "@/components/yard/EditMovementButton";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
-import { SearchBox } from "@/components/shared/SearchBox";
 
 export default async function MovementsPage({
   searchParams,
@@ -74,9 +73,7 @@ export default async function MovementsPage({
       <PageHeader
         title={t("movements")}
         actions={
-          <>
-            <SearchBox initialQuery={q} />
-            <Link
+          <>            <Link
               href="/yard-management/movements/new"
               className="flex items-center gap-1.5 brand-gradient text-white text-sm font-medium px-4 py-2 rounded-lg"
             >

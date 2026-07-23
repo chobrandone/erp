@@ -14,6 +14,10 @@ model User {
   passwordHash String
   role         String // ADMIN, GATE_CLERK, YARD_PLANNER, PTI_INSPECTOR, FINANCE, VIEWER
   permissions  String? // JSON array of module slugs the user may access (ADMIN = all)
+  // Action rights within the sections the user can access. Admins always have all.
+  canCreate    Boolean  @default(true)
+  canEdit      Boolean  @default(true)
+  canDelete    Boolean  @default(true)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
 

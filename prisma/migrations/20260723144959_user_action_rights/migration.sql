@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "canCreate" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "canDelete" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "canEdit" BOOLEAN NOT NULL DEFAULT true;

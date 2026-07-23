@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/requireAuth";
+import { requireRight } from "@/lib/requireRight";
 
 export async function GET() {
   const repairs = await prisma.repair.findMany({
@@ -11,8 +11,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { unauthorized } = await requireAuth();
-  if (unauthorized) return unauthorized;
+  const { forbidden } = await requireRight("create");
+  if (forbidden) return forbidden;
 
   const body = await req.json();
 

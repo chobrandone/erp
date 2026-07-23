@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -25,6 +26,10 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("statuses");
+  // Translate the status code (e.g. COMPLETED → "Terminé" in French); fall back
+  // to a humanized version of the raw code for anything not in the map.
+  const label = t.has(status) ? t(status) : status.replace(/_/g, " ");
   return (
     <span
       className={cn(
@@ -32,7 +37,7 @@ export function StatusBadge({ status }: { status: string }) {
         STATUS_STYLES[status] ?? "bg-surface-alt text-fg-muted"
       )}
     >
-      {status.replace(/_/g, " ")}
+      {label}
     </span>
   );
 }

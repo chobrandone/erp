@@ -22,7 +22,7 @@ export async function GET() {
   if (!admin) return unauthorized;
 
   const users = await prisma.user.findMany({
-    select: { id: true, name: true, email: true, role: true, permissions: true, isActive: true, createdAt: true },
+    select: { id: true, name: true, email: true, role: true, permissions: true, canCreate: true, canEdit: true, canDelete: true, isActive: true, createdAt: true },
     orderBy: { createdAt: "asc" },
   });
   return NextResponse.json({ users });
@@ -47,6 +47,12 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return NextResponse.json({ error: "A user with this email already exists." }, { status: 409 });
 
+  // Action rights (create / edit / delete). Admins implicitly have all.
+  const isAdminRole = role === "ADMIN";
+  const canCreate = isAdminRole || body.canCreate !== false;
+  const canEdit = isAdminRole || body.canEdit !== false;
+  const canDelete = isAdminRole || body.canDelete === true; // default: cannot delete unless granted
+
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
     data: {
@@ -55,11 +61,14 @@ export async function POST(req: NextRequest) {
       passwordHash,
       role,
       permissions: role === "ADMIN" ? null : JSON.stringify(permissions),
+      canCreate,
+      canEdit,
+      canDelete,
       isActive: true,
     },
-    select: { id: true, name: true, email: true, role: true, permissions: true, isActive: true },
+    select: { id: true, name: true, email: true, role: true, permissions: true, canCreate: true, canEdit: true, canDelete: true, isActive: true },
   });
 
-  await logAudit({ userId: (session!.user as SessionUser).id, action: "USER_CREATE", entity: "User", entityId: user.id, meta: { email, role, permissions } });
+  await logAudit({ userId: (session!.user as SessionUser).id, action: "USER_CREATE", entity: "User", entityId: user.id, meta: { email, role, permissions, canCreate, canEdit, canDelete } });
   return NextResponse.json({ user });
 }

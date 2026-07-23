@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/requireAuth";
+import { hasRight } from "@/lib/requireRight";
 import { logAudit } from "@/lib/audit";
 
-type SessionUser = { id?: string; role?: string; permissions?: string[] | null };
+type SessionUser = { id?: string; role?: string; permissions?: string[] | null; canCreate?: boolean; canEdit?: boolean; canDelete?: boolean };
 
 // A reefer record may be edited/deleted by an admin, or by a user the admin
 // assigned to reefer management (i.e. who has the reefer-management permission).
@@ -19,7 +20,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { session, unauthorized } = await requireAuth();
   if (unauthorized) return unauthorized;
   const user = session!.user as SessionUser;
-  if (!canManage(user)) return NextResponse.json({ error: "Not permitted to edit reefer records." }, { status: 403 });
+  if (!canManage(user) || !hasRight(user, "edit")) return NextResponse.json({ error: "Not permitted to edit reefer records." }, { status: 403 });
 
   const { id } = await params;
   const body = await req.json();
@@ -46,7 +47,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const { session, unauthorized } = await requireAuth();
   if (unauthorized) return unauthorized;
   const user = session!.user as SessionUser;
-  if (!canManage(user)) return NextResponse.json({ error: "Not permitted to delete reefer records." }, { status: 403 });
+  if (!canManage(user) || !hasRight(user, "delete")) return NextResponse.json({ error: "Not permitted to delete reefer records." }, { status: 403 });
 
   const { id } = await params;
   const existing = await prisma.reeferMonitoring.findUnique({ where: { id } });

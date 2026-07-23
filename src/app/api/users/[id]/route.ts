@@ -40,13 +40,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (String(body.password).length < 6) return NextResponse.json({ error: "Password too short (min 6)." }, { status: 400 });
     data.passwordHash = await bcrypt.hash(String(body.password), 10);
   }
-  // If promoting to ADMIN, clear the (now-irrelevant) permission list.
-  if (data.role === "ADMIN") data.permissions = null;
+  // Action rights (create / edit / delete).
+  if (body.canCreate !== undefined) data.canCreate = Boolean(body.canCreate);
+  if (body.canEdit !== undefined) data.canEdit = Boolean(body.canEdit);
+  if (body.canDelete !== undefined) data.canDelete = Boolean(body.canDelete);
+  // If promoting to ADMIN, clear the (now-irrelevant) permission list and grant all rights.
+  if (data.role === "ADMIN") {
+    data.permissions = null;
+    data.canCreate = true;
+    data.canEdit = true;
+    data.canDelete = true;
+  }
 
   const user = await prisma.user.update({
     where: { id },
     data,
-    select: { id: true, name: true, email: true, role: true, permissions: true, isActive: true },
+    select: { id: true, name: true, email: true, role: true, permissions: true, canCreate: true, canEdit: true, canDelete: true, isActive: true },
   });
 
   await logAudit({ userId: (session!.user as SessionUser).id, action: "USER_UPDATE", entity: "User", entityId: id, meta: { changed: Object.keys(data) } });

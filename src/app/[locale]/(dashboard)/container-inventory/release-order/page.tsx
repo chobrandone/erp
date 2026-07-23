@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ReleaseOrderForm } from "@/components/yard/ReleaseOrderForm";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
@@ -70,9 +69,7 @@ export default async function ReleaseOrderPage({
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <>
-            <SearchBox initialQuery={q} />
-            <FormModal triggerLabel={t("newRelease")} title={t("newRelease")}>
+          <>            <FormModal triggerLabel={t("newRelease")} title={t("newRelease")}>
               <ReleaseOrderForm
                 containers={containerOpts}
                 containerTypes={typeOpts}

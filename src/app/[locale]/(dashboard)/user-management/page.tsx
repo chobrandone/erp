@@ -12,7 +12,7 @@ export default async function UserManagementPage({ params }: { params: Promise<{
   if (role !== "ADMIN") redirect({ href: "/", locale });
 
   const users = await prisma.user.findMany({
-    select: { id: true, name: true, email: true, role: true, permissions: true, isActive: true },
+    select: { id: true, name: true, email: true, role: true, permissions: true, canCreate: true, canEdit: true, canDelete: true, isActive: true },
     orderBy: { createdAt: "asc" },
   });
 

@@ -2,7 +2,6 @@ import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { Link } from "@/i18n/navigation";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 import { prisma } from "@/lib/prisma";
@@ -63,9 +62,7 @@ export default async function GateOperationsPage({
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <>
-            <SearchBox initialQuery={q} />
-            <a
+          <>            <a
               href="/api/reports/export?type=gate"
               target="_blank"
               className="flex items-center gap-1.5 border border-border-color text-fg text-sm font-medium px-4 py-2 rounded-lg hover:bg-surface-alt"

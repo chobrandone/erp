@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { RepairWorkOrderForm } from "@/components/repair/RepairWorkOrderForm";
 import { WorkOrderStatusSelect } from "@/components/repair/WorkOrderStatusSelect";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
@@ -66,9 +65,7 @@ export default async function RepairWorkOrderPage({
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <>
-            <SearchBox initialQuery={q} />
-            <FormModal triggerLabel={t("newWorkOrder")} title={t("newWorkOrder")}>
+          <>            <FormModal triggerLabel={t("newWorkOrder")} title={t("newWorkOrder")}>
               <RepairWorkOrderForm containers={containerOpts} containerTypes={typeOpts} />
             </FormModal>
           </>

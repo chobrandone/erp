@@ -8,7 +8,6 @@ import { Link } from "@/i18n/navigation";
 import { Plus, FileText } from "lucide-react";
 import { EditPTIPriorityButton } from "@/components/pti/EditPTIPriorityButton";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
-import { SearchBox } from "@/components/shared/SearchBox";
 
 export default async function PTIManagementPage({
   searchParams,
@@ -83,9 +82,7 @@ export default async function PTIManagementPage({
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <>
-            <SearchBox initialQuery={q} />
-            <Link
+          <>            <Link
               href="/pti-management/new"
               className="flex items-center gap-1.5 brand-gradient text-white text-sm font-medium px-4 py-2 rounded-lg"
             >

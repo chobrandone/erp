@@ -10,7 +10,6 @@ import { WaiverApproval } from "@/components/billing/WaiverApproval";
 import { VoidInvoiceButton, RestoreInvoiceButton, PurgeInvoiceButton } from "@/components/billing/InvoiceSandboxActions";
 import { BillingDateRangeFilter } from "@/components/billing/BillingDateRangeFilter";
 import { RevenueTrendChart } from "@/components/billing/RevenueTrendChart";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
@@ -197,9 +196,7 @@ export default async function BillingFinancePage({
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <>
-            <SearchBox initialQuery={q} extraParams={{ from, to }} />
-            <FormModal triggerLabel={t("newInvoice")} title={t("newInvoice")} maxWidth="max-w-3xl">
+          <>            <FormModal triggerLabel={t("newInvoice")} title={t("newInvoice")} maxWidth="max-w-3xl">
               <InvoiceForm
                 customers={customers.map((c) => ({ id: c.id, label: c.name }))}
                 rates={billingRates.map((r) => ({ code: r.code, service: r.service, rateXaf: r.rateXaf }))}

@@ -2,7 +2,6 @@ import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { prisma } from "@/lib/prisma";
 
 export default async function PositionsPage({
@@ -36,7 +35,7 @@ export default async function PositionsPage({
 
   return (
     <div>
-      <PageHeader title={t("positions")} actions={<SearchBox initialQuery={q} />} />
+      <PageHeader title={t("positions")} />
       <DataTable columns={cols} rows={inventory} />
     </div>
   );

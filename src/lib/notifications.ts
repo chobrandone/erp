@@ -19,15 +19,43 @@ const DOC_LABELS_FR: Record<string, string> = {
 };
 
 /**
- * Build the notification list shown in the top-bar bell. Currently surfaces
- * fleet documents expiring within 30 days (or already expired), most urgent
- * first — the same data the Fleet page shows as an inline alert banner.
+ * Build the notification list shown in the top-bar bell. Surfaces fleet
+ * documents expiring within 30 days (or already expired), and — for admins —
+ * waiver/reduction requests raised by finance awaiting confirmation.
  */
-export async function buildNotifications(locale: string): Promise<AppNotification[]> {
+export async function buildNotifications(
+  locale: string,
+  opts: { isAdmin?: boolean } = {},
+): Promise<AppNotification[]> {
   const fr = locale.startsWith("fr");
   const labels = fr ? DOC_LABELS_FR : DOC_LABELS_EN;
   const now = Date.now();
   const soon = 30 * DAY;
+
+  const out: AppNotification[] = [];
+
+  // Waiver requests awaiting super-admin confirmation (admins only, shown first).
+  if (opts.isAdmin) {
+    const pending = await prisma.invoice.findMany({
+      where: { discountPending: true, archived: false },
+      include: { customer: true },
+      orderBy: { issuedAt: "desc" },
+    });
+    for (const inv of pending) {
+      const amount = inv.discountPercent > 0
+        ? `${inv.discountPercent}%`
+        : `${Math.round(inv.discountAmount).toLocaleString(fr ? "fr-FR" : "en-GB")} FCFA`;
+      out.push({
+        id: `waiver-${inv.id}`,
+        title: fr ? `Waiver à confirmer — ${inv.invoiceNumber}` : `Waiver to confirm — ${inv.invoiceNumber}`,
+        detail: fr
+          ? `${inv.customer.name} · ${amount} · demandé par ${inv.discountRequestedBy ?? "finance"}`
+          : `${inv.customer.name} · ${amount} · requested by ${inv.discountRequestedBy ?? "finance"}`,
+        severity: "warning",
+        href: "/billing-finance",
+      });
+    }
+  }
 
   const vehicles = await prisma.vehicle.findMany({ include: { documents: true } });
 
@@ -43,7 +71,8 @@ export async function buildNotifications(locale: string): Promise<AppNotificatio
   }
   flags.sort((a, b) => a.daysLeft - b.daysLeft);
 
-  return flags.map((f, i) => {
+  for (let i = 0; i < flags.length; i++) {
+    const f = flags[i];
     const label = labels[f.docType] ?? f.docType;
     const dateStr = f.expiry.toLocaleDateString(fr ? "fr-FR" : "en-GB");
     const detail =
@@ -54,13 +83,15 @@ export async function buildNotifications(locale: string): Promise<AppNotificatio
         : fr
           ? `Expire dans ${f.daysLeft} j · ${dateStr}`
           : `Expires in ${f.daysLeft}d · ${dateStr}`;
-    return {
+    out.push({
       id: `doc-${i}`,
       title: `${f.plate} — ${label}`,
       detail,
       when: f.expiry.toISOString(),
       severity: f.daysLeft < 0 ? "danger" : "warning",
       href: "/fleet-management",
-    } as AppNotification;
-  });
+    });
+  }
+
+  return out;
 }

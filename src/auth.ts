@@ -24,7 +24,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
 
-        return { id: user.id, name: user.name, email: user.email, role: user.role, permissions: user.permissions };
+        return {
+          id: user.id, name: user.name, email: user.email, role: user.role, permissions: user.permissions,
+          canCreate: user.canCreate, canEdit: user.canEdit, canDelete: user.canDelete,
+        };
       },
     }),
   ],
@@ -34,12 +37,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as { role: string }).role;
         token.id = (user as { id: string }).id;
         token.permissions = (user as { permissions?: string | null }).permissions ?? null;
+        const u = user as { canCreate?: boolean; canEdit?: boolean; canDelete?: boolean };
+        token.canCreate = u.canCreate ?? true;
+        token.canEdit = u.canEdit ?? true;
+        token.canDelete = u.canDelete ?? true;
       }
       return token;
     },
     session({ session, token }) {
       if (session.user) {
-        const u = session.user as typeof session.user & { role: string; id: string; permissions: string[] | null };
+        const u = session.user as typeof session.user & {
+          role: string; id: string; permissions: string[] | null;
+          canCreate: boolean; canEdit: boolean; canDelete: boolean;
+        };
         u.role = token.role as string;
         u.id = token.id as string;
         try {
@@ -48,6 +58,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         } catch {
           u.permissions = null;
         }
+        // Admins always have every action right regardless of stored flags.
+        const admin = u.role === "ADMIN";
+        u.canCreate = admin || token.canCreate !== false;
+        u.canEdit = admin || token.canEdit !== false;
+        u.canDelete = admin || token.canDelete !== false;
       }
       return session;
     },

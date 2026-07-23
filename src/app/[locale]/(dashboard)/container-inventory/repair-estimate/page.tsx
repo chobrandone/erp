@@ -2,7 +2,6 @@ import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { RepairEstimateForm } from "@/components/repair/RepairEstimateForm";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { formatXaf } from "@/lib/billing";
@@ -68,9 +67,7 @@ export default async function RepairEstimatePage({
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <>
-            <SearchBox initialQuery={q} />
-            <FormModal triggerLabel={t("newEstimate")} title={t("newEstimate")}>
+          <>            <FormModal triggerLabel={t("newEstimate")} title={t("newEstimate")}>
               <RepairEstimateForm containers={containerOpts} containerTypes={typeOpts} />
             </FormModal>
           </>

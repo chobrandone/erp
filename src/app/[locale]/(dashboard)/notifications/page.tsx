@@ -12,8 +12,12 @@ export default async function NotificationsPage() {
   const session = await auth();
   const user = session?.user as { role?: string; permissions?: string[] | null } | undefined;
   const allowed = allowedSlugs({ role: user?.role, permissions: user?.permissions });
+  const isAdmin = user?.role === "ADMIN";
 
-  const notifications = allowed.includes("fleet-management") ? await buildNotifications(locale) : [];
+  const notifications =
+    allowed.includes("fleet-management") || isAdmin
+      ? await buildNotifications(locale, { isAdmin })
+      : [];
 
   return (
     <div className="space-y-6">

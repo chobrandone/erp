@@ -5,7 +5,6 @@ import { RepairForm } from "@/components/repair/RepairForm";
 import { RepairStatusSelect } from "@/components/repair/RepairStatusSelect";
 import { EditRepairButton } from "@/components/repair/EditRepairButton";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { getLocale } from "next-intl/server";
@@ -88,9 +87,7 @@ export default async function MaintenanceRepairPage({
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <>
-            <SearchBox initialQuery={q} />
-            <FormModal triggerLabel={t("newRepair")} title={t("newRepair")}>
+          <>            <FormModal triggerLabel={t("newRepair")} title={t("newRepair")}>
               <RepairForm
                 containers={containers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }))}
                 containerTypes={containerTypes.map((ct) => ({ id: ct.id, label: `${ct.code} — ${ct.description}` }))}

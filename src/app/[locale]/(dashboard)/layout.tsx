@@ -32,8 +32,12 @@ export default async function DashboardLayout({
 
   const allowed = allowedSlugs(access);
   const bg = backgroundForNow();
-  // Fleet document-renewal alerts, surfaced in the top-bar notification bell.
-  const notifications = allowed.includes("fleet-management") ? await buildNotifications(locale) : [];
+  // Fleet document-renewal alerts (+ waiver requests for admins), surfaced in the bell.
+  const isAdmin = user.role === "ADMIN";
+  const notifications =
+    allowed.includes("fleet-management") || isAdmin
+      ? await buildNotifications(locale, { isAdmin })
+      : [];
 
   return (
     <div className="relative flex min-h-screen bg-surface-alt">

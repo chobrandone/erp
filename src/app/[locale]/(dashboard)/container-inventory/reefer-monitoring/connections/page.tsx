@@ -4,7 +4,6 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ReeferConnectionForm } from "@/components/reefer/ReeferConnectionForm";
 import { ReeferConnectionActions } from "@/components/reefer/ReeferConnectionActions";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
@@ -86,9 +85,7 @@ export default async function ReeferConnectionsPage({
         title={t("connectionFormTitle")}
         subtitle={t("connectionFormSubtitle")}
         actions={
-          <>
-            <SearchBox initialQuery={q} />
-            <FormModal triggerLabel={t("newConnection")} title={t("newConnection")}>
+          <>            <FormModal triggerLabel={t("newConnection")} title={t("newConnection")}>
               <ReeferConnectionForm containers={containerOpts} containerTypes={typeOpts} />
             </FormModal>
           </>

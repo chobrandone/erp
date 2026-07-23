@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DamageSurveyForm } from "@/components/repair/DamageSurveyForm";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
@@ -65,9 +64,7 @@ export default async function DamageSurveyPage({
         title={t("title")}
         subtitle={t("subtitle")}
         actions={
-          <>
-            <SearchBox initialQuery={q} />
-            <FormModal triggerLabel={t("newSurvey")} title={t("newSurvey")}>
+          <>            <FormModal triggerLabel={t("newSurvey")} title={t("newSurvey")}>
               <DamageSurveyForm containers={containerOpts} containerTypes={typeOpts} />
             </FormModal>
           </>
