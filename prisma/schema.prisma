@@ -349,9 +349,12 @@ model Invoice {
   description       String?
   currency          String    @default("XAF")
   subtotal          Float     @default(0) // Montant HT brut (before reduction)
-  discountAmount    Float     @default(0) // Réduction / waiver authorized on the HT
+  discountAmount    Float     @default(0) // Réduction / waiver on the HT (XAF)
+  discountPercent   Float     @default(0) // Waiver expressed as a percentage of HT
   discountReason    String? // waiver / reduction justification
-  discountAuthorizedBy String? // admin who authorized the reduction
+  discountAuthorizedBy String? // admin (super-admin) who authorized the reduction
+  discountRequestedBy  String? // finance user who requested the waiver
+  discountPending   Boolean   @default(false) // finance requested → awaiting super-admin confirmation
   tvaRate           Float     @default(19.25) // Cameroon TVA %
   tvaAmount         Float     @default(0)
   amount            Float // Montant TTC

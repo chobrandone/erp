@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, Column } from "@/components/shared/DataTable";
-import { SearchBox } from "@/components/shared/SearchBox";
+import { ReportFilterBar } from "@/components/shared/ReportFilterBar";
 import { DocDeleteButton } from "@/components/documents/DocDeleteButton";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
@@ -22,13 +22,15 @@ type DocRow = {
 export default async function DocumentManagementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; from?: string; to?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, from, to } = await searchParams;
   const t = await getTranslations("documents");
   const tc = await getTranslations("common");
   const session = await auth();
   const isAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
+  const fromTime = from ? new Date(from).getTime() : null;
+  const toTime = to ? new Date(`${to}T23:59:59`).getTime() : null;
 
   const [gateTx, movements, inspections, invoices] = await Promise.all([
     prisma.gateTransaction.findMany({
@@ -88,9 +90,13 @@ export default async function DocumentManagementPage({
     })),
   ].sort((a, b) => b.generatedOn.getTime() - a.generatedOn.getTime());
 
-  const filteredRows = q
-    ? rows.filter((r) => `${r.type} ${r.reference}`.toLowerCase().includes(q.toLowerCase()))
-    : rows;
+  const filteredRows = rows.filter((r) => {
+    if (q && !`${r.type} ${r.reference}`.toLowerCase().includes(q.toLowerCase())) return false;
+    const t = r.generatedOn.getTime();
+    if (fromTime != null && t < fromTime) return false;
+    if (toTime != null && t > toTime) return false;
+    return true;
+  });
 
   const cols: Column<DocRow>[] = [
     { header: t("type"), accessor: (r) => r.type.replace(/_/g, " ") },
@@ -114,8 +120,9 @@ export default async function DocumentManagementPage({
   ];
 
   return (
-    <div>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} />} />
+    <div className="space-y-6">
+      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <ReportFilterBar exportType="documents" initialQuery={q} initialFrom={from} initialTo={to} />
       <DataTable columns={cols} rows={filteredRows} />
     </div>
   );

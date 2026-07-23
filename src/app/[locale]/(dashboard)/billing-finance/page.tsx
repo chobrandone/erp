@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { InvoiceForm } from "@/components/billing/InvoiceForm";
 import { InvoiceStatusSelect } from "@/components/billing/InvoiceStatusSelect";
 import { EditInvoiceButton } from "@/components/billing/EditInvoiceButton";
+import { WaiverApproval } from "@/components/billing/WaiverApproval";
 import { VoidInvoiceButton, RestoreInvoiceButton, PurgeInvoiceButton } from "@/components/billing/InvoiceSandboxActions";
 import { BillingDateRangeFilter } from "@/components/billing/BillingDateRangeFilter";
 import { RevenueTrendChart } from "@/components/billing/RevenueTrendChart";
@@ -26,7 +27,9 @@ export default async function BillingFinancePage({
   const t = await getTranslations("billing");
   const tc = await getTranslations("common");
   const session = await auth();
-  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  const isAdmin = role === "ADMIN";
+  const isFinance = role === "FINANCE";
 
   const dateFilter =
     from || to
@@ -88,6 +91,29 @@ export default async function BillingFinancePage({
     { header: t("customer"), accessor: (r) => r.customer.name },
     { header: t("description"), accessor: (r) => r.description ?? "-" },
     { header: t("amount"), accessor: (r) => formatXaf(r.amount) },
+    {
+      header: t("waiverColumn"),
+      accessor: (r) =>
+        r.discountPending ? (
+          isAdmin ? (
+            <WaiverApproval
+              id={r.id}
+              requestedBy={r.discountRequestedBy ?? "-"}
+              detail={r.discountPercent > 0 ? `${r.discountPercent}%` : formatXaf(r.discountAmount)}
+            />
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 text-amber-600 text-[11px] font-semibold px-2 py-0.5">
+              {t("waiverPendingBadge")}
+            </span>
+          )
+        ) : r.discountAmount > 0 ? (
+          <span className="text-xs text-emerald-600">
+            − {r.discountPercent > 0 ? `${r.discountPercent}%` : formatXaf(r.discountAmount)}
+          </span>
+        ) : (
+          <span className="text-fg-subtle">-</span>
+        ),
+    },
     {
       header: "Status",
       accessor: (r) => (
@@ -178,6 +204,7 @@ export default async function BillingFinancePage({
                 customers={customers.map((c) => ({ id: c.id, label: c.name }))}
                 rates={billingRates.map((r) => ({ code: r.code, service: r.service, rateXaf: r.rateXaf }))}
                 isAdmin={isAdmin}
+                isFinance={isFinance}
               />
             </FormModal>
           </>

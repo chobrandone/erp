@@ -62,21 +62,26 @@ export function InventoryExplorer({
       header: t("daysInYard"),
       accessor: (r) => {
         const days = dwell(r.enteredAt);
+        return <span className="font-medium">{days} {t("daysUnit")}</span>;
+      },
+    },
+    {
+      header: t("freeDayStatus"),
+      accessor: (r) => {
+        const days = dwell(r.enteredAt);
         const over = days - r.freeDays;
-        return (
-          <span className="flex items-center gap-1.5">
-            <span>{days}</span>
-            {over > 0 ? (
-              <span className="text-[11px] font-medium text-red-600 bg-red-500/10 rounded px-1.5 py-0.5">
-                +{over} {t("daysOverdue")}
-              </span>
-            ) : (
-              <span className="text-[11px] text-fg-subtle">{Math.max(0, r.freeDays - days)} {t("daysFreeLeft")}</span>
-            )}
+        return over > 0 ? (
+          <span className="text-[11px] font-medium text-red-600 bg-red-500/10 rounded px-1.5 py-0.5">
+            {over} {t("daysOverdue")}
+          </span>
+        ) : (
+          <span className="text-[11px] font-medium text-emerald-600 bg-emerald-500/10 rounded px-1.5 py-0.5">
+            {Math.max(0, r.freeDays - days)} {t("daysFreeLeft")}
           </span>
         );
       },
     },
+    { header: t("freeDaysAllowed"), accessor: (r) => `${r.freeDays} ${t("daysUnit")}` },
     { header: tc("date"), accessor: (r) => formatDate(r.enteredAt) },
   ];
 

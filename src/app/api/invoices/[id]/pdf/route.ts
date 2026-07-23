@@ -33,7 +33,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           },
         ];
 
-  const hasDiscount = (invoice.discountAmount ?? 0) > 0;
+  // A pending (finance-requested, unconfirmed) waiver is not yet applied, so it
+  // must not appear on the printed invoice.
+  const hasDiscount = (invoice.discountAmount ?? 0) > 0 && !invoice.discountPending;
   const isFullWaiver = hasDiscount && invoice.discountAmount >= invoice.subtotal;
   const discountLabel = isFullWaiver ? "Waiver (exonération)" : "Réduction";
   const noteParts = [

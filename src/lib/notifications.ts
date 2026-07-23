@@ -60,6 +60,7 @@ export async function buildNotifications(locale: string): Promise<AppNotificatio
       detail,
       when: f.expiry.toISOString(),
       severity: f.daysLeft < 0 ? "danger" : "warning",
+      href: "/fleet-management",
     } as AppNotification;
   });
 }

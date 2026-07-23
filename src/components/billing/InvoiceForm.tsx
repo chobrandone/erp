@@ -15,7 +15,7 @@ const PAYMENT_METHODS = ["Espèces", "Virement bancaire (BICEC)", "Mobile Money"
 
 const fmt = (n: number) => Math.round(n).toLocaleString("fr-FR").replace(/,/g, " ");
 
-export function InvoiceForm({ customers, rates, isAdmin = false }: { customers: Option[]; rates: Rate[]; isAdmin?: boolean }) {
+export function InvoiceForm({ customers, rates, isAdmin = false, isFinance = false }: { customers: Option[]; rates: Rate[]; isAdmin?: boolean; isFinance?: boolean }) {
   const t = useTranslations("billing");
   const tc = useTranslations("common");
   const router = useRouter();
@@ -27,8 +27,10 @@ export function InvoiceForm({ customers, rates, isAdmin = false }: { customers: 
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0]);
   const [tvaRate, setTvaRate] = useState("19.25");
   const [lines, setLines] = useState<Line[]>([{ description: "", quantity: "1", unitPrice: "", containerNumber: "" }]);
-  // Reduction / waiver — admin-authorized reduction on the original cost.
-  const [waiver, setWaiver] = useState(false);
+  // Reduction / waiver — a super-admin applies it directly; finance requests it.
+  const canWaive = isAdmin || isFinance;
+  const [waiverMode, setWaiverMode] = useState<"percent" | "amount">("percent");
+  const [discountPercent, setDiscountPercent] = useState("");
   const [discountAmount, setDiscountAmount] = useState("");
   const [discountReason, setDiscountReason] = useState("");
   const [discountAuthorizedBy, setDiscountAuthorizedBy] = useState("");
@@ -48,12 +50,13 @@ export function InvoiceForm({ customers, rates, isAdmin = false }: { customers: 
   }
 
   const subtotal = lines.reduce((s, l) => s + (Number(l.quantity) || 0) * (Number(l.unitPrice) || 0), 0);
-  const reduction = !isAdmin
+  const pct = Math.min(Math.max(Number(discountPercent) || 0, 0), 100);
+  const requestedReduction = !canWaive
     ? 0
-    : waiver
-      ? subtotal
-      : Math.min(Math.max(Number(discountAmount) || 0, 0), subtotal);
-  const netHt = subtotal - reduction;
+    : Math.min(waiverMode === "percent" ? (subtotal * pct) / 100 : Math.max(Number(discountAmount) || 0, 0), subtotal);
+  // A super-admin's waiver applies now; a finance request applies only after approval.
+  const appliedReduction = isAdmin ? requestedReduction : 0;
+  const netHt = subtotal - appliedReduction;
   const tva = (netHt * (Number(tvaRate) || 0)) / 100;
   const ttc = netHt + tva;
 
@@ -67,9 +70,10 @@ export function InvoiceForm({ customers, rates, isAdmin = false }: { customers: 
         dueAt,
         paymentMethod,
         tvaRate: Number(tvaRate),
-        discountAmount: reduction,
-        discountReason: reduction > 0 ? discountReason : "",
-        discountAuthorizedBy: reduction > 0 ? discountAuthorizedBy : "",
+        discountPercent: requestedReduction > 0 && waiverMode === "percent" ? pct : 0,
+        discountAmount: requestedReduction > 0 && waiverMode === "amount" ? Math.max(Number(discountAmount) || 0, 0) : 0,
+        discountReason: requestedReduction > 0 ? discountReason : "",
+        discountAuthorizedBy: requestedReduction > 0 ? discountAuthorizedBy : "",
         lines: lines
           .filter((l) => l.description && l.unitPrice !== "")
           .map((l) => ({
@@ -88,7 +92,7 @@ export function InvoiceForm({ customers, rates, isAdmin = false }: { customers: 
         setDescription("");
         setDueAt("");
         setLines([{ description: "", quantity: "1", unitPrice: "", containerNumber: "" }]);
-        setWaiver(false);
+        setDiscountPercent("");
         setDiscountAmount("");
         setDiscountReason("");
         setDiscountAuthorizedBy("");
@@ -191,36 +195,44 @@ export function InvoiceForm({ customers, rates, isAdmin = false }: { customers: 
         </FormField>
       </FormSection>
 
-      {isAdmin && (
-        <FormSection title={t("reductionTitle")}>
-          <FormField label={t("waiverToggle")} full>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input type="checkbox" checked={waiver} onChange={(e) => setWaiver(e.target.checked)} />
-              <span>{t("waiverHint")}</span>
-            </label>
+      {canWaive && (
+        <FormSection title={isAdmin ? t("reductionTitle") : t("waiverRequestTitle")}>
+          <FormField label={t("waiverMode")}>
+            <select className={inputClass} value={waiverMode} onChange={(e) => setWaiverMode(e.target.value as "percent" | "amount")}>
+              <option value="percent">{t("waiverModePercent")}</option>
+              <option value="amount">{t("waiverModeAmount")}</option>
+            </select>
           </FormField>
-          {!waiver && (
+          {waiverMode === "percent" ? (
+            <FormField label={t("waiverPercent")}>
+              <input type="number" min="0" max="100" step="0.5" className={inputClass} placeholder="0" value={discountPercent} onChange={(e) => setDiscountPercent(e.target.value)} />
+            </FormField>
+          ) : (
             <FormField label={t("reductionAmount")}>
-              <input
-                type="number" min="0" step="0.01" className={inputClass} placeholder="0"
-                value={discountAmount} onChange={(e) => setDiscountAmount(e.target.value)}
-              />
+              <input type="number" min="0" step="0.01" className={inputClass} placeholder="0" value={discountAmount} onChange={(e) => setDiscountAmount(e.target.value)} />
             </FormField>
           )}
-          <FormField label={t("authorizedBy")}>
-            <input className={inputClass} value={discountAuthorizedBy} onChange={(e) => setDiscountAuthorizedBy(e.target.value)} placeholder={t("authorizedByPlaceholder")} />
-          </FormField>
+          {isAdmin && (
+            <FormField label={t("authorizedBy")}>
+              <input className={inputClass} value={discountAuthorizedBy} onChange={(e) => setDiscountAuthorizedBy(e.target.value)} placeholder={t("authorizedByPlaceholder")} />
+            </FormField>
+          )}
           <FormField label={t("reductionReason")} full>
             <input className={inputClass} value={discountReason} onChange={(e) => setDiscountReason(e.target.value)} placeholder={t("reductionReasonPlaceholder")} />
           </FormField>
+          {isFinance && requestedReduction > 0 && (
+            <div className="sm:col-span-2 text-xs text-amber-600 bg-amber-500/10 rounded-lg px-3 py-2">
+              {t("waiverPendingNote", { amount: `${fmt(requestedReduction)} FCFA` })}
+            </div>
+          )}
         </FormSection>
       )}
 
       <div className="rounded-lg bg-surface-alt p-3 text-sm space-y-1">
         <div className="flex justify-between"><span className="text-fg-muted">Montant HT</span><span>{fmt(subtotal)} FCFA</span></div>
-        {reduction > 0 && (
+        {appliedReduction > 0 && (
           <>
-            <div className="flex justify-between text-amber-600"><span>{waiver ? t("waiverLabel") : t("reductionLabel")}</span><span>− {fmt(reduction)} FCFA</span></div>
+            <div className="flex justify-between text-amber-600"><span>{waiverMode === "percent" ? `${t("waiverLabel")} (${pct}%)` : t("reductionLabel")}</span><span>− {fmt(appliedReduction)} FCFA</span></div>
             <div className="flex justify-between"><span className="text-fg-muted">Net HT</span><span>{fmt(netHt)} FCFA</span></div>
           </>
         )}

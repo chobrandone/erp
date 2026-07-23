@@ -49,6 +49,9 @@ export function RedispatchButton({ tripId }: { tripId: string }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // "RETURN" = the vehicle will come back to the park (expected date required);
+  // "ONWARD" = dispatched without returning (no expected date).
+  const [returnMode, setReturnMode] = useState<"RETURN" | "ONWARD">("RETURN");
   const [form, setForm] = useState({ destination: "", cargoDescription: "", expectedReturn: "", remarks: "" });
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -61,7 +64,12 @@ export function RedispatchButton({ tripId }: { tripId: string }) {
       const res = await fetch(`/api/vehicle-trips/${tripId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "REDISPATCH", ...form }),
+        body: JSON.stringify({
+          status: "REDISPATCH",
+          ...form,
+          // Only carry an expected return when the vehicle is coming back.
+          expectedReturn: returnMode === "RETURN" ? form.expectedReturn : "",
+        }),
       });
       if (res.ok) {
         setOpen(false);
@@ -96,9 +104,17 @@ export function RedispatchButton({ tripId }: { tripId: string }) {
                 <FormField label={t("cargoDescription")} full>
                   <input className={inputClass} value={form.cargoDescription} onChange={(e) => set("cargoDescription", e.target.value)} />
                 </FormField>
-                <FormField label={t("expectedReturn")} full>
-                  <input type="datetime-local" className={inputClass} value={form.expectedReturn} onChange={(e) => set("expectedReturn", e.target.value)} />
+                <FormField label={t("returnModeLabel")} full>
+                  <select className={inputClass} value={returnMode} onChange={(e) => setReturnMode(e.target.value as "RETURN" | "ONWARD")}>
+                    <option value="RETURN">{t("returnComingBack")}</option>
+                    <option value="ONWARD">{t("returnNotComingBack")}</option>
+                  </select>
                 </FormField>
+                {returnMode === "RETURN" && (
+                  <FormField label={t("expectedReturn")} full>
+                    <input type="datetime-local" className={inputClass} value={form.expectedReturn} onChange={(e) => set("expectedReturn", e.target.value)} />
+                  </FormField>
+                )}
                 <FormField label={tc("remarks")} full>
                   <input className={inputClass} value={form.remarks} onChange={(e) => set("remarks", e.target.value)} />
                 </FormField>

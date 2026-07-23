@@ -2,27 +2,51 @@ import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { DataTable, Column } from "@/components/shared/DataTable";
-import { StatusBadge } from "@/components/shared/StatusBadge";
 import { ReeferLogForm } from "@/components/reefer/ReeferLogForm";
 import { ReeferActions } from "@/components/reefer/ReeferActions";
+import { ReeferPowerStatusSelect } from "@/components/reefer/ReeferPowerStatusSelect";
 import { FormModal } from "@/components/shared/FormModal";
+import { ReportFilterBar } from "@/components/shared/ReportFilterBar";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { formatDateTime } from "@/lib/utils";
 import { Snowflake, AlertTriangle } from "lucide-react";
 
-export default async function ReeferManagementPage() {
+export default async function ReeferManagementPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; from?: string; to?: string }>;
+}) {
+  const { q, from, to } = await searchParams;
   const t = await getTranslations("reefer");
   const tc = await getTranslations("common");
   const session = await auth();
   const u = session?.user as { role?: string; permissions?: string[] | null } | undefined;
   const canManage = u?.role === "ADMIN" || u?.permissions == null || (u?.permissions?.includes("reefer-management") ?? false);
 
+  const recordedRange =
+    from || to
+      ? { gte: from ? new Date(from) : undefined, lte: to ? new Date(`${to}T23:59:59`) : undefined }
+      : undefined;
+
   const [logs, reeferContainers] = await Promise.all([
     prisma.reeferMonitoring.findMany({
+      where: {
+        ...(recordedRange ? { recordedAt: recordedRange } : {}),
+        ...(q
+          ? {
+              OR: [
+                { reportNo: { contains: q } },
+                { plugNumber: { contains: q } },
+                { technician: { contains: q } },
+                { container: { containerNumber: { contains: q } } },
+              ],
+            }
+          : {}),
+      },
       include: { container: { include: { inventory: { include: { location: true } } } } },
       orderBy: { recordedAt: "desc" },
-      take: 50,
+      take: 100,
     }),
     prisma.container.findMany({
       where: { containerType: { isReefer: true } },
@@ -40,7 +64,7 @@ export default async function ReeferManagementPage() {
     { header: t("setPoint"), accessor: (r) => `${r.setTempC}°C` },
     { header: t("actualTemp"), accessor: (r) => `${r.actualTempC}°C` },
     { header: t("humidity"), accessor: (r) => (r.humidity != null ? `${r.humidity}%` : "-") },
-    { header: t("powerStatus"), accessor: (r) => <StatusBadge status={r.powerStatus} /> },
+    { header: t("powerStatus"), accessor: (r) => <ReeferPowerStatusSelect id={r.id} status={r.powerStatus} canManage={canManage} /> },
     { header: t("recordedAt"), accessor: (r) => formatDateTime(r.recordedAt) },
     {
       header: tc("actions"),
@@ -76,6 +100,8 @@ export default async function ReeferManagementPage() {
         <KPICard title={t("connectedReefers")} value={connectedCount} icon={Snowflake} accentIndex={4} />
         <KPICard title={t("needsAttention")} value={issuesCount} icon={AlertTriangle} accentIndex={2} />
       </div>
+
+      <ReportFilterBar exportType="reefer" initialQuery={q} initialFrom={from} initialTo={to} />
 
       <DataTable columns={cols} rows={logs} />
     </div>

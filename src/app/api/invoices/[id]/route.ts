@@ -7,14 +7,57 @@ import { logAudit } from "@/lib/audit";
 type SessionUser = { id?: string; name?: string | null; email?: string | null; role?: string };
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { unauthorized } = await requireAuth();
+  const { session, unauthorized } = await requireAuth();
   if (unauthorized) return unauthorized;
+  const user = session!.user as SessionUser;
 
   const { id } = await params;
   const body = await req.json();
 
   const current = await prisma.invoice.findUnique({ where: { id } });
   if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // --- Waiver approval workflow: only a super-admin confirms/rejects a waiver
+  // that a finance user requested. ------------------------------------------
+  if (body.waiverAction === "approve" || body.waiverAction === "reject") {
+    if (user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Only a super-admin can confirm a waiver." }, { status: 403 });
+    }
+    if (!current.discountPending) {
+      return NextResponse.json({ error: "No waiver awaiting approval on this invoice." }, { status: 409 });
+    }
+
+    if (body.waiverAction === "reject") {
+      const invoice = await prisma.invoice.update({
+        where: { id },
+        data: { discountPending: false, discountAmount: 0, discountPercent: 0, discountReason: null, discountRequestedBy: null },
+        include: { customer: true },
+      });
+      await logAudit({ userId: user.id, action: "INVOICE_WAIVER_REJECT", entity: "Invoice", entityId: id, meta: { invoiceNumber: current.invoiceNumber } });
+      return NextResponse.json({ invoice });
+    }
+
+    // Approve: apply the requested reduction and recompute TVA + TTC on the net.
+    const discount = Math.min(
+      current.discountPercent > 0 ? (current.subtotal * current.discountPercent) / 100 : current.discountAmount,
+      current.subtotal,
+    );
+    const netHt = current.subtotal - discount;
+    const tvaAmount = (netHt * current.tvaRate) / 100;
+    const invoice = await prisma.invoice.update({
+      where: { id },
+      data: {
+        discountPending: false,
+        discountAmount: discount,
+        discountAuthorizedBy: user.name || user.email || "Super-admin",
+        tvaAmount,
+        amount: netHt + tvaAmount,
+      },
+      include: { customer: true },
+    });
+    await logAudit({ userId: user.id, action: "INVOICE_WAIVER_APPROVE", entity: "Invoice", entityId: id, meta: { invoiceNumber: current.invoiceNumber, discount } });
+    return NextResponse.json({ invoice });
+  }
 
   const nextStatus = body.status ?? current.status;
 

@@ -133,6 +133,56 @@ export async function GET(req: NextRequest) {
       })), "NS-SARL-Fleet-Report");
     }
 
+    case "reefer": {
+      const rows = await prisma.reeferMonitoring.findMany({
+        where: {
+          ...(dateRange ? { recordedAt: dateRange } : {}),
+          ...(q ? { OR: [{ reportNo: like(q) }, { plugNumber: like(q) }, { technician: like(q) }, { container: { containerNumber: like(q) } }] } : {}),
+        },
+        include: { container: true },
+        orderBy: { recordedAt: "desc" },
+      });
+      const cols: ExcelColumn[] = [
+        { header: "N° Rapport", key: "report", width: 18 }, { header: "Conteneur", key: "cont", width: 16 },
+        { header: "N° Prise", key: "plug", width: 12 }, { header: "Consigne °C", key: "set", width: 12 },
+        { header: "Relevé °C", key: "actual", width: 12 }, { header: "Humidité %", key: "hum", width: 12 },
+        { header: "Alimentation", key: "power", width: 16 }, { header: "Alarme", key: "alarm", width: 12 },
+        { header: "Technicien", key: "tech", width: 16 }, { header: "Relevé le", key: "date", width: 18 },
+      ];
+      const powerLabel: Record<string, string> = {
+        CONNECTED: "Connecté", NOT_CONNECTED: "Non connecté", DAMAGED: "Endommagé", IN_REPAIRS: "En réparation",
+      };
+      return excelResponse("Reefer", cols, rows.map((r) => ({
+        report: r.reportNo ?? "", cont: r.container.containerNumber, plug: r.plugNumber ?? "",
+        set: r.setTempC, actual: r.actualTempC, hum: r.humidity ?? "",
+        power: powerLabel[r.powerStatus] ?? r.powerStatus, alarm: r.alarmStatus, tech: r.technician ?? "", date: d(r.recordedAt),
+      })), "NS-SARL-Reefer-Report");
+    }
+
+    case "documents": {
+      const range = dateRange;
+      const [gate, movements, inspections, invoices] = await Promise.all([
+        prisma.gateTransaction.findMany({ where: { ...(range ? { createdAt: range } : {}) }, include: { container: true }, orderBy: { createdAt: "desc" } }),
+        prisma.containerMovement.findMany({ where: { ...(range ? { createdAt: range } : {}) }, include: { container: true }, orderBy: { createdAt: "desc" } }),
+        prisma.pTIInspection.findMany({ where: { ...(range ? { inspectedAt: range } : {}) }, include: { ptiRequest: { include: { container: true } } }, orderBy: { inspectedAt: "desc" } }),
+        prisma.invoice.findMany({ where: { ...(range ? { issuedAt: range } : {}) }, include: { customer: true }, orderBy: { issuedAt: "desc" } }),
+      ]);
+      const cols: ExcelColumn[] = [
+        { header: "Type", key: "type", width: 20 }, { header: "Référence", key: "ref", width: 30 },
+        { header: "Généré le", key: "date", width: 20 },
+      ];
+      type Doc = { type: string; ref: string; on: Date };
+      const docs: Doc[] = [
+        ...gate.map((g) => ({ type: g.type === "GATE_IN" ? "GATE IN EIR" : "GATE OUT EIR", ref: `${g.docNumber} — ${g.container.containerNumber}`, on: g.createdAt })),
+        ...movements.map((m) => ({ type: "MOVEMENT ORDER", ref: `${m.docNumber} — ${m.container.containerNumber}`, on: m.createdAt })),
+        ...inspections.map((i) => ({ type: "PTI CERTIFICATE", ref: `${i.certificateNumber ?? i.id} — ${i.ptiRequest.container.containerNumber}`, on: i.inspectedAt })),
+        ...invoices.map((inv) => ({ type: "INVOICE", ref: `${inv.invoiceNumber} — ${inv.customer.name}`, on: inv.issuedAt })),
+      ]
+        .filter((x) => (q ? `${x.type} ${x.ref}`.toLowerCase().includes(q.toLowerCase()) : true))
+        .sort((a, b) => b.on.getTime() - a.on.getTime());
+      return excelResponse("Documents", cols, docs.map((x) => ({ type: x.type, ref: x.ref, date: d(x.on) })), "NS-SARL-Documents-Report");
+    }
+
     case "daily": {
       if (!date) return NextResponse.json({ error: "date required" }, { status: 400 });
       const start = new Date(`${date}T00:00:00`);

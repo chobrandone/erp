@@ -30,16 +30,13 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const { session, unauthorized } = await requireAuth();
   if (unauthorized) return unauthorized;
-  const user = session!.user as { name?: string | null; role?: string };
-  const isAdmin = user.role === "ADMIN";
+  const user = session!.user as { name?: string | null; email?: string | null; role?: string };
+  const isAdmin = user.role === "ADMIN"; // super-admin
+  const isFinance = user.role === "FINANCE";
 
   const body = await req.json();
   const count = await prisma.invoice.count();
   const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(count + 1).padStart(6, "0")}`;
-
-  // A reduction / waiver on the original cost may only be authorized by an admin.
-  const requestedDiscount = Number(body.discountAmount) || 0;
-  const discountAmount = isAdmin ? Math.max(requestedDiscount, 0) : 0;
 
   const rawLines: LineInput[] = Array.isArray(body.lines) ? body.lines : [];
   const lines = rawLines
@@ -54,13 +51,29 @@ export async function POST(req: NextRequest) {
 
   const tvaRate = body.tvaRate != null ? Number(body.tvaRate) : DEFAULT_TVA_RATE;
 
+  // --- Waiver / reduction ---------------------------------------------------
+  // A waiver may be an amount or a percentage of the HT. A super-admin (ADMIN)
+  // applies it immediately; a FINANCE user can only *request* it, which is held
+  // pending until a super-admin confirms. Anyone else's waiver is ignored.
+  const grossSubtotal =
+    lines.length > 0 ? lines.reduce((s, l) => s + l.lineTotal, 0) : Number(body.amount) || 0;
+  const percent = Math.min(Math.max(Number(body.discountPercent) || 0, 0), 100);
+  const requestedDiscount = Math.min(
+    percent > 0 ? (grossSubtotal * percent) / 100 : Math.max(Number(body.discountAmount) || 0, 0),
+    grossSubtotal,
+  );
+  const wantsWaiver = requestedDiscount > 0 && (isAdmin || isFinance);
+  const applied = isAdmin && wantsWaiver; // takes effect now
+  const pending = isFinance && wantsWaiver; // awaits super-admin confirmation
+  const effectiveDiscount = applied ? requestedDiscount : 0; // pending waivers don't reduce the payable yet
+
   // Totals come from line items when supplied, else from a flat amount (HT).
   const totals =
     lines.length > 0
-      ? invoiceTotals(lines, tvaRate, discountAmount)
+      ? invoiceTotals(lines, tvaRate, effectiveDiscount)
       : (() => {
-          const subtotal = Number(body.amount) || 0;
-          const discount = Math.min(discountAmount, subtotal);
+          const subtotal = grossSubtotal;
+          const discount = Math.min(effectiveDiscount, subtotal);
           const netHt = subtotal - discount;
           const tvaAmount = (netHt * tvaRate) / 100;
           return { subtotal, discount, netHt, tvaRate, tvaAmount, total: netHt + tvaAmount };
@@ -73,9 +86,12 @@ export async function POST(req: NextRequest) {
       description: body.description || null,
       currency: "XAF",
       subtotal: totals.subtotal,
-      discountAmount: totals.discount,
-      discountReason: totals.discount > 0 ? (body.discountReason || null) : null,
-      discountAuthorizedBy: totals.discount > 0 ? (body.discountAuthorizedBy || user.name || null) : null,
+      discountAmount: wantsWaiver ? requestedDiscount : 0,
+      discountPercent: wantsWaiver ? percent : 0,
+      discountReason: wantsWaiver ? body.discountReason || null : null,
+      discountAuthorizedBy: applied ? body.discountAuthorizedBy || user.name || null : null,
+      discountRequestedBy: pending ? user.name || user.email || null : null,
+      discountPending: pending,
       tvaRate: totals.tvaRate,
       tvaAmount: totals.tvaAmount,
       amount: totals.total,

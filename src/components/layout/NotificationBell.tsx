@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Bell } from "lucide-react";
+import { Bell, ChevronRight } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 
 export type AppNotification = {
   id: string;
@@ -11,6 +12,8 @@ export type AppNotification = {
   /** ISO date string, optional */
   when?: string;
   severity: "danger" | "warning" | "info";
+  /** Locale-relative path to the item this notification is about, e.g. "/fleet-management" */
+  href?: string;
 };
 
 export function NotificationBell({ notifications }: { notifications: AppNotification[] }) {
@@ -60,21 +63,42 @@ export function NotificationBell({ notifications }: { notifications: AppNotifica
             <p className="px-4 py-6 text-sm text-fg-subtle text-center">{t("noNotifications")}</p>
           ) : (
             <ul className="divide-y divide-border-color">
-              {notifications.map((n) => (
-                <li key={n.id} className="px-4 py-3 flex gap-3">
+              {notifications.slice(0, 6).map((n) => {
+                const dot = (
                   <span
                     className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
                       n.severity === "danger" ? "bg-red-500" : n.severity === "warning" ? "bg-amber-500" : "bg-brand-100"
                     }`}
                   />
+                );
+                const body = (
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-fg">{n.title}</p>
                     <p className="text-xs text-fg-muted">{n.detail}</p>
                   </div>
-                </li>
-              ))}
+                );
+                return (
+                  <li key={n.id}>
+                    {n.href ? (
+                      <Link href={n.href} onClick={() => setOpen(false)} className="px-4 py-3 flex gap-3 hover:bg-surface-alt">
+                        {dot}
+                        {body}
+                      </Link>
+                    ) : (
+                      <div className="px-4 py-3 flex gap-3">{dot}{body}</div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
+          <Link
+            href="/notifications"
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-center gap-1 px-4 h-11 border-t border-border-color text-sm font-medium text-brand-100 hover:bg-surface-alt"
+          >
+            {t("viewAllNotifications")} <ChevronRight size={15} />
+          </Link>
         </div>
       )}
     </div>
