@@ -1,8 +1,9 @@
 import { BACKGROUND_IMAGES } from "./backgrounds.generated";
 import { ONLINE_BACKGROUND_IMAGES } from "./backgrounds.online.generated";
 
-// Local (bundled) images first, then any images pulled from an online source.
-export const ALL_BACKGROUNDS: string[] = [...BACKGROUND_IMAGES, ...ONLINE_BACKGROUND_IMAGES];
+// Curated online photos (clean maritime/logistics shots) lead the rotation,
+// followed by the bundled local images.
+export const ALL_BACKGROUNDS: string[] = [...ONLINE_BACKGROUND_IMAGES, ...BACKGROUND_IMAGES];
 
 // Rotate every two weeks (like a desktop wallpaper slideshow). A fixed epoch
 // keeps the schedule stable and identical for every visitor/server.

@@ -40,13 +40,28 @@ export default async function DashboardLayout({
       : [];
 
   return (
-    <div className="relative flex min-h-screen bg-surface-alt">
-      {bg && (
-        <div
-          aria-hidden
-          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center opacity-[0.10] dark:opacity-[0.16]"
-          style={{ backgroundImage: `url("${bg}")` }}
-        />
+    <div className="relative flex min-h-screen">
+      {bg ? (
+        <>
+          {/* Rotating wallpaper (changes every two weeks) */}
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center"
+            style={{ backgroundImage: `url("${bg}")` }}
+          />
+          {/* Readability scrim — keeps text legible while letting the image show through */}
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-0 z-0 bg-surface-alt/70 dark:bg-surface-alt/78"
+          />
+          {/* Soft brand-tinted depth gradient */}
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-br from-brand-100/[0.06] via-transparent to-brand-500/[0.08]"
+          />
+        </>
+      ) : (
+        <div aria-hidden className="pointer-events-none fixed inset-0 z-0 bg-surface-alt" />
       )}
       <div className="relative z-10 flex w-full min-h-screen">
         <Sidebar role={user.role} allowed={allowed} />
