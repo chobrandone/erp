@@ -30,7 +30,11 @@ export type InvoiceData = {
   customerName: string;
   customerAddress: string;
   lines: InvoiceLineData[];
-  subtotal: string; // Montant HT
+  subtotal: string; // Montant HT brut
+  discountAmount?: string; // Réduction / waiver (empty/omitted when none)
+  discountLabel?: string; // "Waiver" or "Réduction"
+  discountNote?: string; // authorized-by / reason line
+  netHt?: string; // Net HT after reduction
   tvaRate: number;
   tvaAmount: string;
   amount: string; // Montant TTC
@@ -81,6 +85,18 @@ export function InvoicePdf(data: InvoiceData) {
             <Text style={local.totalLabel}>Montant HT</Text>
             <Text style={local.totalVal}>{data.subtotal}</Text>
           </View>
+          {data.discountAmount ? (
+            <>
+              <View style={local.totalRow}>
+                <Text style={[local.totalLabel, { color: "#B45309" }]}>{data.discountLabel ?? "Réduction"}</Text>
+                <Text style={[local.totalVal, { color: "#B45309" }]}>− {data.discountAmount}</Text>
+              </View>
+              <View style={local.totalRow}>
+                <Text style={local.totalLabel}>Net HT</Text>
+                <Text style={local.totalVal}>{data.netHt}</Text>
+              </View>
+            </>
+          ) : null}
           <View style={local.totalRow}>
             <Text style={local.totalLabel}>TVA ({data.tvaRate}%)</Text>
             <Text style={local.totalVal}>{data.tvaAmount}</Text>
@@ -90,6 +106,7 @@ export function InvoicePdf(data: InvoiceData) {
             <Text style={local.grandVal}>{data.amount}</Text>
           </View>
         </View>
+        {data.discountNote ? <Text style={local.payNote}>{data.discountNote}</Text> : null}
 
         <Text style={local.payNote}>Mode de paiement : {data.paymentMethod || "—"}</Text>
         <Text style={local.payNote}>

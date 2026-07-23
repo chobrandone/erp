@@ -28,12 +28,18 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { unauthorized } = await requireAuth();
+  const { session, unauthorized } = await requireAuth();
   if (unauthorized) return unauthorized;
+  const user = session!.user as { name?: string | null; role?: string };
+  const isAdmin = user.role === "ADMIN";
 
   const body = await req.json();
   const count = await prisma.invoice.count();
   const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(count + 1).padStart(6, "0")}`;
+
+  // A reduction / waiver on the original cost may only be authorized by an admin.
+  const requestedDiscount = Number(body.discountAmount) || 0;
+  const discountAmount = isAdmin ? Math.max(requestedDiscount, 0) : 0;
 
   const rawLines: LineInput[] = Array.isArray(body.lines) ? body.lines : [];
   const lines = rawLines
@@ -51,11 +57,13 @@ export async function POST(req: NextRequest) {
   // Totals come from line items when supplied, else from a flat amount (HT).
   const totals =
     lines.length > 0
-      ? invoiceTotals(lines, tvaRate)
+      ? invoiceTotals(lines, tvaRate, discountAmount)
       : (() => {
           const subtotal = Number(body.amount) || 0;
-          const tvaAmount = (subtotal * tvaRate) / 100;
-          return { subtotal, tvaRate, tvaAmount, total: subtotal + tvaAmount };
+          const discount = Math.min(discountAmount, subtotal);
+          const netHt = subtotal - discount;
+          const tvaAmount = (netHt * tvaRate) / 100;
+          return { subtotal, discount, netHt, tvaRate, tvaAmount, total: netHt + tvaAmount };
         })();
 
   const invoice = await prisma.invoice.create({
@@ -65,6 +73,9 @@ export async function POST(req: NextRequest) {
       description: body.description || null,
       currency: "XAF",
       subtotal: totals.subtotal,
+      discountAmount: totals.discount,
+      discountReason: totals.discount > 0 ? (body.discountReason || null) : null,
+      discountAuthorizedBy: totals.discount > 0 ? (body.discountAuthorizedBy || user.name || null) : null,
       tvaRate: totals.tvaRate,
       tvaAmount: totals.tvaAmount,
       amount: totals.total,

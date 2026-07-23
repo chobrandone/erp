@@ -61,9 +61,18 @@ export function formatXaf(amount: number): string {
   return `${grouped} FCFA`;
 }
 
-/** Sum lines → HT, then TVA and TTC. */
-export function invoiceTotals(lines: { quantity: number; unitPrice: number }[], tvaRate = DEFAULT_TVA_RATE) {
+/**
+ * Sum lines → gross HT, subtract an authorized reduction/waiver, then TVA and
+ * TTC. `subtotal` is the gross HT; TVA is charged on the net (HT − reduction).
+ */
+export function invoiceTotals(
+  lines: { quantity: number; unitPrice: number }[],
+  tvaRate = DEFAULT_TVA_RATE,
+  discountAmount = 0,
+) {
   const subtotal = lines.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0);
-  const tvaAmount = (subtotal * tvaRate) / 100;
-  return { subtotal, tvaRate, tvaAmount, total: subtotal + tvaAmount };
+  const discount = Math.min(Math.max(discountAmount, 0), subtotal); // never below zero
+  const netHt = subtotal - discount;
+  const tvaAmount = (netHt * tvaRate) / 100;
+  return { subtotal, discount, netHt, tvaRate, tvaAmount, total: netHt + tvaAmount };
 }

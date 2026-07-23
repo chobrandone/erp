@@ -348,7 +348,10 @@ model Invoice {
   customer          Customer  @relation(fields: [customerId], references: [id])
   description       String?
   currency          String    @default("XAF")
-  subtotal          Float     @default(0) // Montant HT
+  subtotal          Float     @default(0) // Montant HT brut (before reduction)
+  discountAmount    Float     @default(0) // Réduction / waiver authorized on the HT
+  discountReason    String? // waiver / reduction justification
+  discountAuthorizedBy String? // admin who authorized the reduction
   tvaRate           Float     @default(19.25) // Cameroon TVA %
   tvaAmount         Float     @default(0)
   amount            Float // Montant TTC

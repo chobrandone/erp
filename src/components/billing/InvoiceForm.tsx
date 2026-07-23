@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
+import { useFormModalClose } from "@/components/shared/FormModal";
 import { Plus, Trash2 } from "lucide-react";
 
 type Option = { id: string; label: string };
@@ -14,10 +15,11 @@ const PAYMENT_METHODS = ["Espèces", "Virement bancaire (BICEC)", "Mobile Money"
 
 const fmt = (n: number) => Math.round(n).toLocaleString("fr-FR").replace(/,/g, " ");
 
-export function InvoiceForm({ customers, rates }: { customers: Option[]; rates: Rate[] }) {
+export function InvoiceForm({ customers, rates, isAdmin = false }: { customers: Option[]; rates: Rate[]; isAdmin?: boolean }) {
   const t = useTranslations("billing");
   const tc = useTranslations("common");
   const router = useRouter();
+  const closeModal = useFormModalClose();
   const [submitting, setSubmitting] = useState(false);
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
   const [description, setDescription] = useState("");
@@ -25,6 +27,11 @@ export function InvoiceForm({ customers, rates }: { customers: Option[]; rates: 
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0]);
   const [tvaRate, setTvaRate] = useState("19.25");
   const [lines, setLines] = useState<Line[]>([{ description: "", quantity: "1", unitPrice: "", containerNumber: "" }]);
+  // Reduction / waiver — admin-authorized reduction on the original cost.
+  const [waiver, setWaiver] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState("");
+  const [discountReason, setDiscountReason] = useState("");
+  const [discountAuthorizedBy, setDiscountAuthorizedBy] = useState("");
 
   function updateLine(i: number, patch: Partial<Line>) {
     setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
@@ -41,8 +48,14 @@ export function InvoiceForm({ customers, rates }: { customers: Option[]; rates: 
   }
 
   const subtotal = lines.reduce((s, l) => s + (Number(l.quantity) || 0) * (Number(l.unitPrice) || 0), 0);
-  const tva = (subtotal * (Number(tvaRate) || 0)) / 100;
-  const ttc = subtotal + tva;
+  const reduction = !isAdmin
+    ? 0
+    : waiver
+      ? subtotal
+      : Math.min(Math.max(Number(discountAmount) || 0, 0), subtotal);
+  const netHt = subtotal - reduction;
+  const tva = (netHt * (Number(tvaRate) || 0)) / 100;
+  const ttc = netHt + tva;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,6 +67,9 @@ export function InvoiceForm({ customers, rates }: { customers: Option[]; rates: 
         dueAt,
         paymentMethod,
         tvaRate: Number(tvaRate),
+        discountAmount: reduction,
+        discountReason: reduction > 0 ? discountReason : "",
+        discountAuthorizedBy: reduction > 0 ? discountAuthorizedBy : "",
         lines: lines
           .filter((l) => l.description && l.unitPrice !== "")
           .map((l) => ({
@@ -72,7 +88,12 @@ export function InvoiceForm({ customers, rates }: { customers: Option[]; rates: 
         setDescription("");
         setDueAt("");
         setLines([{ description: "", quantity: "1", unitPrice: "", containerNumber: "" }]);
+        setWaiver(false);
+        setDiscountAmount("");
+        setDiscountReason("");
+        setDiscountAuthorizedBy("");
         router.refresh();
+        closeModal();
       }
     } finally {
       setSubmitting(false);
@@ -101,9 +122,12 @@ export function InvoiceForm({ customers, rates }: { customers: Option[]; rates: 
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-semibold text-fg-muted">Lignes de prestation (FCFA)</h4>
+          <div>
+            <h4 className="text-sm font-semibold text-fg-muted">{t("lineItemsTitle")}</h4>
+            <p className="text-xs text-fg-subtle">{t("lineItemsHint")}</p>
+          </div>
           <button type="button" onClick={addLine} className="flex items-center gap-1 text-xs text-brand-100 hover:underline">
-            <Plus size={14} /> Ajouter
+            <Plus size={14} /> {tc("addNew")}
           </button>
         </div>
         {lines.map((l, i) => (
@@ -167,8 +191,39 @@ export function InvoiceForm({ customers, rates }: { customers: Option[]; rates: 
         </FormField>
       </FormSection>
 
+      {isAdmin && (
+        <FormSection title={t("reductionTitle")}>
+          <FormField label={t("waiverToggle")} full>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" checked={waiver} onChange={(e) => setWaiver(e.target.checked)} />
+              <span>{t("waiverHint")}</span>
+            </label>
+          </FormField>
+          {!waiver && (
+            <FormField label={t("reductionAmount")}>
+              <input
+                type="number" min="0" step="0.01" className={inputClass} placeholder="0"
+                value={discountAmount} onChange={(e) => setDiscountAmount(e.target.value)}
+              />
+            </FormField>
+          )}
+          <FormField label={t("authorizedBy")}>
+            <input className={inputClass} value={discountAuthorizedBy} onChange={(e) => setDiscountAuthorizedBy(e.target.value)} placeholder={t("authorizedByPlaceholder")} />
+          </FormField>
+          <FormField label={t("reductionReason")} full>
+            <input className={inputClass} value={discountReason} onChange={(e) => setDiscountReason(e.target.value)} placeholder={t("reductionReasonPlaceholder")} />
+          </FormField>
+        </FormSection>
+      )}
+
       <div className="rounded-lg bg-surface-alt p-3 text-sm space-y-1">
         <div className="flex justify-between"><span className="text-fg-muted">Montant HT</span><span>{fmt(subtotal)} FCFA</span></div>
+        {reduction > 0 && (
+          <>
+            <div className="flex justify-between text-amber-600"><span>{waiver ? t("waiverLabel") : t("reductionLabel")}</span><span>− {fmt(reduction)} FCFA</span></div>
+            <div className="flex justify-between"><span className="text-fg-muted">Net HT</span><span>{fmt(netHt)} FCFA</span></div>
+          </>
+        )}
         <div className="flex justify-between"><span className="text-fg-muted">TVA ({tvaRate}%)</span><span>{fmt(tva)} FCFA</span></div>
         <div className="flex justify-between font-semibold text-brand-100 border-t border-border-color pt-1">
           <span>NET À PAYER (TTC)</span><span>{fmt(ttc)} FCFA</span>

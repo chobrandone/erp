@@ -10,6 +10,7 @@ import { VoidInvoiceButton, RestoreInvoiceButton, PurgeInvoiceButton } from "@/c
 import { BillingDateRangeFilter } from "@/components/billing/BillingDateRangeFilter";
 import { RevenueTrendChart } from "@/components/billing/RevenueTrendChart";
 import { SearchBox } from "@/components/shared/SearchBox";
+import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { formatDate, formatDateTime } from "@/lib/utils";
@@ -166,7 +167,22 @@ export default async function BillingFinancePage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} subtitle={t("subtitle")} actions={<SearchBox initialQuery={q} extraParams={{ from, to }} />} />
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <>
+            <SearchBox initialQuery={q} extraParams={{ from, to }} />
+            <FormModal triggerLabel={t("newInvoice")} title={t("newInvoice")} maxWidth="max-w-3xl">
+              <InvoiceForm
+                customers={customers.map((c) => ({ id: c.id, label: c.name }))}
+                rates={billingRates.map((r) => ({ code: r.code, service: r.service, rateXaf: r.rateXaf }))}
+                isAdmin={isAdmin}
+              />
+            </FormModal>
+          </>
+        }
+      />
 
       <BillingDateRangeFilter initialFrom={from} initialTo={to} initialQuery={q} />
 
@@ -177,19 +193,11 @@ export default async function BillingFinancePage({
         <KPICard title={t("overdueAmount")} value={formatXaf(overdueAmount)} icon={AlertCircle} accentIndex={2} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <h3 className="text-sm font-semibold text-fg-muted mb-2">
-            {t("revenueTrend")} · {t("collectionRate")}: {collectionRate}%
-          </h3>
-          <RevenueTrendChart data={revenueTrendData} />
-        </div>
-        <div className="rounded-xl border border-border-color bg-surface p-5">
-          <InvoiceForm
-            customers={customers.map((c) => ({ id: c.id, label: c.name }))}
-            rates={billingRates.map((r) => ({ code: r.code, service: r.service, rateXaf: r.rateXaf }))}
-          />
-        </div>
+      <div>
+        <h3 className="text-sm font-semibold text-fg-muted mb-2">
+          {t("revenueTrend")} · {t("collectionRate")}: {collectionRate}%
+        </h3>
+        <RevenueTrendChart data={revenueTrendData} />
       </div>
 
       <DataTable columns={cols} rows={invoicesInRange} />

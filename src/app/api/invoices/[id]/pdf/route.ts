@@ -33,6 +33,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           },
         ];
 
+  const hasDiscount = (invoice.discountAmount ?? 0) > 0;
+  const isFullWaiver = hasDiscount && invoice.discountAmount >= invoice.subtotal;
+  const discountLabel = isFullWaiver ? "Waiver (exonération)" : "Réduction";
+  const noteParts = [
+    invoice.discountAuthorizedBy ? `Autorisé par : ${invoice.discountAuthorizedBy}` : null,
+    invoice.discountReason ? `Motif : ${invoice.discountReason}` : null,
+  ].filter(Boolean);
+
   return pdfResponse(
     InvoicePdf({
       docNumber: invoice.invoiceNumber,
@@ -42,6 +50,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       customerAddress: invoice.customer.address ?? "-",
       lines,
       subtotal: formatXaf(invoice.subtotal || invoice.amount),
+      discountAmount: hasDiscount ? formatXaf(invoice.discountAmount) : undefined,
+      discountLabel,
+      discountNote: noteParts.length > 0 ? noteParts.join("   ·   ") : undefined,
+      netHt: hasDiscount ? formatXaf(invoice.subtotal - invoice.discountAmount) : undefined,
       tvaRate: invoice.tvaRate,
       tvaAmount: formatXaf(invoice.tvaAmount),
       amount: formatXaf(invoice.amount),
