@@ -24,6 +24,7 @@ export function DispatchForm({ vehicles }: { vehicles: VehicleOption[] }) {
   const [form, setForm] = useState({
     vehicleId: vehicles[0]?.id ?? "",
     driverName: "",
+    driverPhone: "",
     cargoType: "CONTAINER",
     containerNumber: "",
     cargoDescription: "",
@@ -73,6 +74,9 @@ export function DispatchForm({ vehicles }: { vehicles: VehicleOption[] }) {
         </FormField>
         <FormField label={t("driver")}>
           <input className={inputClass} value={form.driverName} onChange={(e) => set("driverName", e.target.value)} placeholder={selected?.driver || t("driver")} />
+        </FormField>
+        <FormField label={t("driverPhone")}>
+          <input type="tel" className={inputClass} value={form.driverPhone} onChange={(e) => set("driverPhone", e.target.value)} placeholder="+237 6XX XX XX XX" />
         </FormField>
         <FormField label={t("cargoType")}>
           <select className={inputClass} value={form.cargoType} onChange={(e) => set("cargoType", e.target.value)}>
