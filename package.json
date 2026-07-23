@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "fetch-backgrounds": "node scripts/fetch-online-backgrounds.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

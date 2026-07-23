@@ -1,15 +1,29 @@
 import { BACKGROUND_IMAGES } from "./backgrounds.generated";
+import { ONLINE_BACKGROUND_IMAGES } from "./backgrounds.online.generated";
+
+// Local (bundled) images first, then any images pulled from an online source.
+export const ALL_BACKGROUNDS: string[] = [...BACKGROUND_IMAGES, ...ONLINE_BACKGROUND_IMAGES];
+
+// Rotate every two weeks (like a desktop wallpaper slideshow). A fixed epoch
+// keeps the schedule stable and identical for every visitor/server.
+const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
+const EPOCH_MS = Date.UTC(2024, 0, 1); // Mon 1 Jan 2024, 00:00 UTC — arbitrary anchor
+
+/** Index of the current 2-week window since the epoch (advances every 14 days). */
+export function biweeklyPeriodIndex(date = new Date()): number {
+  return Math.floor((date.getTime() - EPOCH_MS) / TWO_WEEKS_MS);
+}
 
 /**
- * Pick the background image for the current month. Cycles through the folder
- * each month (month index modulo the number of images). Returns null if the
- * folder is empty, in which case no background is shown.
+ * Pick the background image for the current fortnight. Cycles through all
+ * available images (local + online), changing every two weeks and wrapping
+ * around. Returns null if there are no images, in which case no background is
+ * shown.
  */
 export function backgroundForNow(date = new Date()): string | null {
-  if (!BACKGROUND_IMAGES.length) return null;
-  // Months since a fixed epoch so it advances every calendar month, then wraps.
-  const monthIndex = date.getFullYear() * 12 + date.getMonth();
-  return BACKGROUND_IMAGES[monthIndex % BACKGROUND_IMAGES.length];
+  if (!ALL_BACKGROUNDS.length) return null;
+  const idx = biweeklyPeriodIndex(date);
+  return ALL_BACKGROUNDS[((idx % ALL_BACKGROUNDS.length) + ALL_BACKGROUNDS.length) % ALL_BACKGROUNDS.length];
 }
 
 export { BACKGROUND_IMAGES };

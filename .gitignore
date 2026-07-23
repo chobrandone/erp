@@ -45,3 +45,6 @@ next-env.d.ts
 /storage/
 *.db
 *.db-journal
+
+# Local source images (copied into public/images/backgrounds)
+theme images/

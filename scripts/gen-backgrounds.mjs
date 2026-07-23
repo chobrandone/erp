@@ -1,7 +1,7 @@
 // Scans public/images/backgrounds/ and writes the ordered list of background
-// images to src/lib/backgrounds.generated.ts so the app can rotate them monthly.
-// Runs as part of the build, so dropping images in the folder + redeploying is
-// all that's needed — no manual code edits.
+// images to src/lib/backgrounds.generated.ts so the app can rotate them every
+// two weeks. Runs as part of the build, so dropping images in the folder +
+// redeploying is all that's needed — no manual code edits.
 import { readdirSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 
