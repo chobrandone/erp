@@ -6,8 +6,10 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { VehicleForm } from "@/components/fleet/VehicleForm";
 import { DispatchForm } from "@/components/fleet/DispatchForm";
 import { ReturnTripButton, RedispatchButton } from "@/components/fleet/TripActions";
+import { VehicleActions } from "@/components/fleet/VehicleActions";
 import { FormModal } from "@/components/shared/FormModal";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { Truck, AlertTriangle, ShieldCheck, ParkingSquare, Send, FileSpreadsheet, Printer, History } from "lucide-react";
 
@@ -15,6 +17,12 @@ const DAY = 86400000;
 
 export default async function FleetManagementPage() {
   const t = await getTranslations("fleet");
+  const tc = await getTranslations("common");
+  const session = await auth();
+  const u = session?.user as { role?: string; permissions?: string[] | null; canEdit?: boolean } | undefined;
+  const canManageFleet =
+    (u?.role === "ADMIN" || u?.permissions == null || (u?.permissions?.includes("fleet-management") ?? false)) &&
+    (u?.role === "ADMIN" || u?.canEdit !== false);
 
   const DOC_LABELS: Record<string, string> = {
     DRIVER_LICENSE: t("docDriverLicense"),
@@ -121,7 +129,15 @@ export default async function FleetManagementPage() {
     const completed = trips.filter((tp) => tp.status === "COMPLETED").length;
     const last = [...trips].sort((a, b) => b.departureTime.getTime() - a.departureTime.getTime())[0];
     const state = v.status === "MAINTENANCE" ? "MAINTENANCE" : v.operationalStatus;
-    return { id: v.id, plate: v.plateNumber, state, total: trips.length, ongoing, completed, last: last ? `${last.destination} · ${formatDate(last.departureTime)}` : t("none") };
+    return {
+      id: v.id, plate: v.plateNumber, state, total: trips.length, ongoing, completed,
+      last: last ? `${last.destination} · ${formatDate(last.departureTime)}` : t("none"),
+      info: {
+        id: v.id, plateNumber: v.plateNumber, make: v.make, model: v.model,
+        driverName: v.driverName, driverPhone: v.driverPhone, status: v.status, odometerKm: v.odometerKm,
+      },
+      docs: v.documents.map((d) => ({ id: d.id, docType: d.docType, reference: d.reference, expiryDate: d.expiryDate.toISOString() })),
+    };
   });
   const summaryCols: Column<(typeof summaryRows)[number]>[] = [
     { header: t("plate"), accessor: (r) => <span className="font-medium">{r.plate}</span> },
@@ -130,6 +146,7 @@ export default async function FleetManagementPage() {
     { header: t("ongoing"), accessor: (r) => r.ongoing },
     { header: t("completed"), accessor: (r) => r.completed },
     { header: t("lastMission"), accessor: (r) => r.last },
+    { header: tc("actions"), accessor: (r) => <VehicleActions vehicle={r.info} documents={r.docs} canManage={canManageFleet} /> },
   ];
 
   const dispatchVehicles = inPark.map((v) => ({ id: v.id, label: `${v.plateNumber} — ${`${v.make ?? ""} ${v.model ?? ""}`.trim() || t("vehicle")}`, driver: v.driverName ?? "" }));

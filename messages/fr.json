@@ -67,7 +67,8 @@
     "createdBy": "Créé par",
     "signature": "Signature",
     "photoPlaceholder": "Photo",
-    "exportExcel": "Export Excel"
+    "exportExcel": "Export Excel",
+    "selectExisting": "Choisir existant"
   },
   "dashboard": {
     "title": "Tableau de bord opérationnel",
@@ -548,7 +549,18 @@
     "daysSuffix": "j",
     "expiresInDays": "Expire dans",
     "expiredSinceDays": "Expiré depuis",
-    "agoDays": "j"
+    "agoDays": "j",
+    "editVehicle": "Modifier le véhicule",
+    "manageDocuments": "Documents",
+    "vehicleInfo": "Informations du véhicule",
+    "vehicleStatus": "Statut",
+    "statusActive": "Actif",
+    "statusMaintenance": "Maintenance",
+    "statusInactive": "Inactif",
+    "renew": "Renouveler",
+    "odometer": "Kilométrage (km)",
+    "addDocument": "Ajouter un document",
+    "noDocuments": "Aucun document."
   },
   "statuses": {
     "GOOD": "Bon",

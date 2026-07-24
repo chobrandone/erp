@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
+import { NamePicker, initialNameValue, type NamePickerValue } from "@/components/shared/NamePicker";
 import { ArrowLeft } from "lucide-react";
 
 type Option = { id: string; label: string };
@@ -28,12 +29,12 @@ export function PTIRequestForm({
   const [containerMode, setContainerMode] = useState<"existing" | "new">(
     containers.length > 0 ? "existing" : "new"
   );
+  const [customer, setCustomer] = useState<NamePickerValue>(initialNameValue);
+  const [shippingLine, setShippingLine] = useState<NamePickerValue>(initialNameValue);
   const [form, setForm] = useState({
     containerId: containers[0]?.id ?? "",
     containerNumber: "",
     containerTypeId: containerTypes[0]?.id ?? "",
-    customerId: "",
-    shippingLineId: "",
     priority: "NORMAL" as "NORMAL" | "URGENT",
     requiredDate: "",
     inspectionType: "STANDARD" as "STANDARD" | "SPECIAL" | "SMART",
@@ -47,10 +48,17 @@ export function PTIRequestForm({
     setSubmitting(true);
     setError(null);
     try {
+      const customerFields = customer.mode === "new"
+        ? { customerName: customer.name.trim() }
+        : { customerId: customer.id };
+      const shippingLineFields = shippingLine.mode === "new"
+        ? { shippingLineName: shippingLine.name.trim() }
+        : { shippingLineId: shippingLine.id };
+      const base = { ...form, ...customerFields, ...shippingLineFields };
       const payload =
         containerMode === "existing"
-          ? { ...form, containerNumber: "", containerTypeId: "" }
-          : { ...form, containerId: "" };
+          ? { ...base, containerNumber: "", containerTypeId: "" }
+          : { ...base, containerId: "" };
       const res = await fetch("/api/pti-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,34 +132,20 @@ export function PTIRequestForm({
             </div>
           )}
         </FormField>
-        <FormField label={t("customerLabel")}>
-          <select
-            className={inputClass}
-            value={form.customerId}
-            onChange={(e) => setForm((f) => ({ ...f, customerId: e.target.value }))}
-          >
-            <option value="">-</option>
-            {customers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label={t("shippingLineLabel")}>
-          <select
-            className={inputClass}
-            value={form.shippingLineId}
-            onChange={(e) => setForm((f) => ({ ...f, shippingLineId: e.target.value }))}
-          >
-            <option value="">-</option>
-            {shippingLines.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
+        <NamePicker
+          label={t("customerLabel")}
+          options={customers}
+          value={customer}
+          onChange={setCustomer}
+          placeholder={t("customerLabel")}
+        />
+        <NamePicker
+          label={t("shippingLineLabel")}
+          options={shippingLines}
+          value={shippingLine}
+          onChange={setShippingLine}
+          placeholder={t("shippingLineLabel")}
+        />
         <FormField label={t("priority")}>
           <select
             className={inputClass}

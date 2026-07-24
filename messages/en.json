@@ -67,7 +67,8 @@
     "createdBy": "Created By",
     "signature": "Signature",
     "photoPlaceholder": "Photo",
-    "exportExcel": "Export Excel"
+    "exportExcel": "Export Excel",
+    "selectExisting": "Select existing"
   },
   "dashboard": {
     "title": "Operations Dashboard",
@@ -548,7 +549,18 @@
     "daysSuffix": "d",
     "expiresInDays": "Expires in",
     "expiredSinceDays": "Expired",
-    "agoDays": "d ago"
+    "agoDays": "d ago",
+    "editVehicle": "Edit vehicle",
+    "manageDocuments": "Documents",
+    "vehicleInfo": "Vehicle information",
+    "vehicleStatus": "Status",
+    "statusActive": "Active",
+    "statusMaintenance": "Maintenance",
+    "statusInactive": "Inactive",
+    "renew": "Renew",
+    "odometer": "Odometer (km)",
+    "addDocument": "Add document",
+    "noDocuments": "No documents yet."
   },
   "statuses": {
     "GOOD": "Good",
