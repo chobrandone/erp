@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
+import { NamePicker, initialNameValue, resolveNameId, type NamePickerValue } from "@/components/shared/NamePicker";
 
 type Option = { id: string; label: string };
 
@@ -21,11 +22,11 @@ export function GateInForm({
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customer, setCustomer] = useState<NamePickerValue>(initialNameValue);
+  const [shippingLine, setShippingLine] = useState<NamePickerValue>(initialNameValue);
   const [form, setForm] = useState({
     containerNumber: "",
     containerTypeId: containerTypes[0]?.id ?? "",
-    shippingLineId: "",
-    customerId: "",
     truckPlate: "",
     driverName: "",
     driverId: "",
@@ -68,10 +69,12 @@ export function GateInForm({
     setSubmitting(true);
     setError(null);
     try {
+      const customerId = await resolveNameId(customer, "/api/customers/resolve");
+      const shippingLineId = await resolveNameId(shippingLine, "/api/shipping-lines/resolve");
       const res = await fetch("/api/gate-transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "GATE_IN", ...form }),
+        body: JSON.stringify({ type: "GATE_IN", ...form, customerId, shippingLineId }),
       });
       if (!res.ok) throw new Error("Failed");
       const { transaction } = await res.json();
@@ -108,34 +111,8 @@ export function GateInForm({
             ))}
           </select>
         </FormField>
-        <FormField label={t("shippingLine")}>
-          <select
-            className={inputClass}
-            value={form.shippingLineId}
-            onChange={(e) => update("shippingLineId", e.target.value)}
-          >
-            <option value="">-</option>
-            {shippingLines.map((sl) => (
-              <option key={sl.id} value={sl.id}>
-                {sl.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label={t("customer")}>
-          <select
-            className={inputClass}
-            value={form.customerId}
-            onChange={(e) => update("customerId", e.target.value)}
-          >
-            <option value="">-</option>
-            {customers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
+        <NamePicker label={t("shippingLine")} options={shippingLines} value={shippingLine} onChange={setShippingLine} placeholder={t("shippingLine")} />
+        <NamePicker label={t("customer")} options={customers} value={customer} onChange={setCustomer} placeholder={t("customer")} />
         <FormField label={t("truckPlate")}>
           <input
             required

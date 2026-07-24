@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
 import { ContainerPicker, resolveContainerId, initialContainerValue, type ContainerPickerValue, type Option } from "@/components/shared/ContainerPicker";
+import { NamePicker, initialNameValue, resolveNameId, type NamePickerValue } from "@/components/shared/NamePicker";
 import { useFormModalClose } from "@/components/shared/FormModal";
 
 export function ReleaseOrderForm({
@@ -25,9 +26,9 @@ export function ReleaseOrderForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [container, setContainer] = useState<ContainerPickerValue>(() => initialContainerValue(containers, containerTypes));
+  const [customer, setCustomer] = useState<NamePickerValue>(initialNameValue);
+  const [shippingLine, setShippingLine] = useState<NamePickerValue>(initialNameValue);
   const [form, setForm] = useState({
-    customerId: "",
-    shippingLineId: "",
     authorizedReleaseDate: "",
     destination: "",
     approvedBy: "",
@@ -41,10 +42,12 @@ export function ReleaseOrderForm({
     setError(null);
     try {
       const containerId = await resolveContainerId(container);
+      const customerId = await resolveNameId(customer, "/api/customers/resolve");
+      const shippingLineId = await resolveNameId(shippingLine, "/api/shipping-lines/resolve");
       const res = await fetch("/api/release-orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, containerId }),
+        body: JSON.stringify({ ...form, containerId, customerId, shippingLineId }),
       });
       if (res.ok) {
         router.refresh();
@@ -63,34 +66,8 @@ export function ReleaseOrderForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormSection title={t("newRelease")}>
         <ContainerPicker containers={containers} containerTypes={containerTypes} value={container} onChange={setContainer} />
-        <FormField label="Customer">
-          <select
-            className={inputClass}
-            value={form.customerId}
-            onChange={(e) => setForm((f) => ({ ...f, customerId: e.target.value }))}
-          >
-            <option value="">-</option>
-            {customers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label="Shipping Line">
-          <select
-            className={inputClass}
-            value={form.shippingLineId}
-            onChange={(e) => setForm((f) => ({ ...f, shippingLineId: e.target.value }))}
-          >
-            <option value="">-</option>
-            {shippingLines.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
+        <NamePicker label="Customer" options={customers} value={customer} onChange={setCustomer} placeholder="Customer" />
+        <NamePicker label="Shipping Line" options={shippingLines} value={shippingLine} onChange={setShippingLine} placeholder="Shipping Line" />
         <FormField label={t("authorizedReleaseDate")}>
           <input
             type="date"

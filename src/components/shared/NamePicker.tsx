@@ -16,6 +16,25 @@ export function initialNameValue(): NamePickerValue {
 }
 
 /**
+ * Resolve the picker selection to an id. For "new", posts the typed name to the
+ * given find-or-create endpoint (e.g. /api/customers/resolve) so the record is
+ * saved and becomes available in future dropdowns. Returns null when empty.
+ */
+export async function resolveNameId(value: NamePickerValue, endpoint: string): Promise<string | null> {
+  if (value.mode === "existing") return value.id || null;
+  const name = value.name.trim();
+  if (!name) return null;
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error ?? "Could not save the entry.");
+  return data.id as string;
+}
+
+/**
  * Pick an existing record from a dropdown OR type a new name to create one.
  * Used for fields like Customer / Shipping line where new entries appear over
  * time. The parent resolves `mode === "new"` by sending `name` to the API,

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
+import { NamePicker, initialNameValue, resolveNameId, type NamePickerValue } from "@/components/shared/NamePicker";
 import { useFormModalClose } from "@/components/shared/FormModal";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -21,7 +22,7 @@ export function InvoiceForm({ customers, rates, isAdmin = false, isFinance = fal
   const router = useRouter();
   const closeModal = useFormModalClose();
   const [submitting, setSubmitting] = useState(false);
-  const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
+  const [customer, setCustomer] = useState<NamePickerValue>(() => ({ mode: "existing", id: customers[0]?.id ?? "", name: "" }));
   const [description, setDescription] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0]);
@@ -64,6 +65,7 @@ export function InvoiceForm({ customers, rates, isAdmin = false, isFinance = fal
     e.preventDefault();
     setSubmitting(true);
     try {
+      const customerId = await resolveNameId(customer, "/api/customers/resolve");
       const payload = {
         customerId,
         description,
@@ -107,13 +109,9 @@ export function InvoiceForm({ customers, rates, isAdmin = false, isFinance = fal
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormSection title={t("newInvoice")}>
-        <FormField label={t("customer")} full>
-          <select className={inputClass} value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
-            {customers.map((c) => (
-              <option key={c.id} value={c.id}>{c.label}</option>
-            ))}
-          </select>
-        </FormField>
+        <div className="sm:col-span-2">
+          <NamePicker label={t("customer")} options={customers} value={customer} onChange={setCustomer} placeholder={t("customer")} />
+        </div>
         <FormField label={t("description")} full>
           <input
             className={inputClass}
