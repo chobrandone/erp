@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
 import { NamePicker, initialNameValue, resolveNameId, type NamePickerValue } from "@/components/shared/NamePicker";
+import { AcconierInput } from "@/components/shared/AcconierInput";
 
 type Option = { id: string; label: string };
 
@@ -209,7 +210,6 @@ export function GateInForm({
             onChange={(e) => update("statut", e.target.value as "FCL" | "LCL")}
           >
             <option value="FCL">FCL</option>
-            <option value="LCL">LCL</option>
           </select>
         </FormField>
         <FormField label="NAVIRE (Vessel)">
@@ -225,7 +225,7 @@ export function GateInForm({
           <input className={inputClass} value={form.isoCode} onChange={(e) => update("isoCode", e.target.value.toUpperCase())} placeholder="45G1" />
         </FormField>
         <FormField label="ACCONIER">
-          <input className={inputClass} value={form.acconier} onChange={(e) => update("acconier", e.target.value)} />
+          <AcconierInput value={form.acconier} onChange={(v) => update("acconier", v)} />
         </FormField>
         <FormField label="TRANSITAIRE">
           <input className={inputClass} value={form.transitaire} onChange={(e) => update("transitaire", e.target.value)} />

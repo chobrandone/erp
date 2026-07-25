@@ -108,16 +108,19 @@ export async function POST(req: NextRequest) {
 
     const count = await prisma.gateTransaction.count({ where: { type: "GATE_OUT" } });
     const docNumber = formatDocNumber("EIR-OUT", count + 1);
+    // Release Order number is auto-generated when the operator doesn't supply one.
+    const releaseOrderNo = data.releaseOrderNo?.trim() || formatDocNumber("RO", count + 1);
 
     const transaction = await prisma.gateTransaction.create({
       data: {
         docNumber,
         type: "GATE_OUT",
         containerId: container.id,
+        customerId: data.customerId || null,
         truckPlate: data.truckPlate,
         driverName: data.driverName,
         destination: data.destination,
-        releaseOrderNo: data.releaseOrderNo,
+        releaseOrderNo,
         condition: data.condition,
         damageRemarks: data.damageRemarks,
         remarks: data.remarks,

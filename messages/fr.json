@@ -110,7 +110,9 @@
     "destination": "Destination",
     "releaseOrder": "N° de bon de sortie",
     "submit": "Soumettre la sortie",
-    "success": "Sortie enregistrée avec succès"
+    "success": "Sortie enregistrée avec succès",
+    "customer": "Client",
+    "releaseOrderAuto": "Généré automatiquement"
   },
   "gateOperations": {
     "title": "Opérations de portail",

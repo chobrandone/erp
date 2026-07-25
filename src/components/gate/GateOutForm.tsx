@@ -5,17 +5,19 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
 import { ContainerPicker, resolveContainerId, initialContainerValue, type ContainerPickerValue, type Option } from "@/components/shared/ContainerPicker";
+import { NamePicker, initialNameValue, resolveNameId, type NamePickerValue } from "@/components/shared/NamePicker";
+import { AcconierInput } from "@/components/shared/AcconierInput";
 
-export function GateOutForm({ containers, containerTypes }: { containers: Option[]; containerTypes: Option[] }) {
+export function GateOutForm({ containers, containerTypes, customers }: { containers: Option[]; containerTypes: Option[]; customers: Option[] }) {
   const t = useTranslations("gateOut");
   const tc = useTranslations("common");
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [container, setContainer] = useState<ContainerPickerValue>(() => initialContainerValue(containers, containerTypes));
+  const [customer, setCustomer] = useState<NamePickerValue>(initialNameValue);
   const [form, setForm] = useState({
     destination: "",
-    releaseOrderNo: "",
     truckPlate: "",
     driverName: "",
     condition: "GOOD" as "GOOD" | "DAMAGED",
@@ -42,10 +44,11 @@ export function GateOutForm({ containers, containerTypes }: { containers: Option
     setError(null);
     try {
       const containerId = await resolveContainerId(container);
+      const customerId = await resolveNameId(customer, "/api/customers/resolve");
       const res = await fetch("/api/gate-transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "GATE_OUT", ...form, containerId }),
+        body: JSON.stringify({ type: "GATE_OUT", ...form, containerId, customerId }),
       });
       if (!res.ok) throw new Error("Failed");
       const { transaction } = await res.json();
@@ -61,6 +64,7 @@ export function GateOutForm({ containers, containerTypes }: { containers: Option
     <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl mx-auto">
       <FormSection title={t("title")}>
         <ContainerPicker containers={containers} containerTypes={containerTypes} value={container} onChange={setContainer} />
+        <NamePicker label={t("customer")} options={customers} value={customer} onChange={setCustomer} placeholder={t("customer")} />
         <FormField label={t("destination")}>
           <input
             required
@@ -70,12 +74,7 @@ export function GateOutForm({ containers, containerTypes }: { containers: Option
           />
         </FormField>
         <FormField label={t("releaseOrder")}>
-          <input
-            required
-            className={inputClass}
-            value={form.releaseOrderNo}
-            onChange={(e) => update("releaseOrderNo", e.target.value)}
-          />
+          <input className={`${inputClass} opacity-60`} value={t("releaseOrderAuto")} disabled readOnly />
         </FormField>
         <FormField label="Truck Registration">
           <input
@@ -131,7 +130,7 @@ export function GateOutForm({ containers, containerTypes }: { containers: Option
           <input className={inputClass} value={form.voyage} onChange={(e) => update("voyage", e.target.value)} />
         </FormField>
         <FormField label="ACCONIER">
-          <input className={inputClass} value={form.acconier} onChange={(e) => update("acconier", e.target.value)} />
+          <AcconierInput value={form.acconier} onChange={(v) => update("acconier", v)} />
         </FormField>
         <FormField label="TRANSITAIRE">
           <input className={inputClass} value={form.transitaire} onChange={(e) => update("transitaire", e.target.value)} />

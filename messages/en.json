@@ -110,7 +110,9 @@
     "destination": "Destination",
     "releaseOrder": "Release Order No",
     "submit": "Submit Gate Out",
-    "success": "Gate Out recorded successfully"
+    "success": "Gate Out recorded successfully",
+    "customer": "Customer",
+    "releaseOrderAuto": "Auto-generated on submit"
   },
   "gateOperations": {
     "title": "Gate Operations",

@@ -42,8 +42,9 @@ export type GateInInput = z.infer<typeof gateInSchema>;
 
 export const gateOutSchema = z.object({
   containerId: z.string().min(1),
+  customerId: z.string().optional(),
   destination: z.string().min(1),
-  releaseOrderNo: z.string().min(1),
+  releaseOrderNo: z.string().optional(), // auto-generated when not provided
   truckPlate: z.string().min(1),
   driverName: z.string().min(1),
   condition: z.enum(["GOOD", "DAMAGED"]),
