@@ -103,7 +103,7 @@ export default async function ReeferManagementPage({
 
       <ReportFilterBar exportType="reefer" initialQuery={q} initialFrom={from} initialTo={to} />
 
-      <DataTable columns={cols} rows={logs} />
+      <DataTable columns={cols} rows={logs} searchable={false} />
     </div>
   );
 }

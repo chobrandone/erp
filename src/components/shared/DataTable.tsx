@@ -63,8 +63,8 @@ export function DataTable<T extends { id: string }>({
     </div>
   );
 
-  // Show the instant search only when it's worth it (more than a couple of rows).
-  if (searchable && rows.length > 2) {
+  // Show the instant search whenever there are rows to filter.
+  if (searchable && rows.length > 0) {
     return <TableSearch>{table}</TableSearch>;
   }
   return table;

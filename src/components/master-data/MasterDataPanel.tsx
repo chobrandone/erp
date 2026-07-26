@@ -196,6 +196,7 @@ export function MasterDataPanel<T extends { id: string } & Record<string, unknow
               )
             : initialRows
         }
+        searchable={false}
       />
     </div>
   );

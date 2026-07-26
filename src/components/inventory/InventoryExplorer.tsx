@@ -135,7 +135,7 @@ export function InventoryExplorer({
         </select>
       </div>
 
-      <DataTable columns={cols} rows={filtered} />
+      <DataTable columns={cols} rows={filtered} searchable={false} />
     </div>
   );
 }

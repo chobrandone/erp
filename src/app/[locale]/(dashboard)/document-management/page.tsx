@@ -123,7 +123,7 @@ export default async function DocumentManagementPage({
     <div className="space-y-6">
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
       <ReportFilterBar exportType="documents" initialQuery={q} initialFrom={from} initialTo={to} />
-      <DataTable columns={cols} rows={filteredRows} />
+      <DataTable columns={cols} rows={filteredRows} searchable={false} />
     </div>
   );
 }
