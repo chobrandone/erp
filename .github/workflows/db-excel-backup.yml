@@ -1,0 +1,64 @@
+name: Excel backup to Google Drive
+
+# Exports the whole database to a single Excel workbook and uploads it to Google
+# Drive, organised as:
+#   ERP-Backups/
+#     latest.xlsx                      (always the most recent)
+#     2026/2026-07/erp-backup-2026-07-29.xlsx   (dated history, by year/month)
+#
+# Needs two repository secrets:
+#   DATABASE_URL  — the Neon connection string
+#   RCLONE_CONF   — an rclone Google Drive remote named [gdrive] (see docs)
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # every day at 01:00 UTC
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-excel-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Excel backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/backup-to-excel.mjs
+
+      - name: Install rclone
+        run: curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configure rclone (Google Drive)
+        run: |
+          mkdir -p ~/.config/rclone
+          printf '%s' "${{ secrets.RCLONE_CONF }}" > ~/.config/rclone/rclone.conf
+
+      - name: Upload to Google Drive (year / month structure)
+        run: |
+          FILE=$(ls backups/*.xlsx | head -1)
+          NAME=$(basename "$FILE")
+          Y=$(date +%Y)
+          YM=$(date +%Y-%m)
+          rclone copyto "$FILE" "gdrive:ERP-Backups/$Y/$YM/$NAME" --drive-chunk-size 32M
+          rclone copyto "$FILE" "gdrive:ERP-Backups/latest.xlsx"
+          echo "Uploaded $NAME to ERP-Backups/$Y/$YM/"
+
+      - name: Rotate — remove dated backups older than 90 days
+        run: rclone delete "gdrive:ERP-Backups" --min-age 90d --include "*/*/erp-backup-*.xlsx" || true

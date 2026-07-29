@@ -9,7 +9,8 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "seed": "tsx prisma/seed.ts",
-    "fetch-backgrounds": "node scripts/fetch-online-backgrounds.mjs"
+    "fetch-backgrounds": "node scripts/fetch-online-backgrounds.mjs",
+    "backup-excel": "node scripts/backup-to-excel.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -48,3 +48,6 @@ next-env.d.ts
 
 # Local source images (copied into public/images/backgrounds)
 theme images/
+
+# Generated database backups (contain company data — never commit)
+backups/
