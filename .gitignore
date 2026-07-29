@@ -51,3 +51,7 @@ theme images/
 
 # Generated database backups (contain company data — never commit)
 backups/
+
+# Electron desktop app — build output & deps
+desktop/node_modules/
+desktop/dist/

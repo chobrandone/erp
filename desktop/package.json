@@ -1,0 +1,35 @@
+{
+  "name": "negoce-services-desktop",
+  "version": "1.0.0",
+  "description": "Negoce Services — Desktop",
+  "author": "Negoce Services",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.negoceservices.erp",
+    "productName": "Negoce Services",
+    "directories": {
+      "output": "dist"
+    },
+    "files": ["main.js", "build/**/*"],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Negoce Services"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  }
+}
