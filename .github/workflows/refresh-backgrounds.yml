@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # full history so we can read the file's last-update date
 
@@ -52,9 +52,9 @@ jobs:
 
       - name: Setup Node
         if: steps.gate.outputs.run == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Fetch fresh Unsplash background links
         if: steps.gate.outputs.run == 'true'
