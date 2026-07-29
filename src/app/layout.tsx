@@ -3,8 +3,8 @@ import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Container Yard ERP",
-  description: "Container Storage Park ERP — Yard Management System",
+  title: "Negoce Services",
+  description: "Negoce Services — Container Yard Management System",
 };
 
 const themeInitScript = `

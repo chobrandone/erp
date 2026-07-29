@@ -40,8 +40,21 @@ export function VehicleActions({
   const tc = useTranslations("common");
   const router = useRouter();
   const [mode, setMode] = useState<null | "edit" | "docs">(null);
+  const [busy, setBusy] = useState(false);
 
   if (!canManage) return <span className="text-xs text-fg-subtle">—</span>;
+
+  async function del() {
+    if (!confirm(tc("confirmDelete"))) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/vehicles/${vehicle.id}`, { method: "DELETE" });
+      if (res.ok) router.refresh();
+      else alert((await res.json().catch(() => null))?.error ?? tc("deleteFailed"));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const DOC_LABELS: Record<string, string> = {
     INSURANCE: t("docInsurance"),
@@ -55,6 +68,7 @@ export function VehicleActions({
     <div className="flex items-center gap-3">
       <button onClick={() => setMode("edit")} title={t("editVehicle")} className="text-fg-muted hover:text-brand-100"><Pencil size={15} /></button>
       <button onClick={() => setMode("docs")} title={t("manageDocuments")} className="text-fg-muted hover:text-brand-100"><FileText size={15} /></button>
+      <button onClick={del} disabled={busy} title={tc("delete")} className="text-fg-muted hover:text-red-500 disabled:opacity-50"><Trash2 size={15} /></button>
 
       {mode === "edit" && <EditVehicle vehicle={vehicle} t={t} tc={tc} onClose={() => setMode(null)} onDone={() => { setMode(null); router.refresh(); }} />}
       {mode === "docs" && (

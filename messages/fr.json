@@ -461,7 +461,7 @@
     "roadmapNote": "L'application mobile compagnon sera développée comme un client React Native/Flutter distinct, consommant la même API que cet ERP web."
   },
   "auth": {
-    "title": "Container Depot ERP",
+    "title": "Negoce Services",
     "subtitle": "Connectez-vous pour accéder au système de gestion du parc",
     "email": "E-mail",
     "password": "Mot de passe",

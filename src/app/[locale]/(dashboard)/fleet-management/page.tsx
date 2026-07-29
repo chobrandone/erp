@@ -90,7 +90,14 @@ export default async function FleetManagementPage() {
   const parkRows = inPark.map((v) => {
     const nextExpiry = [...v.documents].sort((a, b) => a.expiryDate.getTime() - b.expiryDate.getTime())[0];
     const daysLeft = nextExpiry ? Math.floor((nextExpiry.expiryDate.getTime() - now) / DAY) : null;
-    return { id: v.id, plate: v.plateNumber, make: `${v.make ?? ""} ${v.model ?? ""}`.trim() || "-", driver: v.driverName ?? "-", docs: v.documents.length, nextExpiry, daysLeft };
+    return {
+      id: v.id, plate: v.plateNumber, make: `${v.make ?? ""} ${v.model ?? ""}`.trim() || "-", driver: v.driverName ?? "-", docs: v.documents.length, nextExpiry, daysLeft,
+      info: {
+        id: v.id, plateNumber: v.plateNumber, make: v.make, model: v.model,
+        driverName: v.driverName, driverPhone: v.driverPhone, status: v.status, odometerKm: v.odometerKm,
+      },
+      vdocs: v.documents.map((d) => ({ id: d.id, docType: d.docType, reference: d.reference, expiryDate: d.expiryDate.toISOString() })),
+    };
   });
   const parkCols: Column<(typeof parkRows)[number]>[] = [
     { header: t("plate"), accessor: (r) => <span className="font-medium">{r.plate}</span> },
@@ -106,6 +113,7 @@ export default async function FleetManagementPage() {
         return <span className={`text-xs rounded px-1.5 py-0.5 ${cls}`}>{label} {r.daysLeft < 0 ? `(${t("expiredSuffix")})` : `(${r.daysLeft}${t("daysSuffix")})`}</span>;
       },
     },
+    { header: tc("actions"), accessor: (r) => <VehicleActions vehicle={r.info} documents={r.vdocs} canManage={canManageFleet} /> },
   ];
 
   // --- MISSION HISTORY (all trips) ---

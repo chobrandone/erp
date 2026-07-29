@@ -13,7 +13,6 @@ import {
   Receipt,
   BarChart3,
   Smartphone,
-  Container,
   Truck,
   Users,
 } from "lucide-react";
@@ -53,10 +52,9 @@ export function Sidebar({ role, allowed }: { role?: string; allowed: string[] })
   return (
     <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border-color bg-surface h-screen sticky top-0">
       <div className="flex items-center gap-2 px-5 h-16 border-b border-border-color">
-        <div className="flex items-center justify-center w-9 h-9 rounded-lg brand-gradient text-white">
-          <Container size={20} />
-        </div>
-        <span className="font-semibold text-fg tracking-tight">N.S. SARL — ERP</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/logo.png" alt="Negoce Services" className="w-9 h-9 rounded-lg object-contain" />
+        <span className="font-semibold text-fg tracking-tight">Negoce Services</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 px-3 scrollbar-thin">

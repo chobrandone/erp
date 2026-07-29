@@ -461,7 +461,7 @@
     "roadmapNote": "The mobile companion app will be built as a separate React Native/Flutter client consuming the same API used by this web ERP."
   },
   "auth": {
-    "title": "Container Depot ERP",
+    "title": "Negoce Services",
     "subtitle": "Sign in to access the yard management system",
     "email": "Email",
     "password": "Password",
