@@ -22,7 +22,7 @@ export const MODULE_SLUGS = MODULES.map((m) => m.slug);
 
 // Always reachable by any signed-in user (landing) / admin-only areas.
 export const ALWAYS_ALLOWED = ["", "dashboard", "notifications"]; // dashboard home + personal notifications
-export const ADMIN_ONLY = ["user-management"];
+export const ADMIN_ONLY = ["user-management", "electric-poc"];
 
 export type SessionAccess = { role?: string; permissions?: string[] | null };
 

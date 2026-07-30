@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { requireAuth } from "@/lib/requireAuth";
 
 // Secure proxy to ElectricSQL Cloud. The browser/desktop client talks to THIS
 // route (same-origin), and we attach the Electric source_id + secret here so the
@@ -9,7 +10,15 @@ import { NextRequest } from "next/server";
 //   ELECTRIC_SECRET     — the (rotated) source secret
 const ELECTRIC_ORIGIN = "https://api.electric-sql.cloud/v1/shape";
 
+// Electric long-polls for live updates; allow the function to run longer (Pro).
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
+  // Only signed-in users can pull synced data through the proxy.
+  const { unauthorized } = await requireAuth();
+  if (unauthorized) return unauthorized;
+
   const sourceId = process.env.ELECTRIC_SOURCE_ID;
   const secret = process.env.ELECTRIC_SECRET;
   if (!sourceId || !secret) {
