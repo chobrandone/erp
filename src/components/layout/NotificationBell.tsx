@@ -16,12 +16,46 @@ export type AppNotification = {
   href?: string;
 };
 
+const SEEN_KEY = "ns_seen_notifications";
+// Stable identity for a notification (index-based ids aren't stable across loads).
+const keyOf = (n: AppNotification) => `${n.title}|${n.when ?? ""}`;
+
 export function NotificationBell({ notifications }: { notifications: AppNotification[] }) {
   const t = useTranslations("common");
   const [open, setOpen] = useState(false);
+  const [seen, setSeen] = useState<Set<string>>(new Set());
   const ref = useRef<HTMLDivElement>(null);
   const count = notifications.length;
-  const hasDanger = notifications.some((n) => n.severity === "danger");
+
+  // Load which notifications were already viewed (persisted across reloads).
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SEEN_KEY);
+      if (raw) setSeen(new Set(JSON.parse(raw) as string[]));
+    } catch {}
+  }, []);
+
+  // Badge reflects only notifications not yet viewed.
+  const unseen = notifications.filter((n) => !seen.has(keyOf(n)));
+  const badge = unseen.length;
+  const hasDanger = unseen.some((n) => n.severity === "danger");
+
+  // Mark everything currently shown as viewed → badge clears until new ones arrive.
+  function markSeen() {
+    const keys = notifications.map(keyOf);
+    setSeen(new Set(keys));
+    try {
+      localStorage.setItem(SEEN_KEY, JSON.stringify(keys));
+    } catch {}
+  }
+
+  function toggle() {
+    setOpen((o) => {
+      const next = !o;
+      if (next) markSeen();
+      return next;
+    });
+  }
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -35,18 +69,18 @@ export function NotificationBell({ notifications }: { notifications: AppNotifica
     <div className="relative" ref={ref}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         title={t("notifications")}
         className="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-surface-alt text-fg-muted"
       >
         <Bell size={18} />
-        {count > 0 && (
+        {badge > 0 && (
           <span
             className={`absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-semibold text-white flex items-center justify-center ${
               hasDanger ? "bg-red-500" : "bg-amber-500"
             }`}
           >
-            {count > 9 ? "9+" : count}
+            {badge > 9 ? "9+" : badge}
           </span>
         )}
       </button>
