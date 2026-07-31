@@ -9,6 +9,7 @@ generator client {
 
 model User {
   id           String   @id @default(cuid())
+  updatedAt    DateTime @default(now()) @updatedAt
   name         String
   email        String   @unique
   passwordHash String
@@ -30,6 +31,7 @@ model User {
 
 model Customer {
   id          String   @id @default(cuid())
+  updatedAt   DateTime @default(now()) @updatedAt
   code        String   @unique
   name        String
   contactName String?
@@ -45,9 +47,10 @@ model Customer {
 }
 
 model ShippingLine {
-  id   String @id @default(cuid())
-  code String @unique
-  name String
+  id        String   @id @default(cuid())
+  updatedAt DateTime @default(now()) @updatedAt
+  code      String   @unique
+  name      String
 
   containers       Container[]
   gateTransactions GateTransaction[]
@@ -56,17 +59,19 @@ model ShippingLine {
 }
 
 model ContainerType {
-  id          String  @id @default(cuid())
-  code        String  @unique
+  id          String   @id @default(cuid())
+  updatedAt   DateTime @default(now()) @updatedAt
+  code        String   @unique
   description String
   lengthFt    Int
-  isReefer    Boolean @default(false)
+  isReefer    Boolean  @default(false)
 
   containers Container[]
 }
 
 model Container {
   id              String        @id @default(cuid())
+  updatedAt       DateTime      @default(now()) @updatedAt
   containerNumber String        @unique
   containerTypeId String
   containerType   ContainerType @relation(fields: [containerTypeId], references: [id])
@@ -92,14 +97,15 @@ model Container {
 }
 
 model Location {
-  id           String  @id @default(cuid())
+  id           String   @id @default(cuid())
+  updatedAt    DateTime @default(now()) @updatedAt
   block        String
   row          String
   bay          String
   tier         Int
-  code         String  @unique
-  isReeferSlot Boolean @default(false)
-  maxStack     Int     @default(5)
+  code         String   @unique
+  isReeferSlot Boolean  @default(false)
+  maxStack     Int      @default(5)
 
   inventory     Inventory?
   movementsTo   ContainerMovement[] @relation("ToLocation")
@@ -108,6 +114,7 @@ model Location {
 
 model Inventory {
   id          String    @id @default(cuid())
+  updatedAt   DateTime  @default(now()) @updatedAt
   containerId String    @unique
   container   Container @relation(fields: [containerId], references: [id])
   locationId  String    @unique
@@ -118,6 +125,7 @@ model Inventory {
 
 model GateTransaction {
   id             String        @id @default(cuid())
+  updatedAt      DateTime      @default(now()) @updatedAt
   docNumber      String        @unique
   type           String // GATE_IN, GATE_OUT
   containerId    String
@@ -166,6 +174,7 @@ model GateTransaction {
 
 model ContainerMovement {
   id             String    @id @default(cuid())
+  updatedAt      DateTime  @default(now()) @updatedAt
   docNumber      String    @unique
   containerId    String
   container      Container @relation(fields: [containerId], references: [id])
@@ -187,6 +196,7 @@ model ContainerMovement {
 
 model ReeferMonitoring {
   id               String    @id @default(cuid())
+  updatedAt        DateTime  @default(now()) @updatedAt
   reportNo         String?   @unique
   containerId      String
   container        Container @relation(fields: [containerId], references: [id])
@@ -207,6 +217,7 @@ model ReeferMonitoring {
 
 model ReeferConnection {
   id                String    @id @default(cuid())
+  updatedAt         DateTime  @default(now()) @updatedAt
   referenceNo       String    @unique
   containerId       String
   container         Container @relation(fields: [containerId], references: [id])
@@ -222,6 +233,7 @@ model ReeferConnection {
 
 model PTIRequest {
   id             String        @id @default(cuid())
+  updatedAt      DateTime      @default(now()) @updatedAt
   docNumber      String        @unique
   containerId    String
   container      Container     @relation(fields: [containerId], references: [id])
@@ -243,6 +255,7 @@ model PTIRequest {
 
 model PTIInspection {
   id                String     @id @default(cuid())
+  updatedAt         DateTime   @default(now()) @updatedAt
   ptiRequestId      String     @unique
   ptiRequest        PTIRequest @relation(fields: [ptiRequestId], references: [id])
   inspectorId       String?
@@ -256,6 +269,7 @@ model PTIInspection {
 
 model Repair {
   id                   String    @id @default(cuid())
+  updatedAt            DateTime  @default(now()) @updatedAt
   containerId          String
   container            Container @relation(fields: [containerId], references: [id])
   component            String? // ROOF, LEFT_SIDE, DOOR, FLOOR, ...
@@ -271,6 +285,7 @@ model Repair {
 
 model Document {
   id        String   @id @default(cuid())
+  updatedAt DateTime @default(now()) @updatedAt
   type      String // GATE_IN_EIR, GATE_OUT_EIR, MOVEMENT_ORDER, PTI_CERTIFICATE, INVOICE
   refId     String
   filePath  String
@@ -279,6 +294,7 @@ model Document {
 
 model DamageSurvey {
   id                String    @id @default(cuid())
+  updatedAt         DateTime  @default(now()) @updatedAt
   surveyNo          String    @unique
   containerId       String
   container         Container @relation(fields: [containerId], references: [id])
@@ -300,6 +316,7 @@ model DamageSurvey {
 
 model RepairEstimate {
   id               String    @id @default(cuid())
+  updatedAt        DateTime  @default(now()) @updatedAt
   estimateNo       String    @unique
   containerId      String
   container        Container @relation(fields: [containerId], references: [id])
@@ -315,6 +332,7 @@ model RepairEstimate {
 
 model RepairWorkOrder {
   id                 String    @id @default(cuid())
+  updatedAt          DateTime  @default(now()) @updatedAt
   workOrderNo        String    @unique
   containerId        String
   container          Container @relation(fields: [containerId], references: [id])
@@ -330,6 +348,7 @@ model RepairWorkOrder {
 
 model ReleaseOrder {
   id                    String        @id @default(cuid())
+  updatedAt             DateTime      @default(now()) @updatedAt
   releaseNo             String        @unique
   containerId           String
   container             Container     @relation(fields: [containerId], references: [id])
@@ -346,68 +365,72 @@ model ReleaseOrder {
 }
 
 model Invoice {
-  id                String    @id @default(cuid())
-  invoiceNumber     String    @unique
-  customerId        String
-  customer          Customer  @relation(fields: [customerId], references: [id])
-  description       String?
-  currency          String    @default("XAF")
-  subtotal          Float     @default(0) // Montant HT brut (before reduction)
-  discountAmount    Float     @default(0) // Réduction / waiver on the HT (XAF)
-  discountPercent   Float     @default(0) // Waiver expressed as a percentage of HT
-  discountReason    String? // waiver / reduction justification
+  id                   String    @id @default(cuid())
+  updatedAt            DateTime  @default(now()) @updatedAt
+  invoiceNumber        String    @unique
+  customerId           String
+  customer             Customer  @relation(fields: [customerId], references: [id])
+  description          String?
+  currency             String    @default("XAF")
+  subtotal             Float     @default(0) // Montant HT brut (before reduction)
+  discountAmount       Float     @default(0) // Réduction / waiver on the HT (XAF)
+  discountPercent      Float     @default(0) // Waiver expressed as a percentage of HT
+  discountReason       String? // waiver / reduction justification
   discountAuthorizedBy String? // admin (super-admin) who authorized the reduction
   discountRequestedBy  String? // finance user who requested the waiver
-  discountPending   Boolean   @default(false) // finance requested → awaiting super-admin confirmation
-  tvaRate           Float     @default(19.25) // Cameroon TVA %
-  tvaAmount         Float     @default(0)
-  amount            Float // Montant TTC
-  paymentMethod     String? // Espèces, Virement, Mobile Money, BICEC, Autre
-  status            String    @default("UNPAID")
-  issuedAt          DateTime  @default(now())
-  dueAt             DateTime?
-  paidAt            DateTime?
+  discountPending      Boolean   @default(false) // finance requested → awaiting super-admin confirmation
+  tvaRate              Float     @default(19.25) // Cameroon TVA %
+  tvaAmount            Float     @default(0)
+  amount               Float // Montant TTC
+  paymentMethod        String? // Espèces, Virement, Mobile Money, BICEC, Autre
+  status               String    @default("UNPAID")
+  issuedAt             DateTime  @default(now())
+  dueAt                DateTime?
+  paidAt               DateTime?
   // Payment receipt — required to mark an invoice PAID.
-  receiptData       Bytes?
-  receiptMime       String?
-  receiptName       String?
-  receiptVerified   Boolean   @default(false) // passed the "is this a receipt?" heuristic
-  receiptUploadedAt DateTime?
+  receiptData          Bytes?
+  receiptMime          String?
+  receiptName          String?
+  receiptVerified      Boolean   @default(false) // passed the "is this a receipt?" heuristic
+  receiptUploadedAt    DateTime?
   // Soft-delete / sandbox — financial records are never hard-deleted by staff.
-  archived          Boolean   @default(false)
-  voidedAt          DateTime?
-  voidedBy          String? // name/email of the user who voided it
-  voidReason        String?
+  archived             Boolean   @default(false)
+  voidedAt             DateTime?
+  voidedBy             String? // name/email of the user who voided it
+  voidReason           String?
 
   lines InvoiceLine[]
 }
 
 model InvoiceLine {
-  id              String  @id @default(cuid())
+  id              String   @id @default(cuid())
+  updatedAt       DateTime @default(now()) @updatedAt
   invoiceId       String
-  invoice         Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   description     String
-  quantity        Float   @default(1)
-  unitPrice       Float   @default(0)
-  lineTotal       Float   @default(0)
+  quantity        Float    @default(1)
+  unitPrice       Float    @default(0)
+  lineTotal       Float    @default(0)
   containerNumber String?
 }
 
 // Tariff table (XAF) — seeded from the client's Depot & Truck Transport Service Contract.
 model BillingRate {
-  id       String  @id @default(cuid())
-  code     String  @unique // e.g. STORAGE_EMPTY_20, LOLO_40, WASH_20, PTI_SHORT_20
-  service  String // human-readable service name
-  category String // STORAGE, LOLO, WASHING, CLEANING, PTI, TRUCKING, FOOD_GRADE, OTHER
-  size     String? // 20, 40
-  isReefer Boolean @default(false)
-  unit     String  @default("unit") // unit, teu_day
-  rateXaf  Float
-  active   Boolean @default(true)
+  id        String   @id @default(cuid())
+  updatedAt DateTime @default(now()) @updatedAt
+  code      String   @unique // e.g. STORAGE_EMPTY_20, LOLO_40, WASH_20, PTI_SHORT_20
+  service   String // human-readable service name
+  category  String // STORAGE, LOLO, WASHING, CLEANING, PTI, TRUCKING, FOOD_GRADE, OTHER
+  size      String? // 20, 40
+  isReefer  Boolean  @default(false)
+  unit      String   @default("unit") // unit, teu_day
+  rateXaf   Float
+  active    Boolean  @default(true)
 }
 
 model Vehicle {
   id                String   @id @default(cuid())
+  updatedAt         DateTime @default(now()) @updatedAt
   plateNumber       String   @unique
   make              String?
   model             String?
@@ -427,6 +450,7 @@ model Vehicle {
 
 model VehicleTrip {
   id               String    @id @default(cuid())
+  updatedAt        DateTime  @default(now()) @updatedAt
   tripNo           String    @unique
   vehicleId        String
   vehicle          Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
@@ -447,6 +471,7 @@ model VehicleTrip {
 
 model VehicleDocument {
   id         String    @id @default(cuid())
+  updatedAt  DateTime  @default(now()) @updatedAt
   vehicleId  String
   vehicle    Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   docType    String // DRIVER_LICENSE, INSURANCE, TECHNICAL_INSPECTION, CARTE_GRISE, VIGNETTE
@@ -458,14 +483,16 @@ model VehicleDocument {
 }
 
 model Equipment {
-  id     String @id @default(cuid())
-  code   String @unique
-  type   String // RTG, REACH_STACKER, FORKLIFT, TRUCK
-  status String @default("AVAILABLE")
+  id        String   @id @default(cuid())
+  updatedAt DateTime @default(now()) @updatedAt
+  code      String   @unique
+  type      String // RTG, REACH_STACKER, FORKLIFT, TRUCK
+  status    String   @default("AVAILABLE")
 }
 
 model AuditLog {
   id        String   @id @default(cuid())
+  updatedAt DateTime @default(now()) @updatedAt
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
   action    String
