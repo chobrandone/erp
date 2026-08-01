@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
+import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
   title: "Negoce Services",
   description: "Negoce Services — Container Yard Management System",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "Negoce Services", statusBarStyle: "black-translucent" },
 };
 
 const themeInitScript = `
@@ -29,6 +32,7 @@ export default function RootLayout({
         <Script id="theme-init" strategy="beforeInteractive">
           {themeInitScript}
         </Script>
+        <ServiceWorkerRegister />
         {children}
       </body>
     </html>
