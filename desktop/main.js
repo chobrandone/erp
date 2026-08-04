@@ -1,6 +1,8 @@
 const { app, BrowserWindow, shell, Menu } = require("electron");
 
-const APP_URL = "https://negoceservice.com";
+// Canonical host (the apex redirects here). Loading it directly means offline
+// launch doesn't depend on following a network redirect.
+const APP_URL = "https://www.negoceservice.com";
 
 function createWindow() {
   const win = new BrowserWindow({
