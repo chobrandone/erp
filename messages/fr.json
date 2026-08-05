@@ -14,7 +14,9 @@
     "reportingDashboard": "Rapports & Tableaux de bord",
     "mobileYardOps": "Opérations mobiles",
     "phase2": "Phase 2",
-    "userManagement": "Gestion des Utilisateurs"
+    "userManagement": "Gestion des Utilisateurs",
+    "offlineSync": "Synchronisation hors ligne",
+    "syncConflicts": "Conflits de synchro"
   },
   "common": {
     "save": "Enregistrer",

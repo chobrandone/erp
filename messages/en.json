@@ -14,7 +14,9 @@
     "reportingDashboard": "Reporting & Dashboards",
     "mobileYardOps": "Mobile Yard Ops",
     "phase2": "Phase 2",
-    "userManagement": "User Management"
+    "userManagement": "User Management",
+    "offlineSync": "Offline Sync",
+    "syncConflicts": "Sync Conflicts"
   },
   "common": {
     "save": "Save",

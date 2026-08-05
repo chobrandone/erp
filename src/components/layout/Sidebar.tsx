@@ -15,6 +15,8 @@ import {
   Smartphone,
   Truck,
   Users,
+  RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import { usePathname } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
@@ -36,6 +38,8 @@ const NAV_ITEMS = [
   { key: "reportingDashboard", href: "/reporting-dashboard", slug: "reporting-dashboard", icon: BarChart3, placeholder: false, adminOnly: false },
   { key: "mobileYardOps", href: "/mobile-yard-ops", slug: "mobile-yard-ops", icon: Smartphone, placeholder: true, adminOnly: false },
   { key: "userManagement", href: "/user-management", slug: "user-management", icon: Users, placeholder: false, adminOnly: true },
+  { key: "offlineSync", href: "/electric-poc", slug: "electric-poc", icon: RefreshCw, placeholder: false, adminOnly: true },
+  { key: "syncConflicts", href: "/sync-conflicts", slug: "sync-conflicts", icon: AlertTriangle, placeholder: false, adminOnly: true },
 ] as const;
 
 export function Sidebar({ role, allowed }: { role?: string; allowed: string[] }) {
