@@ -36,8 +36,18 @@ export async function POST(req: NextRequest) {
         }
         const incoming = op.updatedAt ? new Date(op.updatedAt) : new Date();
         // If the server copy is newer than this device's edit, don't overwrite —
-        // flag it so nothing is silently lost (per approved rules).
+        // record it for admin review so nothing is silently lost (approved rule).
         if (existing.updatedAt.getTime() > incoming.getTime()) {
+          await prisma.syncConflict.create({
+            data: {
+              entity: "container",
+              recordId: op.id,
+              deviceValue: JSON.stringify(op.data ?? {}),
+              serverValue: JSON.stringify({ status: existing.status }),
+              deviceUpdatedAt: incoming,
+              serverUpdatedAt: existing.updatedAt,
+            },
+          }).catch(() => {});
           results.push({
             opId: op.opId,
             status: "conflict",

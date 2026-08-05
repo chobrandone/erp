@@ -501,3 +501,21 @@ model AuditLog {
   metaJson  String?
   createdAt DateTime @default(now())
 }
+
+// Records a sync conflict (per approved rules) when a device's offline edit is
+// older than the server copy, so an admin can review and pick the right value.
+model SyncConflict {
+  id              String    @id @default(cuid())
+  updatedAt       DateTime  @default(now()) @updatedAt
+  entity          String
+  recordId        String
+  deviceValue     String // JSON of the device's attempted change
+  serverValue     String // JSON of the current server value
+  deviceUpdatedAt DateTime?
+  serverUpdatedAt DateTime?
+  resolved        Boolean   @default(false)
+  resolution      String? // KEEP_SERVER | USE_DEVICE
+  resolvedBy      String?
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+}
