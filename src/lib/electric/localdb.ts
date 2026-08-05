@@ -61,8 +61,12 @@ export function getLocalDb(): Promise<any> {
       CREATE TABLE IF NOT EXISTS gate_transactions (
         id TEXT PRIMARY KEY, doc_number TEXT, type TEXT, container_number TEXT,
         container_type_id TEXT, truck_plate TEXT, driver_name TEXT, status TEXT,
-        condition TEXT, remarks TEXT, synced INTEGER DEFAULT 0, created_at TEXT
+        condition TEXT, remarks TEXT, destination TEXT, release_order TEXT,
+        synced INTEGER DEFAULT 0, created_at TEXT
       );
+      -- Add newer columns to already-existing local databases.
+      ALTER TABLE gate_transactions ADD COLUMN IF NOT EXISTS destination TEXT;
+      ALTER TABLE gate_transactions ADD COLUMN IF NOT EXISTS release_order TEXT;
       CREATE TABLE IF NOT EXISTS pending_ops (
         op_id TEXT PRIMARY KEY, entity TEXT NOT NULL, type TEXT NOT NULL,
         record_id TEXT NOT NULL, data TEXT NOT NULL, updated_at TEXT NOT NULL,
@@ -137,9 +141,13 @@ export async function syncPending(db: any): Promise<void> {
   for (const r of results) {
     const op = byId[r.opId];
     if (r.status === "applied" || r.status === "skipped" || r.status === "ignored") {
-      // Gate-in: write the server-assigned document number back onto the local row.
+      // Gate in/out: write the server-assigned document (and release-order)
+      // numbers back onto the local row.
       if (op?.entity === "gateTransaction" && r.docNumber) {
-        await db.query(`UPDATE gate_transactions SET doc_number = $1, synced = 1 WHERE id = $2`, [r.docNumber, op.id]);
+        await db.query(
+          `UPDATE gate_transactions SET doc_number = $1, release_order = COALESCE($2, release_order), synced = 1 WHERE id = $3`,
+          [r.docNumber, r.releaseOrderNo ?? null, op.id],
+        );
       }
       await db.query(`DELETE FROM pending_ops WHERE op_id = $1`, [r.opId]);
     } else if (r.status === "conflict") {

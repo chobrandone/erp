@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { ElectricContainersLive } from "@/components/electric/ElectricContainersLive";
 import { LocalContainersLive } from "@/components/electric/LocalContainersLive";
 import { OfflineGateIn } from "@/components/electric/OfflineGateIn";
+import { OfflineGateOut } from "@/components/electric/OfflineGateOut";
 
 // Proof-of-concept page for the offline/local-first build. Admin-only.
 export default function ElectricPocPage() {
@@ -13,8 +14,13 @@ export default function ElectricPocPage() {
       />
 
       <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-fg-muted">Increment 3 — offline Gate In (create → provisional number → synced)</h3>
+        <h3 className="text-sm font-semibold text-fg-muted">Offline Gate In (create → provisional number → synced)</h3>
         <OfflineGateIn />
+      </section>
+
+      <section className="space-y-3">
+        <h3 className="text-sm font-semibold text-fg-muted">Offline Gate Out (EIR-OUT + release order assigned on sync)</h3>
+        <OfflineGateOut />
       </section>
 
       <section className="space-y-3">

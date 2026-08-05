@@ -57,6 +57,53 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
+      // --- Gate Out: create offline → server assigns EIR-OUT + release-order numbers ---
+      if (op.entity === "gateTransaction" && op.type === "create" && op.data?.type === "GATE_OUT") {
+        const already = await prisma.gateTransaction.findUnique({ where: { id: op.id } });
+        if (already) {
+          results.push({ opId: op.opId, status: "applied", recordId: op.id, docNumber: already.docNumber, releaseOrderNo: already.releaseOrderNo });
+          continue;
+        }
+        const d = op.data ?? {};
+        const containerNumber = String(d.containerNumber ?? "").trim().toUpperCase();
+        const container = containerNumber ? await prisma.container.findUnique({ where: { containerNumber } }) : null;
+        if (!container) {
+          results.push({ opId: op.opId, status: "error", message: "container not found for gate out" });
+          continue;
+        }
+        const condition = d.condition === "DAMAGED" ? "DAMAGED" : "GOOD";
+        let docNumber = "";
+        let releaseOrderNo = "";
+        for (let attempt = 0; attempt < 4; attempt++) {
+          const count = await prisma.gateTransaction.count({ where: { type: "GATE_OUT" } });
+          docNumber = formatDocNumber("EIR-OUT", count + 1 + attempt);
+          releaseOrderNo = d.releaseOrderNo ? String(d.releaseOrderNo) : formatDocNumber("RO", count + 1 + attempt);
+          try {
+            await prisma.gateTransaction.create({
+              data: {
+                id: op.id,
+                docNumber,
+                type: "GATE_OUT",
+                containerId: container.id,
+                truckPlate: String(d.truckPlate ?? "-"),
+                driverName: String(d.driverName ?? "-"),
+                destination: d.destination ? String(d.destination) : null,
+                releaseOrderNo,
+                condition,
+                remarks: d.remarks ? String(d.remarks) : null,
+              },
+            });
+            break;
+          } catch (e) {
+            if (attempt === 3) throw e;
+          }
+        }
+        // The container has left the yard.
+        await prisma.inventory.updateMany({ where: { containerId: container.id }, data: { status: "GATE_OUT" } }).catch(() => {});
+        results.push({ opId: op.opId, status: "applied", recordId: op.id, docNumber, releaseOrderNo });
+        continue;
+      }
+
       // --- Gate In: create offline → server assigns the final document number ---
       if (op.entity === "gateTransaction" && op.type === "create") {
         // Idempotent: if this device's record already synced, return its number.
@@ -104,6 +151,9 @@ export async function POST(req: NextRequest) {
                 containerId: container.id,
                 truckPlate: String(d.truckPlate ?? "-"),
                 driverName: String(d.driverName ?? "-"),
+                sealNumber: d.sealNumber ? String(d.sealNumber) : null,
+                grossWeightKg: d.grossWeightKg != null && d.grossWeightKg !== "" ? Number(d.grossWeightKg) : null,
+                navire: d.navire ? String(d.navire) : null,
                 condition,
                 remarks: d.remarks ? String(d.remarks) : null,
               },

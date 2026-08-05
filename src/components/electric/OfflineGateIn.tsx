@@ -24,7 +24,7 @@ export function OfflineGateIn() {
   const [error, setError] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dbRef = useRef<any>(null);
-  const [form, setForm] = useState({ containerNumber: "", containerTypeId: "", truckPlate: "", driverName: "", status: "FULL", condition: "GOOD" });
+  const [form, setForm] = useState({ containerNumber: "", containerTypeId: "", truckPlate: "", driverName: "", sealNumber: "", grossWeightKg: "", navire: "", status: "FULL", condition: "GOOD" });
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   async function refreshList() {
@@ -55,11 +55,14 @@ export function OfflineGateIn() {
           containerTypeId: form.containerTypeId,
           truckPlate: form.truckPlate.trim(),
           driverName: form.driverName.trim(),
+          sealNumber: form.sealNumber.trim(),
+          grossWeightKg: form.grossWeightKg,
+          navire: form.navire.trim(),
           status: form.status,
           condition: form.condition,
         },
       });
-      setForm((f) => ({ ...f, containerNumber: "", truckPlate: "", driverName: "" }));
+      setForm((f) => ({ ...f, containerNumber: "", truckPlate: "", driverName: "", sealNumber: "", grossWeightKg: "", navire: "" }));
       await refreshList();
     } finally {
       setBusy(false);
@@ -129,6 +132,18 @@ export function OfflineGateIn() {
         <div>
           <label className="block text-xs font-medium text-fg-muted mb-1.5">Driver Name</label>
           <input className={inputClass} value={form.driverName} onChange={(e) => set("driverName", e.target.value)} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-fg-muted mb-1.5">Seal Number</label>
+          <input className={inputClass} value={form.sealNumber} onChange={(e) => set("sealNumber", e.target.value)} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-fg-muted mb-1.5">Gross Weight (kg)</label>
+          <input type="number" className={inputClass} value={form.grossWeightKg} onChange={(e) => set("grossWeightKg", e.target.value)} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-fg-muted mb-1.5">Vessel (Navire)</label>
+          <input className={inputClass} value={form.navire} onChange={(e) => set("navire", e.target.value)} />
         </div>
         <div>
           <label className="block text-xs font-medium text-fg-muted mb-1.5">Status</label>
