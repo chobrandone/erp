@@ -2,16 +2,16 @@
 // Maritime / logistics photos pulled from Unsplash, hotlinked and refreshed
 // on a schedule. Attribution: photos courtesy of Unsplash (https://unsplash.com).
 export const ONLINE_BACKGROUND_IMAGES: string[] = [
-  "https://images.unsplash.com/photo-1678182451047-196f22a4143e?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8MXx8Y29udGFpbmVyJTIwc2hpcCUyMHBvcnR8ZW58MXwwfHx8MTc4NDc2ODI3Mnww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1578575437130-527eed3abbec?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8Mnx8Y29udGFpbmVyJTIwc2hpcCUyMHBvcnR8ZW58MXwwfHx8MTc4NDc2ODI3Mnww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1595587637401-83ff822bd63e?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8M3x8Y29udGFpbmVyJTIwc2hpcCUyMHBvcnR8ZW58MXwwfHx8MTc4NDc2ODI3Mnww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1670121180583-39ab653a071c?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8MXx8Y2FyZ28lMjB0ZXJtaW5hbHxlbnwxfDB8fHwxNzg0NzY4MjczfDA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1700114339471-9e90a155d4b7?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8Mnx8Y2FyZ28lMjB0ZXJtaW5hbHxlbnwxfDB8fHwxNzg0NzY4MjczfDA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1713859326033-f75e04439c3e?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8M3x8Y2FyZ28lMjB0ZXJtaW5hbHxlbnwxfDB8fHwxNzg0NzY4MjczfDA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8MXx8c2hpcHBpbmclMjBsb2dpc3RpY3N8ZW58MXwwfHx8MTc4NDc2ODI3NXww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1606185540834-d6e7483ee1a4?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8Mnx8c2hpcHBpbmclMjBsb2dpc3RpY3N8ZW58MXwwfHx8MTc4NDc2ODI3NXww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1585713181935-d5f622cc2415?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8M3x8c2hpcHBpbmclMjBsb2dpc3RpY3N8ZW58MXwwfHx8MTc4NDc2ODI3NXww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1706499856012-14f062c72b49?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8MXx8Y29udGFpbmVyJTIweWFyZCUyMGNyYW5lfGVufDF8MHx8fDE3ODQ3NjgyNzV8MA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1769476813790-2f901380debd?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8Mnx8Y29udGFpbmVyJTIweWFyZCUyMGNyYW5lfGVufDF8MHx8fDE3ODQ3NjgyNzV8MA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1714985855720-27dfffa2ddd5?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8M3x8Y29udGFpbmVyJTIweWFyZCUyMGNyYW5lfGVufDF8MHx8fDE3ODQ3NjgyNzV8MA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop"
+  "https://images.unsplash.com/photo-1678182451047-196f22a4143e?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8MXx8Y29udGFpbmVyJTIwc2hpcCUyMHBvcnR8ZW58MXwwfHx8MTc4NjAwNDU2M3ww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1578575437130-527eed3abbec?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8Mnx8Y29udGFpbmVyJTIwc2hpcCUyMHBvcnR8ZW58MXwwfHx8MTc4NjAwNDU2M3ww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1595587637401-83ff822bd63e?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8M3x8Y29udGFpbmVyJTIwc2hpcCUyMHBvcnR8ZW58MXwwfHx8MTc4NjAwNDU2M3ww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1670121180583-39ab653a071c?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8MXx8Y2FyZ28lMjB0ZXJtaW5hbHxlbnwxfDB8fHwxNzg2MDA0NTY0fDA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1700114339471-9e90a155d4b7?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8Mnx8Y2FyZ28lMjB0ZXJtaW5hbHxlbnwxfDB8fHwxNzg2MDA0NTY0fDA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1706499856012-14f062c72b49?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8M3x8Y2FyZ28lMjB0ZXJtaW5hbHxlbnwxfDB8fHwxNzg2MDA0NTY0fDA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1606185540834-d6e7483ee1a4?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8MXx8c2hpcHBpbmclMjBsb2dpc3RpY3N8ZW58MXwwfHx8MTc4NjAwNDU2NHww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8Mnx8c2hpcHBpbmclMjBsb2dpc3RpY3N8ZW58MXwwfHx8MTc4NjAwNDU2NHww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1585713181935-d5f622cc2415?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8M3x8c2hpcHBpbmclMjBsb2dpc3RpY3N8ZW58MXwwfHx8MTc4NjAwNDU2NHww&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1706499856012-14f062c72b49?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8MXx8Y29udGFpbmVyJTIweWFyZCUyMGNyYW5lfGVufDF8MHx8fDE3ODYwMDQ1NjV8MA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1769476813790-2f901380debd?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8Mnx8Y29udGFpbmVyJTIweWFyZCUyMGNyYW5lfGVufDF8MHx8fDE3ODYwMDQ1NjV8MA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1714985855720-27dfffa2ddd5?ixid=M3wxMDA0NTk3fDB8MXxzZWFyY2h8M3x8Y29udGFpbmVyJTIweWFyZCUyMGNyYW5lfGVufDF8MHx8fDE3ODYwMDQ1NjV8MA&ixlib=rb-4.1.0&w=1920&q=80&auto=format&fit=crop"
 ];
