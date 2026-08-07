@@ -7,6 +7,7 @@ import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { formatDateTime } from "@/lib/utils";
+import { OfflineGateBanner } from "@/components/electric/OfflineGateBanner";
 import { Plus, FileSpreadsheet } from "lucide-react";
 
 export default async function GateOperationsPage({
@@ -84,6 +85,7 @@ export default async function GateOperationsPage({
           </>
         }
       />
+      <OfflineGateBanner />
       <DataTable columns={cols} rows={transactions} />
     </div>
   );
