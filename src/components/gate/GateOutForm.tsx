@@ -15,7 +15,7 @@ function nowLocal(): string {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
 }
 
-export function GateOutForm({ containers, containerTypes, customers }: { containers: Option[]; containerTypes: Option[]; customers: Option[] }) {
+export function GateOutForm({ containers, containerTypes, customers, defaultEirId }: { containers: Option[]; containerTypes: Option[]; customers: Option[]; defaultEirId: string }) {
   const t = useTranslations("gateOut");
   const tc = useTranslations("common");
   const td = useTranslations("delivery");
@@ -25,6 +25,7 @@ export function GateOutForm({ containers, containerTypes, customers }: { contain
   const [container, setContainer] = useState<ContainerPickerValue>(() => initialContainerValue(containers, containerTypes));
   const [customer, setCustomer] = useState<NamePickerValue>(initialNameValue);
   const [form, setForm] = useState({
+    eirId: defaultEirId,
     destination: "",
     truckPlate: "",
     driverName: "",
@@ -61,7 +62,10 @@ export function GateOutForm({ containers, containerTypes, customers }: { contain
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "GATE_OUT", ...form, occurredAt, containerId, customerId }),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        const msg = (await res.json().catch(() => null))?.error;
+        throw new Error(msg || "Failed");
+      }
       const { transaction } = await res.json();
       router.push(`/gate-operations/${transaction.id}`);
     } catch (err) {
@@ -74,6 +78,14 @@ export function GateOutForm({ containers, containerTypes, customers }: { contain
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl mx-auto">
       <FormSection title={t("title")}>
+        <FormField label={tc("eirId")}>
+          <input
+            required
+            className={inputClass}
+            value={form.eirId}
+            onChange={(e) => update("eirId", e.target.value.toUpperCase())}
+          />
+        </FormField>
         <ContainerPicker containers={containers} containerTypes={containerTypes} value={container} onChange={setContainer} />
         <NamePicker label={t("customer")} options={customers} value={customer} onChange={setCustomer} placeholder={t("customer")} />
         <FormField label={t("destination")}>

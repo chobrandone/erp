@@ -45,7 +45,10 @@ export async function POST(req: NextRequest) {
     });
 
     const count = await prisma.gateTransaction.count({ where: { type: "GATE_IN" } });
-    const docNumber = formatDocNumber("EIR-IN", count + 1);
+    const docNumber = data.eirId?.trim() || formatDocNumber("EIR-IN", count + 1);
+    if (await prisma.gateTransaction.findUnique({ where: { docNumber } })) {
+      return NextResponse.json({ error: `EIR ID "${docNumber}" already exists. Please use a different one.` }, { status: 409 });
+    }
 
     const transaction = await prisma.gateTransaction.create({
       data: {
@@ -113,7 +116,10 @@ export async function POST(req: NextRequest) {
     }
 
     const count = await prisma.gateTransaction.count({ where: { type: "GATE_OUT" } });
-    const docNumber = formatDocNumber("EIR-OUT", count + 1);
+    const docNumber = data.eirId?.trim() || formatDocNumber("EIR-OUT", count + 1);
+    if (await prisma.gateTransaction.findUnique({ where: { docNumber } })) {
+      return NextResponse.json({ error: `EIR ID "${docNumber}" already exists. Please use a different one.` }, { status: 409 });
+    }
     // Release Order number is auto-generated when the operator doesn't supply one.
     const releaseOrderNo = data.releaseOrderNo?.trim() || formatDocNumber("RO", count + 1);
 

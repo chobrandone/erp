@@ -71,7 +71,8 @@
     "photoPlaceholder": "Photo",
     "exportExcel": "Export Excel",
     "selectExisting": "Select existing",
-    "dateTime": "Date & time"
+    "dateTime": "Date & time",
+    "eirId": "EIR ID Number"
   },
   "dashboard": {
     "title": "Operations Dashboard",

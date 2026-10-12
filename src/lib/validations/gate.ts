@@ -2,6 +2,8 @@ import { z } from "zod";
 
 // Shared RTC / Port de Douala EIR (procès-verbal) optional fields.
 const eirFields = {
+  // Operator-supplied EIR ID (document number); server auto-generates when blank.
+  eirId: z.string().optional(),
   navire: z.string().optional(),
   voyage: z.string().optional(),
   statut: z.enum(["FCL", "LCL"]).optional(),

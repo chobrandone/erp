@@ -71,7 +71,8 @@
     "photoPlaceholder": "Photo",
     "exportExcel": "Export Excel",
     "selectExisting": "Choisir existant",
-    "dateTime": "Date et heure"
+    "dateTime": "Date et heure",
+    "eirId": "Numéro ID EIR"
   },
   "dashboard": {
     "title": "Tableau de bord opérationnel",

@@ -20,10 +20,12 @@ export function GateInForm({
   containerTypes,
   shippingLines,
   customers,
+  defaultEirId,
 }: {
   containerTypes: Option[];
   shippingLines: Option[];
   customers: Option[];
+  defaultEirId: string;
 }) {
   const t = useTranslations("gateIn");
   const tc = useTranslations("common");
@@ -34,6 +36,7 @@ export function GateInForm({
   const [customer, setCustomer] = useState<NamePickerValue>(initialNameValue);
   const [shippingLine, setShippingLine] = useState<NamePickerValue>(initialNameValue);
   const [form, setForm] = useState({
+    eirId: defaultEirId,
     containerNumber: "",
     containerTypeId: containerTypes[0]?.id ?? "",
     truckPlate: "",
@@ -88,11 +91,14 @@ export function GateInForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "GATE_IN", ...form, status, occurredAt, customerId, shippingLineId }),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        const msg = (await res.json().catch(() => null))?.error;
+        throw new Error(msg || "Failed");
+      }
       const { transaction } = await res.json();
       router.push(`/gate-operations/${transaction.id}`);
-    } catch {
-      setError("Something went wrong. Please check the form and try again.");
+    } catch (err) {
+      setError(err instanceof Error && err.message !== "Failed" ? err.message : "Something went wrong. Please check the form and try again.");
     } finally {
       setSubmitting(false);
     }
@@ -101,6 +107,14 @@ export function GateInForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl mx-auto">
       <FormSection title={t("title")}>
+        <FormField label={tc("eirId")}>
+          <input
+            required
+            className={inputClass}
+            value={form.eirId}
+            onChange={(e) => update("eirId", e.target.value.toUpperCase())}
+          />
+        </FormField>
         <FormField label={t("containerNumber")}>
           <input
             required
