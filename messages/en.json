@@ -72,7 +72,8 @@
     "exportExcel": "Export Excel",
     "selectExisting": "Select existing",
     "dateTime": "Date & time",
-    "eirId": "EIR ID Number"
+    "eirId": "EIR ID Number",
+    "edit": "Edit"
   },
   "dashboard": {
     "title": "Operations Dashboard",

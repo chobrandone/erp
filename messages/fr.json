@@ -72,7 +72,8 @@
     "exportExcel": "Export Excel",
     "selectExisting": "Choisir existant",
     "dateTime": "Date et heure",
-    "eirId": "Numéro ID EIR"
+    "eirId": "Numéro ID EIR",
+    "edit": "Modifier"
   },
   "dashboard": {
     "title": "Tableau de bord opérationnel",

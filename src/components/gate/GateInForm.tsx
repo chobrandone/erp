@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter, Link } from "@/i18n/navigation";
+import { ArrowLeft } from "lucide-react";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
 import { NamePicker, initialNameValue, resolveNameId, type NamePickerValue } from "@/components/shared/NamePicker";
 import { AcconierInput } from "@/components/shared/AcconierInput";
@@ -314,13 +315,21 @@ export function GateInForm({
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="brand-gradient text-white font-medium text-sm px-5 py-2.5 rounded-lg disabled:opacity-60"
-      >
-        {submitting ? tc("loading") : t("submit")}
-      </button>
+      <div className="flex items-center gap-3">
+        <Link
+          href="/gate-operations"
+          className="flex items-center gap-1.5 border border-border-color text-fg font-medium text-sm px-5 py-2.5 rounded-lg hover:bg-surface-alt"
+        >
+          <ArrowLeft size={16} /> {tc("back")}
+        </Link>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="brand-gradient text-white font-medium text-sm px-5 py-2.5 rounded-lg disabled:opacity-60"
+        >
+          {submitting ? tc("loading") : t("submit")}
+        </button>
+      </div>
     </form>
   );
 }

@@ -4,6 +4,7 @@ import { DataTable, Column } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Link } from "@/i18n/navigation";
 import { ConfirmDeleteButton } from "@/components/shared/ConfirmDeleteButton";
+import { EditGateTransactionButton } from "@/components/gate/EditGateTransactionButton";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { formatDateTime } from "@/lib/utils";
@@ -51,6 +52,24 @@ export default async function GateOperationsPage({
           <Link href={`/gate-operations/${r.id}`} className="text-brand-100 hover:underline">
             {tc("viewDetails")}
           </Link>
+          <EditGateTransactionButton
+            compact
+            transaction={{
+              id: r.id,
+              type: r.type,
+              truckPlate: r.truckPlate,
+              driverName: r.driverName,
+              driverIdNumber: r.driverIdNumber,
+              sealNumber: r.sealNumber,
+              condition: r.condition,
+              damageRemarks: r.damageRemarks,
+              destination: r.destination,
+              releaseOrderNo: r.releaseOrderNo,
+              remarks: r.remarks,
+              deliveryHeading: r.deliveryHeading,
+              createdAt: r.createdAt.toISOString(),
+            }}
+          />
           {isAdmin && <ConfirmDeleteButton apiPath={`/api/gate-transactions/${r.id}`} />}
         </div>
       ),

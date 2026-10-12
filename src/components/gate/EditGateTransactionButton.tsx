@@ -29,7 +29,7 @@ function toLocalInput(iso: string): string {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
 }
 
-export function EditGateTransactionButton({ transaction }: { transaction: Transaction }) {
+export function EditGateTransactionButton({ transaction, compact = false }: { transaction: Transaction; compact?: boolean }) {
   const tc = useTranslations("common");
   const tIn = useTranslations("gateIn");
   const tOut = useTranslations("gateOut");
@@ -73,12 +73,22 @@ export function EditGateTransactionButton({ transaction }: { transaction: Transa
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 brand-gradient text-white text-sm font-medium px-4 py-2 rounded-lg"
-      >
-        <Pencil size={14} /> {tc("save")}
-      </button>
+      {compact ? (
+        <button
+          onClick={() => setOpen(true)}
+          title={tc("edit")}
+          className="text-fg-muted hover:text-brand-100"
+        >
+          <Pencil size={15} />
+        </button>
+      ) : (
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-1.5 brand-gradient text-white text-sm font-medium px-4 py-2 rounded-lg"
+        >
+          <Pencil size={14} /> {tc("edit")}
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
