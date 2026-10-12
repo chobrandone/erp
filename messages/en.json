@@ -617,9 +617,9 @@
   },
   "delivery": {
     "label": "Delivery type",
-    "inEmpty": "Incoming delivery of empty containers",
-    "inFull": "Incoming delivery of full containers",
-    "outEmpty": "Outgoing delivery of empty containers",
-    "outFull": "Outgoing delivery of full containers"
+    "inEmpty": "Empty Container Inbound Delivery",
+    "inFull": "Loaded Container Inbound Delivery",
+    "outEmpty": "Empty Container Outbound Delivery",
+    "outFull": "Loaded Container Outbound Delivery"
   }
 }
