@@ -145,6 +145,8 @@ model GateTransaction {
   condition      String        @default("GOOD") // GOOD, DAMAGED
   damageRemarks  String?
   remarks        String?
+  // Bilingual delivery heading for the EIR: IN_EMPTY, IN_FULL, OUT_EMPTY, OUT_FULL
+  deliveryHeading String?
   photoUrls      String? // JSON-encoded array
   photosAttached Boolean       @default(false)
   // --- RTC / Port de Douala EIR (PROCES-VERBAL DE PRISE EN CHARGE) fields ---

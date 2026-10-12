@@ -26,9 +26,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   // Entry vs exit both use the RTC procès-verbal layout.
   const isGateIn = t.type === "GATE_IN";
 
+  // Bilingual delivery heading — the EIR is a French legal document, so the
+  // subtitle is rendered in French (uppercase) from the stored heading code.
+  const SUBTITLES: Record<string, string> = {
+    IN_EMPTY: "LIVRAISON ENTRANTE DE CONTENEURS VIDES",
+    IN_FULL: "LIVRAISON ENTRANTE DE CONTENEURS PLEINS",
+    OUT_EMPTY: "LIVRAISON SORTANTE DE CONTENEURS VIDES",
+    OUT_FULL: "LIVRAISON SORTANTE DE CONTENEURS PLEINS",
+  };
+  const subtitle = (t.deliveryHeading && SUBTITLES[t.deliveryHeading]) ?? (isGateIn ? "LIVRAISON ENTRANTE DE CONTENEURS PLEINS" : "LIVRAISON SORTANTE DE CONTENEURS PLEINS");
+
   return pdfResponse(
     ProcesVerbalEIR({
       mode: isGateIn ? "ENTREE" : "SORTIE",
+      subtitle,
       docNumber: t.docNumber,
       qrDataUrl,
       generatedAt,

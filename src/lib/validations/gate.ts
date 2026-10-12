@@ -19,6 +19,10 @@ const eirFields = {
   documentType: z.enum(["BL", "BEE"]).optional(),
   documentNumber: z.string().optional(),
   freeDays: z.coerce.number().int().optional(),
+  // Bilingual delivery heading for the EIR.
+  deliveryHeading: z.enum(["IN_EMPTY", "IN_FULL", "OUT_EMPTY", "OUT_FULL"]).optional(),
+  // Operator-chosen gate date/time (defaults to now on the server when omitted).
+  occurredAt: z.string().datetime().optional(),
 };
 
 export const gateInSchema = z.object({

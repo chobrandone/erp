@@ -70,7 +70,8 @@
     "signature": "Signature",
     "photoPlaceholder": "Photo",
     "exportExcel": "Export Excel",
-    "selectExisting": "Select existing"
+    "selectExisting": "Select existing",
+    "dateTime": "Date & time"
   },
   "dashboard": {
     "title": "Operations Dashboard",
@@ -608,5 +609,12 @@
     "AVAILABLE": "Available",
     "RESERVED": "Reserved",
     "VOID": "Void"
+  },
+  "delivery": {
+    "label": "Delivery type",
+    "inEmpty": "Incoming delivery of empty containers",
+    "inFull": "Incoming delivery of full containers",
+    "outEmpty": "Outgoing delivery of empty containers",
+    "outFull": "Outgoing delivery of full containers"
   }
 }

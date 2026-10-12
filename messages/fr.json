@@ -70,7 +70,8 @@
     "signature": "Signature",
     "photoPlaceholder": "Photo",
     "exportExcel": "Export Excel",
-    "selectExisting": "Choisir existant"
+    "selectExisting": "Choisir existant",
+    "dateTime": "Date et heure"
   },
   "dashboard": {
     "title": "Tableau de bord opérationnel",
@@ -608,5 +609,12 @@
     "AVAILABLE": "Disponible",
     "RESERVED": "Réservé",
     "VOID": "Annulée"
+  },
+  "delivery": {
+    "label": "Type de livraison",
+    "inEmpty": "Livraison entrante de conteneurs vides",
+    "inFull": "Livraison entrante de conteneurs pleins",
+    "outEmpty": "Livraison sortante de conteneurs vides",
+    "outFull": "Livraison sortante de conteneurs pleins"
   }
 }

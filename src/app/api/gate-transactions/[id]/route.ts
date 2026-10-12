@@ -50,6 +50,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(body.destination !== undefined ? { destination: body.destination || null } : {}),
       ...(body.releaseOrderNo !== undefined ? { releaseOrderNo: body.releaseOrderNo || null } : {}),
       ...(body.remarks !== undefined ? { remarks: body.remarks || null } : {}),
+      ...(body.deliveryHeading !== undefined ? { deliveryHeading: body.deliveryHeading || null } : {}),
+      // Operator may correct the gate date/time (stored as createdAt).
+      ...(body.occurredAt ? { createdAt: new Date(body.occurredAt) } : {}),
     },
   });
 

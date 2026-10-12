@@ -20,6 +20,9 @@ export async function POST(req: NextRequest) {
 
   if (body.type === "GATE_IN") {
     const data = gateInSchema.parse(body);
+    const occurredAt = data.occurredAt ? new Date(data.occurredAt) : undefined;
+    // The empty/full load is encoded in the delivery heading when supplied.
+    const loadStatus = data.deliveryHeading === "IN_EMPTY" ? "EMPTY" : data.deliveryHeading === "IN_FULL" ? "FULL" : data.status;
 
     let container = await prisma.container.findUnique({ where: { containerNumber: data.containerNumber } });
     if (!container) {
@@ -28,7 +31,7 @@ export async function POST(req: NextRequest) {
           containerNumber: data.containerNumber,
           containerTypeId: data.containerTypeId,
           shippingLineId: data.shippingLineId || null,
-          status: data.condition === "DAMAGED" ? "DAMAGED" : data.status,
+          status: data.condition === "DAMAGED" ? "DAMAGED" : loadStatus,
         },
       });
     }
@@ -48,6 +51,8 @@ export async function POST(req: NextRequest) {
       data: {
         docNumber,
         type: "GATE_IN",
+        ...(occurredAt ? { createdAt: occurredAt } : {}),
+        deliveryHeading: data.deliveryHeading ?? (loadStatus === "EMPTY" ? "IN_EMPTY" : "IN_FULL"),
         containerId: container.id,
         customerId: data.customerId || null,
         shippingLineId: data.shippingLineId || null,
@@ -97,6 +102,7 @@ export async function POST(req: NextRequest) {
 
   if (body.type === "GATE_OUT") {
     const data = gateOutSchema.parse(body);
+    const occurredAt = data.occurredAt ? new Date(data.occurredAt) : undefined;
 
     const container = await prisma.container.findUnique({
       where: { id: data.containerId },
@@ -115,6 +121,8 @@ export async function POST(req: NextRequest) {
       data: {
         docNumber,
         type: "GATE_OUT",
+        ...(occurredAt ? { createdAt: occurredAt } : {}),
+        deliveryHeading: data.deliveryHeading ?? "OUT_FULL",
         containerId: container.id,
         customerId: data.customerId || null,
         truckPlate: data.truckPlate,

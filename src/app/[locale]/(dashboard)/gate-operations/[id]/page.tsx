@@ -62,6 +62,8 @@ export default async function GateTransactionDetailPage({
               destination: transaction.destination,
               releaseOrderNo: transaction.releaseOrderNo,
               remarks: transaction.remarks,
+              deliveryHeading: transaction.deliveryHeading,
+              createdAt: transaction.createdAt.toISOString(),
             }}
           />
         </div>

@@ -8,9 +8,17 @@ import { ContainerPicker, resolveContainerId, initialContainerValue, type Contai
 import { NamePicker, initialNameValue, resolveNameId, type NamePickerValue } from "@/components/shared/NamePicker";
 import { AcconierInput } from "@/components/shared/AcconierInput";
 
+// datetime-local wants "YYYY-MM-DDTHH:mm" in the browser's local time.
+function nowLocal(): string {
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
+}
+
 export function GateOutForm({ containers, containerTypes, customers }: { containers: Option[]; containerTypes: Option[]; customers: Option[] }) {
   const t = useTranslations("gateOut");
   const tc = useTranslations("common");
+  const td = useTranslations("delivery");
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +28,8 @@ export function GateOutForm({ containers, containerTypes, customers }: { contain
     destination: "",
     truckPlate: "",
     driverName: "",
+    gateDateTime: nowLocal(),
+    deliveryHeading: "OUT_FULL" as "OUT_EMPTY" | "OUT_FULL",
     condition: "GOOD" as "GOOD" | "DAMAGED",
     damageRemarks: "",
     remarks: "",
@@ -45,10 +55,11 @@ export function GateOutForm({ containers, containerTypes, customers }: { contain
     try {
       const containerId = await resolveContainerId(container);
       const customerId = await resolveNameId(customer, "/api/customers/resolve");
+      const occurredAt = form.gateDateTime ? new Date(form.gateDateTime).toISOString() : undefined;
       const res = await fetch("/api/gate-transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "GATE_OUT", ...form, containerId, customerId }),
+        body: JSON.stringify({ type: "GATE_OUT", ...form, occurredAt, containerId, customerId }),
       });
       if (!res.ok) throw new Error("Failed");
       const { transaction } = await res.json();
@@ -72,6 +83,25 @@ export function GateOutForm({ containers, containerTypes, customers }: { contain
             value={form.destination}
             onChange={(e) => update("destination", e.target.value)}
           />
+        </FormField>
+        <FormField label={tc("dateTime")}>
+          <input
+            type="datetime-local"
+            required
+            className={inputClass}
+            value={form.gateDateTime}
+            onChange={(e) => update("gateDateTime", e.target.value)}
+          />
+        </FormField>
+        <FormField label={td("label")}>
+          <select
+            className={inputClass}
+            value={form.deliveryHeading}
+            onChange={(e) => update("deliveryHeading", e.target.value as "OUT_EMPTY" | "OUT_FULL")}
+          >
+            <option value="OUT_FULL">{td("outFull")}</option>
+            <option value="OUT_EMPTY">{td("outEmpty")}</option>
+          </select>
         </FormField>
         <FormField label={t("releaseOrder")}>
           <input className={`${inputClass} opacity-60`} value={t("releaseOrderAuto")} disabled readOnly />

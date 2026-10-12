@@ -18,13 +18,24 @@ type Transaction = {
   destination: string | null;
   releaseOrderNo: string | null;
   remarks: string | null;
+  deliveryHeading: string | null;
+  createdAt: string; // ISO
 };
+
+// Convert an ISO timestamp to the "YYYY-MM-DDTHH:mm" datetime-local uses (local time).
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
+}
 
 export function EditGateTransactionButton({ transaction }: { transaction: Transaction }) {
   const tc = useTranslations("common");
   const tIn = useTranslations("gateIn");
   const tOut = useTranslations("gateOut");
+  const td = useTranslations("delivery");
   const router = useRouter();
+  const isGateOut = transaction.type === "GATE_OUT";
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
@@ -37,16 +48,19 @@ export function EditGateTransactionButton({ transaction }: { transaction: Transa
     destination: transaction.destination ?? "",
     releaseOrderNo: transaction.releaseOrderNo ?? "",
     remarks: transaction.remarks ?? "",
+    deliveryHeading: transaction.deliveryHeading ?? (isGateOut ? "OUT_FULL" : "IN_FULL"),
+    gateDateTime: toLocalInput(transaction.createdAt),
   });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     try {
+      const occurredAt = form.gateDateTime ? new Date(form.gateDateTime).toISOString() : undefined;
       const res = await fetch(`/api/gate-transactions/${transaction.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, occurredAt }),
       });
       if (res.ok) {
         setOpen(false);
@@ -56,8 +70,6 @@ export function EditGateTransactionButton({ transaction }: { transaction: Transa
       setSubmitting(false);
     }
   }
-
-  const isGateOut = transaction.type === "GATE_OUT";
 
   return (
     <>
@@ -85,6 +97,26 @@ export function EditGateTransactionButton({ transaction }: { transaction: Transa
               <div>
                 <label className="block text-xs font-medium text-fg-muted mb-1.5">{tIn("driverName")}</label>
                 <input className={inputClass} value={form.driverName} onChange={(e) => setForm((f) => ({ ...f, driverName: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-fg-muted mb-1.5">{tc("dateTime")}</label>
+                <input type="datetime-local" className={inputClass} value={form.gateDateTime} onChange={(e) => setForm((f) => ({ ...f, gateDateTime: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-fg-muted mb-1.5">{td("label")}</label>
+                <select className={inputClass} value={form.deliveryHeading} onChange={(e) => setForm((f) => ({ ...f, deliveryHeading: e.target.value }))}>
+                  {isGateOut ? (
+                    <>
+                      <option value="OUT_FULL">{td("outFull")}</option>
+                      <option value="OUT_EMPTY">{td("outEmpty")}</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="IN_FULL">{td("inFull")}</option>
+                      <option value="IN_EMPTY">{td("inEmpty")}</option>
+                    </>
+                  )}
+                </select>
               </div>
               {!isGateOut && (
                 <>

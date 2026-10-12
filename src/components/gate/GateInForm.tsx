@@ -9,6 +9,13 @@ import { AcconierInput } from "@/components/shared/AcconierInput";
 
 type Option = { id: string; label: string };
 
+// datetime-local wants "YYYY-MM-DDTHH:mm" in the browser's local time.
+function nowLocal(): string {
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
+}
+
 export function GateInForm({
   containerTypes,
   shippingLines,
@@ -20,6 +27,7 @@ export function GateInForm({
 }) {
   const t = useTranslations("gateIn");
   const tc = useTranslations("common");
+  const td = useTranslations("delivery");
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +41,8 @@ export function GateInForm({
     driverId: "",
     sealNumber: "",
     grossWeightKg: "",
-    status: "FULL" as "EMPTY" | "FULL",
+    gateDateTime: nowLocal(),
+    deliveryHeading: "IN_FULL" as "IN_EMPTY" | "IN_FULL",
     condition: "GOOD" as "GOOD" | "DAMAGED",
     damageRemarks: "",
     photosAttached: false,
@@ -72,10 +81,12 @@ export function GateInForm({
     try {
       const customerId = await resolveNameId(customer, "/api/customers/resolve");
       const shippingLineId = await resolveNameId(shippingLine, "/api/shipping-lines/resolve");
+      const status = form.deliveryHeading === "IN_EMPTY" ? "EMPTY" : "FULL";
+      const occurredAt = form.gateDateTime ? new Date(form.gateDateTime).toISOString() : undefined;
       const res = await fetch("/api/gate-transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "GATE_IN", ...form, customerId, shippingLineId }),
+        body: JSON.stringify({ type: "GATE_IN", ...form, status, occurredAt, customerId, shippingLineId }),
       });
       if (!res.ok) throw new Error("Failed");
       const { transaction } = await res.json();
@@ -152,14 +163,23 @@ export function GateInForm({
             onChange={(e) => update("grossWeightKg", e.target.value)}
           />
         </FormField>
-        <FormField label={t("status")}>
+        <FormField label={tc("dateTime")}>
+          <input
+            type="datetime-local"
+            required
+            className={inputClass}
+            value={form.gateDateTime}
+            onChange={(e) => update("gateDateTime", e.target.value)}
+          />
+        </FormField>
+        <FormField label={td("label")}>
           <select
             className={inputClass}
-            value={form.status}
-            onChange={(e) => update("status", e.target.value as "EMPTY" | "FULL")}
+            value={form.deliveryHeading}
+            onChange={(e) => update("deliveryHeading", e.target.value as "IN_EMPTY" | "IN_FULL")}
           >
-            <option value="EMPTY">{t("statusEmpty")}</option>
-            <option value="FULL">{t("statusFull")}</option>
+            <option value="IN_FULL">{td("inFull")}</option>
+            <option value="IN_EMPTY">{td("inEmpty")}</option>
           </select>
         </FormField>
         <FormField label={t("condition")}>

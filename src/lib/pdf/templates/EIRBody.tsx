@@ -10,6 +10,7 @@ import { COMPANY } from "./shared";
 
 export type EIRData = {
   mode: "ENTREE" | "SORTIE"; // PRISE EN CHARGE (in) | LIVRAISON (out)
+  subtitle: string; // delivery heading, e.g. LIVRAISON ENTRANTE DE CONTENEURS PLEINS
   docNumber: string;
   qrDataUrl: string;
   generatedAt: string;
@@ -133,7 +134,7 @@ function EIRCopy({ d, copyTag }: { d: EIRData; copyTag: string }) {
       </View>
 
       <Text style={s.title}>{title}</Text>
-      <Text style={s.subtitle}>LIVRAISON PLEIN IMPORT SUR CAMION</Text>
+      <Text style={s.subtitle}>{d.subtitle}</Text>
       <Text style={s.copyTag}>{copyTag}  —  N° EIR : {d.docNumber}</Text>
 
       {/* Top identity row */}
