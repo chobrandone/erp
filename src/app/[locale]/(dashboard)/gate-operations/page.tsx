@@ -38,6 +38,13 @@ export default async function GateOperationsPage({
     take: 50,
   });
 
+  // Container options for the edit modal (change which container a move is for).
+  const allContainers = await prisma.container.findMany({
+    include: { containerType: true },
+    orderBy: { containerNumber: "asc" },
+  });
+  const containerOptions = allContainers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }));
+
   const cols: Column<(typeof transactions)[number]>[] = [
     { header: tc("documentNo"), accessor: (r) => r.docNumber },
     { header: t("type"), accessor: (r) => <StatusBadge status={r.type} /> },
@@ -54,9 +61,11 @@ export default async function GateOperationsPage({
           </Link>
           <EditGateTransactionButton
             compact
+            containers={containerOptions}
             transaction={{
               id: r.id,
               type: r.type,
+              containerId: r.containerId,
               truckPlate: r.truckPlate,
               driverName: r.driverName,
               driverIdNumber: r.driverIdNumber,

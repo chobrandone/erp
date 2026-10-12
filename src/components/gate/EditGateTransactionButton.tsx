@@ -9,6 +9,7 @@ import { inputClass } from "@/components/shared/FormSection";
 type Transaction = {
   id: string;
   type: string;
+  containerId: string;
   truckPlate: string;
   driverName: string;
   driverIdNumber: string | null;
@@ -22,6 +23,8 @@ type Transaction = {
   createdAt: string; // ISO
 };
 
+type ContainerOption = { id: string; label: string };
+
 // Convert an ISO timestamp to the "YYYY-MM-DDTHH:mm" datetime-local uses (local time).
 function toLocalInput(iso: string): string {
   const d = new Date(iso);
@@ -29,16 +32,27 @@ function toLocalInput(iso: string): string {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
 }
 
-export function EditGateTransactionButton({ transaction, compact = false }: { transaction: Transaction; compact?: boolean }) {
+export function EditGateTransactionButton({
+  transaction,
+  compact = false,
+  containers = [],
+}: {
+  transaction: Transaction;
+  compact?: boolean;
+  containers?: ContainerOption[];
+}) {
   const tc = useTranslations("common");
   const tIn = useTranslations("gateIn");
   const tOut = useTranslations("gateOut");
+  const tOps = useTranslations("gateOperations");
   const td = useTranslations("delivery");
   const router = useRouter();
-  const isGateOut = transaction.type === "GATE_OUT";
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
+    type: (transaction.type === "GATE_OUT" ? "GATE_OUT" : "GATE_IN") as "GATE_IN" | "GATE_OUT",
+    containerId: transaction.containerId,
     truckPlate: transaction.truckPlate,
     driverName: transaction.driverName,
     driverIdNumber: transaction.driverIdNumber ?? "",
@@ -48,13 +62,25 @@ export function EditGateTransactionButton({ transaction, compact = false }: { tr
     destination: transaction.destination ?? "",
     releaseOrderNo: transaction.releaseOrderNo ?? "",
     remarks: transaction.remarks ?? "",
-    deliveryHeading: transaction.deliveryHeading ?? (isGateOut ? "OUT_FULL" : "IN_FULL"),
+    deliveryHeading: transaction.deliveryHeading ?? (transaction.type === "GATE_OUT" ? "OUT_FULL" : "IN_FULL"),
     gateDateTime: toLocalInput(transaction.createdAt),
   });
+  // Reactive to the (editable) direction so the heading/fields follow it.
+  const isGateOut = form.type === "GATE_OUT";
+
+  // Keep the delivery heading on the correct side when the direction changes.
+  function changeType(next: "GATE_IN" | "GATE_OUT") {
+    setForm((f) => {
+      const full = f.deliveryHeading.endsWith("FULL");
+      const heading = next === "GATE_OUT" ? (full ? "OUT_FULL" : "OUT_EMPTY") : (full ? "IN_FULL" : "IN_EMPTY");
+      return { ...f, type: next, deliveryHeading: heading };
+    });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
     try {
       const occurredAt = form.gateDateTime ? new Date(form.gateDateTime).toISOString() : undefined;
       const res = await fetch(`/api/gate-transactions/${transaction.id}`, {
@@ -65,6 +91,8 @@ export function EditGateTransactionButton({ transaction, compact = false }: { tr
       if (res.ok) {
         setOpen(false);
         router.refresh();
+      } else {
+        setError((await res.json().catch(() => null))?.error ?? tc("saveFailed"));
       }
     } finally {
       setSubmitting(false);
@@ -100,6 +128,22 @@ export function EditGateTransactionButton({ transaction, compact = false }: { tr
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
+              <div>
+                <label className="block text-xs font-medium text-fg-muted mb-1.5">{tOps("type")}</label>
+                <select className={inputClass} value={form.type} onChange={(e) => changeType(e.target.value as "GATE_IN" | "GATE_OUT")}>
+                  <option value="GATE_IN">{tOps("gateIn")}</option>
+                  <option value="GATE_OUT">{tOps("gateOut")}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-fg-muted mb-1.5">{tc("container")}</label>
+                <select className={inputClass} value={form.containerId} onChange={(e) => setForm((f) => ({ ...f, containerId: e.target.value }))}>
+                  {containers.length === 0 && <option value={form.containerId}>{form.containerId}</option>}
+                  {containers.map((c) => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label className="block text-xs font-medium text-fg-muted mb-1.5">{tIn("truckPlate")}</label>
                 <input className={inputClass} value={form.truckPlate} onChange={(e) => setForm((f) => ({ ...f, truckPlate: e.target.value }))} />
@@ -173,6 +217,7 @@ export function EditGateTransactionButton({ transaction, compact = false }: { tr
                 <label className="block text-xs font-medium text-fg-muted mb-1.5">{tc("remarks")}</label>
                 <textarea className={inputClass} rows={3} value={form.remarks} onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))} />
               </div>
+              {error && <p className="text-sm text-red-500">{error}</p>}
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setOpen(false)} className="text-sm font-medium text-fg-muted hover:text-fg px-4 py-2 rounded-lg">
                   {tc("cancel")}

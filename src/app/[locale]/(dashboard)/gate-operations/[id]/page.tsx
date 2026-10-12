@@ -23,6 +23,12 @@ export default async function GateTransactionDetailPage({
 
   if (!transaction) notFound();
 
+  const allContainers = await prisma.container.findMany({
+    include: { containerType: true },
+    orderBy: { containerNumber: "asc" },
+  });
+  const containerOptions = allContainers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }));
+
   return (
     <div>
       <PageHeader title={transaction.docNumber} subtitle={t("title")} />
@@ -50,9 +56,11 @@ export default async function GateTransactionDetailPage({
         <div className="flex items-center gap-2 pt-2">
           <GateTransactionDetailClient id={transaction.id} />
           <EditGateTransactionButton
+            containers={containerOptions}
             transaction={{
               id: transaction.id,
               type: transaction.type,
+              containerId: transaction.containerId,
               truckPlate: transaction.truckPlate,
               driverName: transaction.driverName,
               driverIdNumber: transaction.driverIdNumber,

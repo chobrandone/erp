@@ -73,7 +73,8 @@
     "selectExisting": "Choisir existant",
     "dateTime": "Date et heure",
     "eirId": "Numéro ID EIR",
-    "edit": "Modifier"
+    "edit": "Modifier",
+    "container": "Conteneur"
   },
   "dashboard": {
     "title": "Tableau de bord opérationnel",
@@ -125,7 +126,9 @@
     "newGateIn": "Nouvelle entrée",
     "newGateOut": "Nouvelle sortie",
     "type": "Type",
-    "truck": "Camion"
+    "truck": "Camion",
+    "gateIn": "Entrée",
+    "gateOut": "Sortie"
   },
   "yard": {
     "title": "Gestion du parc",

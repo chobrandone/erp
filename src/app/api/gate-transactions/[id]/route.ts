@@ -41,6 +41,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const transaction = await prisma.gateTransaction.update({
     where: { id },
     data: {
+      ...(body.type === "GATE_IN" || body.type === "GATE_OUT" ? { type: body.type } : {}),
+      ...(body.containerId ? { container: { connect: { id: body.containerId } } } : {}),
       ...(body.truckPlate !== undefined ? { truckPlate: body.truckPlate } : {}),
       ...(body.driverName !== undefined ? { driverName: body.driverName } : {}),
       ...(body.driverIdNumber !== undefined ? { driverIdNumber: body.driverIdNumber || null } : {}),

@@ -73,7 +73,8 @@
     "selectExisting": "Select existing",
     "dateTime": "Date & time",
     "eirId": "EIR ID Number",
-    "edit": "Edit"
+    "edit": "Edit",
+    "container": "Container"
   },
   "dashboard": {
     "title": "Operations Dashboard",
@@ -125,7 +126,9 @@
     "newGateIn": "New Gate In",
     "newGateOut": "New Gate Out",
     "type": "Type",
-    "truck": "Truck"
+    "truck": "Truck",
+    "gateIn": "Gate In",
+    "gateOut": "Gate Out"
   },
   "yard": {
     "title": "Yard Management",
