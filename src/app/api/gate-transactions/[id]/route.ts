@@ -38,21 +38,62 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const body = await req.json();
 
+  // Optional field setters: empty string clears to null; absent key is untouched.
+  const str = (k: string) => (body[k] !== undefined ? { [k]: body[k] === "" || body[k] == null ? null : String(body[k]) } : {});
+  const num = (k: string) => (body[k] !== undefined ? { [k]: body[k] === "" || body[k] == null ? null : Number(body[k]) } : {});
+
+  // Changing the EIR ID (docNumber) must stay unique.
+  let docPatch: Record<string, unknown> = {};
+  if (body.eirId !== undefined) {
+    const next = String(body.eirId).trim();
+    if (next) {
+      const clash = await prisma.gateTransaction.findUnique({ where: { docNumber: next } });
+      if (clash && clash.id !== id) {
+        return NextResponse.json({ error: `EIR ID "${next}" already exists. Please use a different one.` }, { status: 409 });
+      }
+      docPatch = { docNumber: next };
+    }
+  }
+
   const transaction = await prisma.gateTransaction.update({
     where: { id },
     data: {
       ...(body.type === "GATE_IN" || body.type === "GATE_OUT" ? { type: body.type } : {}),
       ...(body.containerId ? { container: { connect: { id: body.containerId } } } : {}),
-      ...(body.truckPlate !== undefined ? { truckPlate: body.truckPlate } : {}),
-      ...(body.driverName !== undefined ? { driverName: body.driverName } : {}),
-      ...(body.driverIdNumber !== undefined ? { driverIdNumber: body.driverIdNumber || null } : {}),
-      ...(body.sealNumber !== undefined ? { sealNumber: body.sealNumber || null } : {}),
-      ...(body.condition !== undefined ? { condition: body.condition } : {}),
-      ...(body.damageRemarks !== undefined ? { damageRemarks: body.damageRemarks || null } : {}),
-      ...(body.destination !== undefined ? { destination: body.destination || null } : {}),
-      ...(body.releaseOrderNo !== undefined ? { releaseOrderNo: body.releaseOrderNo || null } : {}),
-      ...(body.remarks !== undefined ? { remarks: body.remarks || null } : {}),
-      ...(body.deliveryHeading !== undefined ? { deliveryHeading: body.deliveryHeading || null } : {}),
+      ...docPatch,
+      ...str("truckPlate"),
+      ...str("driverName"),
+      ...str("driverIdNumber"),
+      ...str("sealNumber"),
+      ...str("sealNumber2"),
+      ...str("condition"),
+      ...str("damageRemarks"),
+      ...str("destination"),
+      ...str("releaseOrderNo"),
+      ...str("remarks"),
+      ...str("deliveryHeading"),
+      ...str("statut"),
+      ...str("documentType"),
+      ...str("documentNumber"),
+      ...str("navire"),
+      ...str("voyage"),
+      ...str("pod"),
+      ...str("isoCode"),
+      ...str("acconier"),
+      ...str("agent"),
+      ...str("transitaire"),
+      ...str("marchandise"),
+      ...str("imdg"),
+      ...str("region"),
+      ...str("gatePost"),
+      ...str("bookingNo"),
+      ...str("acceptanceRef"),
+      ...str("sealType"),
+      ...str("newEquipmentNo"),
+      ...num("grossWeightKg"),
+      ...num("payloadKg"),
+      ...num("tempGate"),
+      ...num("freeDays"),
       // Operator may correct the gate date/time (stored as createdAt).
       ...(body.occurredAt ? { createdAt: new Date(body.occurredAt) } : {}),
     },

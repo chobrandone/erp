@@ -74,7 +74,8 @@
     "dateTime": "Date & time",
     "eirId": "EIR ID Number",
     "edit": "Edit",
-    "container": "Container"
+    "container": "Container",
+    "driver": "Driver"
   },
   "dashboard": {
     "title": "Operations Dashboard",

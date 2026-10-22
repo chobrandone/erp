@@ -74,7 +74,8 @@
     "dateTime": "Date et heure",
     "eirId": "Numéro ID EIR",
     "edit": "Modifier",
-    "container": "Conteneur"
+    "container": "Conteneur",
+    "driver": "Chauffeur"
   },
   "dashboard": {
     "title": "Tableau de bord opérationnel",

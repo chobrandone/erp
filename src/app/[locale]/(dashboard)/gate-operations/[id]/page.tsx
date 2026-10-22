@@ -46,6 +46,10 @@ export default async function GateTransactionDetailPage({
           <span className="font-medium text-fg">{transaction.truckPlate}</span>
         </div>
         <div className="flex justify-between text-sm">
+          <span className="text-fg-muted">{tc("driver")}</span>
+          <span className="font-medium text-fg">{transaction.driverName || "-"}</span>
+        </div>
+        <div className="flex justify-between text-sm">
           <span className="text-fg-muted">{tc("status")}</span>
           <StatusBadge status={transaction.condition} />
         </div>
@@ -61,16 +65,40 @@ export default async function GateTransactionDetailPage({
               id: transaction.id,
               type: transaction.type,
               containerId: transaction.containerId,
+              eirId: transaction.docNumber,
               truckPlate: transaction.truckPlate,
               driverName: transaction.driverName,
               driverIdNumber: transaction.driverIdNumber,
               sealNumber: transaction.sealNumber,
+              sealNumber2: transaction.sealNumber2,
               condition: transaction.condition,
               damageRemarks: transaction.damageRemarks,
               destination: transaction.destination,
               releaseOrderNo: transaction.releaseOrderNo,
               remarks: transaction.remarks,
               deliveryHeading: transaction.deliveryHeading,
+              grossWeightKg: transaction.grossWeightKg,
+              payloadKg: transaction.payloadKg,
+              statut: transaction.statut,
+              documentType: transaction.documentType,
+              documentNumber: transaction.documentNumber,
+              navire: transaction.navire,
+              voyage: transaction.voyage,
+              pod: transaction.pod,
+              isoCode: transaction.isoCode,
+              acconier: transaction.acconier,
+              transitaire: transaction.transitaire,
+              marchandise: transaction.marchandise,
+              imdg: transaction.imdg,
+              region: transaction.region,
+              gatePost: transaction.gatePost,
+              tempGate: transaction.tempGate,
+              freeDays: transaction.freeDays,
+              bookingNo: transaction.bookingNo,
+              agent: transaction.agent,
+              acceptanceRef: transaction.acceptanceRef,
+              sealType: transaction.sealType,
+              newEquipmentNo: transaction.newEquipmentNo,
               createdAt: transaction.createdAt.toISOString(),
             }}
           />
