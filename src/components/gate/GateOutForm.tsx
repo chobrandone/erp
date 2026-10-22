@@ -44,6 +44,14 @@ export function GateOutForm({ containers, containerTypes, customers, defaultEirI
     documentNumber: "",
     gatePost: "",
     sealNumber2: "",
+    // Equipment Interchange / Receipt fields
+    bookingNo: "",
+    agent: "",
+    payloadKg: "",
+    sealType: "",
+    sealNumber: "",
+    acceptanceRef: "",
+    newEquipmentNo: "",
   });
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -165,7 +173,28 @@ export function GateOutForm({ containers, containerTypes, customers, defaultEirI
         </FormField>
       </FormSection>
 
-      <FormSection title="EIR — Procès-verbal de Livraison (Port de Douala)">
+      <FormSection title="Equipment Interchange / Receipt">
+        <FormField label="Booking No.">
+          <input className={inputClass} value={form.bookingNo} onChange={(e) => update("bookingNo", e.target.value)} />
+        </FormField>
+        <FormField label="Agent">
+          <input className={inputClass} value={form.agent} onChange={(e) => update("agent", e.target.value)} />
+        </FormField>
+        <FormField label="Payload (kg)">
+          <input type="number" className={inputClass} value={form.payloadKg} onChange={(e) => update("payloadKg", e.target.value)} />
+        </FormField>
+        <FormField label="Seal Type">
+          <input className={inputClass} value={form.sealType} onChange={(e) => update("sealType", e.target.value)} />
+        </FormField>
+        <FormField label="Seal Number">
+          <input className={inputClass} value={form.sealNumber} onChange={(e) => update("sealNumber", e.target.value)} />
+        </FormField>
+        <FormField label="Acceptance Ref">
+          <input className={inputClass} value={form.acceptanceRef} onChange={(e) => update("acceptanceRef", e.target.value)} />
+        </FormField>
+        <FormField label="New Equipment No.">
+          <input className={inputClass} value={form.newEquipmentNo} onChange={(e) => update("newEquipmentNo", e.target.value)} />
+        </FormField>
         <FormField label="NAVIRE (Vessel)">
           <input className={inputClass} value={form.navire} onChange={(e) => update("navire", e.target.value)} />
         </FormField>

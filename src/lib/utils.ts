@@ -14,9 +14,15 @@ export const BRAND_GRADIENT_STEPS = [
   "#00CDAB",
 ] as const;
 
+// The depot operates in Cameroon (WAT, UTC+1). Format in this zone explicitly
+// so a date shows the same whether rendered on the server (UTC) or the browser,
+// and so a time the operator picks is displayed back exactly as entered.
+export const DEPOT_TIME_ZONE = "Africa/Douala";
+
 export function formatDate(date: Date | string) {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("en-GB", {
+    timeZone: DEPOT_TIME_ZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -26,6 +32,7 @@ export function formatDate(date: Date | string) {
 export function formatDateTime(date: Date | string) {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("en-GB", {
+    timeZone: DEPOT_TIME_ZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

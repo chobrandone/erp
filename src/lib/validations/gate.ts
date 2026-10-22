@@ -4,6 +4,13 @@ import { z } from "zod";
 const eirFields = {
   // Operator-supplied EIR ID (document number); server auto-generates when blank.
   eirId: z.string().optional(),
+  // Equipment Interchange / Receipt fields.
+  bookingNo: z.string().optional(),
+  agent: z.string().optional(),
+  acceptanceRef: z.string().optional(),
+  sealType: z.string().optional(),
+  newEquipmentNo: z.string().optional(),
+  payloadKg: z.coerce.number().optional(),
   navire: z.string().optional(),
   voyage: z.string().optional(),
   statut: z.enum(["FCL", "LCL"]).optional(),
@@ -53,6 +60,7 @@ export const gateOutSchema = z.object({
   releaseOrderNo: z.string().optional(), // auto-generated when not provided
   truckPlate: z.string().min(1),
   driverName: z.string().min(1),
+  sealNumber: z.string().optional(),
   condition: z.enum(["GOOD", "DAMAGED"]),
   damageRemarks: z.string().optional(),
   remarks: z.string().optional(),

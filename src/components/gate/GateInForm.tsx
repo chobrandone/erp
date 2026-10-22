@@ -69,6 +69,13 @@ export function GateInForm({
     documentType: "BL" as "BL" | "BEE",
     documentNumber: "",
     freeDays: "11",
+    // Equipment Interchange / Receipt fields
+    bookingNo: "",
+    agent: "",
+    payloadKg: "",
+    sealType: "",
+    acceptanceRef: "",
+    newEquipmentNo: "",
   });
 
   const isReeferType = containerTypes.find((c) => c.id === form.containerTypeId)?.label?.toUpperCase().includes("REEFER") ||
@@ -237,7 +244,25 @@ export function GateInForm({
         </FormField>
       </FormSection>
 
-      <FormSection title="EIR — Procès-verbal (Port de Douala)">
+      <FormSection title="Equipment Interchange / Receipt">
+        <FormField label="Booking No.">
+          <input className={inputClass} value={form.bookingNo} onChange={(e) => update("bookingNo", e.target.value)} />
+        </FormField>
+        <FormField label="Agent">
+          <input className={inputClass} value={form.agent} onChange={(e) => update("agent", e.target.value)} />
+        </FormField>
+        <FormField label="Payload (kg)">
+          <input type="number" className={inputClass} value={form.payloadKg} onChange={(e) => update("payloadKg", e.target.value)} />
+        </FormField>
+        <FormField label="Seal Type">
+          <input className={inputClass} value={form.sealType} onChange={(e) => update("sealType", e.target.value)} />
+        </FormField>
+        <FormField label="Acceptance Ref">
+          <input className={inputClass} value={form.acceptanceRef} onChange={(e) => update("acceptanceRef", e.target.value)} />
+        </FormField>
+        <FormField label="New Equipment No.">
+          <input className={inputClass} value={form.newEquipmentNo} onChange={(e) => update("newEquipmentNo", e.target.value)} />
+        </FormField>
         <FormField label="STATUT">
           <select
             className={inputClass}

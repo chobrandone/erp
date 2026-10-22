@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateQrDataUrl, liveDocUrl, pdfResponse } from "@/lib/pdf/generatePdf";
-import { ProcesVerbalEIR } from "@/lib/pdf/templates/EIRBody";
+import { EquipmentInterchangeReceipt } from "@/lib/pdf/templates/EIRBody";
+import { DEPOT_TIME_ZONE } from "@/lib/utils";
 
-const fmtDate = (d?: Date | null) =>
-  d ? d.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";
+// Equipment Interchange / Receipt date, e.g. "18-Sep-2024 17:56:40", in the depot zone.
+function fmtEirDateTime(d?: Date | null): string {
+  if (!d) return "-";
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: DEPOT_TIME_ZONE,
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  }).formatToParts(d).reduce<Record<string, string>>((a, p) => { a[p.type] = p.value; return a; }, {});
+  return `${parts.day}-${parts.month}-${parts.year} ${parts.hour}:${parts.minute}:${parts.second}`;
+}
+
+const fmtWeight = (n?: number | null) =>
+  n != null ? n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -20,59 +32,42 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const t = transaction;
   const qrDataUrl = await generateQrDataUrl(liveDocUrl(req));
-  const generatedAt = new Date().toLocaleString("fr-FR");
-  const isReefer = t.container.containerType.isReefer;
-
-  // Entry vs exit both use the RTC procès-verbal layout.
   const isGateIn = t.type === "GATE_IN";
+  const isEmpty = t.deliveryHeading?.endsWith("EMPTY");
 
-  // Bilingual delivery heading — the EIR is a French legal document, so the
-  // subtitle is rendered in French (uppercase) from the stored heading code.
-  const SUBTITLES: Record<string, string> = {
-    IN_EMPTY: "LIVRAISON ENTRANTE DE CONTENEURS VIDES",
-    IN_FULL: "LIVRAISON ENTRANTE DE CONTENEURS PLEINS",
-    OUT_EMPTY: "LIVRAISON SORTANTE DE CONTENEURS VIDES",
-    OUT_FULL: "LIVRAISON SORTANTE DE CONTENEURS PLEINS",
-  };
-  const subtitle = (t.deliveryHeading && SUBTITLES[t.deliveryHeading]) ?? (isGateIn ? "LIVRAISON ENTRANTE DE CONTENEURS PLEINS" : "LIVRAISON SORTANTE DE CONTENEURS PLEINS");
+  // Move Type / Service derived from direction + load, matching the sample wording.
+  const moveType = isGateIn
+    ? `${isEmpty ? "Empty" : "Loaded"} Received at CY`
+    : `${isEmpty ? "Empty" : "Loaded"} Delivered`;
+  const service = isEmpty ? "Empty" : "Loaded";
 
   return pdfResponse(
-    ProcesVerbalEIR({
-      mode: isGateIn ? "ENTREE" : "SORTIE",
-      subtitle,
-      docNumber: t.docNumber,
+    EquipmentInterchangeReceipt({
       qrDataUrl,
-      generatedAt,
-      region: t.region ?? "-",
-      dateEntree: isGateIn ? fmtDate(t.createdAt) : "-",
-      dateSortie: isGateIn ? "-" : fmtDate(t.createdAt),
-      statut: t.statut ?? "-",
-      containerNumber: t.container.containerNumber,
-      navire: t.navire ?? "-",
-      voyage: t.voyage ?? "-",
-      documentType: t.documentType ?? "",
-      documentNumber: t.documentNumber ?? "",
-      armementBl: t.shippingLine?.name ?? "-",
-      poids: t.grossWeightKg != null ? String(t.grossWeightKg) : (t.container.grossWeightKg != null ? String(t.container.grossWeightKg) : "-"),
-      pod: t.pod ?? "-",
-      tare: t.container.tareWeightKg != null ? String(t.container.tareWeightKg) : "-",
-      lieu: t.container.inventory?.location.code ?? "-",
-      acconier: t.acconier ?? "-",
-      codeIso: t.isoCode ?? t.container.isoCode ?? t.container.containerType.code,
-      immat: t.truckPlate,
-      destFinale: t.destination ?? "-",
-      plomb1: t.sealNumber ?? "-",
-      plomb2: t.sealNumber2 ?? "-",
-      marchandise: t.marchandise ?? "-",
-      reefer: isReefer,
-      temp: t.tempGate != null ? `${t.tempGate} °C` : "-",
-      oog: t.oog,
-      imdg: t.imdg ?? "-",
-      transitaire: t.transitaire ?? "-",
-      transporteur: t.customer?.name ?? "-",
-      condition: t.condition as "GOOD" | "DAMAGED",
-      damageRemarks: t.damageRemarks ?? "-",
-      gatePost: t.gatePost ?? "",
+      equipmentNo: t.container.containerNumber,
+      moveType,
+      sizeType: t.isoCode ?? t.container.isoCode ?? t.container.containerType.code,
+      dateTime: fmtEirDateTime(t.createdAt),
+      service,
+      gatePassNo: t.docNumber,
+      carrier: t.shippingLine?.name ?? "",
+      agent: t.agent ?? t.acconier ?? "",
+      stackPosition: t.stackPosition ?? t.container.inventory?.location.code ?? "",
+      bookingNo: t.bookingNo ?? t.documentNumber ?? "",
+      customer: t.customer?.name ?? "",
+      tareWeight: fmtWeight(t.container.tareWeightKg),
+      payload: fmtWeight(t.payloadKg ?? t.grossWeightKg ?? t.container.grossWeightKg),
+      smartContainer: t.container.containerType.isReefer ? "Yes" : "No",
+      newEquipmentNo: t.newEquipmentNo ?? "",
+      transportMode: "Truck",
+      truckNo: t.truckPlate,
+      transporter: t.transitaire ?? "",
+      driverName: t.driverName,
+      driverRefNo: t.driverIdNumber ?? "",
+      acceptanceRef: t.acceptanceRef ?? t.releaseOrderNo ?? "",
+      sealType: t.sealType ?? "",
+      sealNumber: t.sealNumber ?? "",
+      remarks: [t.remarks, t.condition === "DAMAGED" ? `DAMAGED: ${t.damageRemarks ?? ""}` : ""].filter(Boolean).join(" — "),
     }),
     t.docNumber
   );
