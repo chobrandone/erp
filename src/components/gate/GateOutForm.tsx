@@ -8,13 +8,7 @@ import { FormSection, FormField, inputClass } from "@/components/shared/FormSect
 import { ContainerPicker, resolveContainerId, initialContainerValue, type ContainerPickerValue, type Option } from "@/components/shared/ContainerPicker";
 import { NamePicker, initialNameValue, resolveNameId, type NamePickerValue } from "@/components/shared/NamePicker";
 import { AcconierInput } from "@/components/shared/AcconierInput";
-
-// datetime-local wants "YYYY-MM-DDTHH:mm" in the browser's local time.
-function nowLocal(): string {
-  const d = new Date();
-  const off = d.getTimezoneOffset();
-  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
-}
+import { depotNowInput, depotInputToISO } from "@/lib/utils";
 
 export function GateOutForm({ containers, containerTypes, customers, defaultEirId }: { containers: Option[]; containerTypes: Option[]; customers: Option[]; defaultEirId: string }) {
   const t = useTranslations("gateOut");
@@ -30,7 +24,7 @@ export function GateOutForm({ containers, containerTypes, customers, defaultEirI
     destination: "",
     truckPlate: "",
     driverName: "",
-    gateDateTime: nowLocal(),
+    gateDateTime: depotNowInput(),
     deliveryHeading: "OUT_FULL" as "OUT_EMPTY" | "OUT_FULL",
     condition: "GOOD" as "GOOD" | "DAMAGED",
     damageRemarks: "",
@@ -65,7 +59,7 @@ export function GateOutForm({ containers, containerTypes, customers, defaultEirI
     try {
       const containerId = await resolveContainerId(container);
       const customerId = await resolveNameId(customer, "/api/customers/resolve");
-      const occurredAt = form.gateDateTime ? new Date(form.gateDateTime).toISOString() : undefined;
+      const occurredAt = form.gateDateTime ? depotInputToISO(form.gateDateTime) : undefined;
       const res = await fetch("/api/gate-transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

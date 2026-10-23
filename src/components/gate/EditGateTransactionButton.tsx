@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Pencil, X } from "lucide-react";
 import { inputClass } from "@/components/shared/FormSection";
+import { toDepotInput, depotInputToISO } from "@/lib/utils";
 
 type Transaction = {
   id: string;
@@ -51,13 +52,6 @@ type ContainerOption = { id: string; label: string };
 
 const str = (v: unknown) => (v == null ? "" : String(v));
 
-// Convert an ISO timestamp to the "YYYY-MM-DDTHH:mm" datetime-local uses (local time).
-function toLocalInput(iso: string): string {
-  const d = new Date(iso);
-  const off = d.getTimezoneOffset();
-  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
-}
-
 export function EditGateTransactionButton({
   transaction,
   compact = false,
@@ -80,7 +74,7 @@ export function EditGateTransactionButton({
     type: (transaction.type === "GATE_OUT" ? "GATE_OUT" : "GATE_IN") as "GATE_IN" | "GATE_OUT",
     containerId: transaction.containerId,
     eirId: str(transaction.eirId),
-    gateDateTime: toLocalInput(transaction.createdAt),
+    gateDateTime: toDepotInput(transaction.createdAt),
     deliveryHeading: transaction.deliveryHeading ?? (transaction.type === "GATE_OUT" ? "OUT_FULL" : "IN_FULL"),
     condition: transaction.condition as "GOOD" | "DAMAGED",
     truckPlate: str(transaction.truckPlate),
@@ -132,7 +126,7 @@ export function EditGateTransactionButton({
     setSubmitting(true);
     setError(null);
     try {
-      const occurredAt = form.gateDateTime ? new Date(form.gateDateTime).toISOString() : undefined;
+      const occurredAt = form.gateDateTime ? depotInputToISO(form.gateDateTime) : undefined;
       const res = await fetch(`/api/gate-transactions/${transaction.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

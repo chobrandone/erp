@@ -7,15 +7,9 @@ import { ArrowLeft } from "lucide-react";
 import { FormSection, FormField, inputClass } from "@/components/shared/FormSection";
 import { NamePicker, initialNameValue, resolveNameId, type NamePickerValue } from "@/components/shared/NamePicker";
 import { AcconierInput } from "@/components/shared/AcconierInput";
+import { depotNowInput, depotInputToISO } from "@/lib/utils";
 
 type Option = { id: string; label: string };
-
-// datetime-local wants "YYYY-MM-DDTHH:mm" in the browser's local time.
-function nowLocal(): string {
-  const d = new Date();
-  const off = d.getTimezoneOffset();
-  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
-}
 
 export function GateInForm({
   containerTypes,
@@ -45,7 +39,7 @@ export function GateInForm({
     driverId: "",
     sealNumber: "",
     grossWeightKg: "",
-    gateDateTime: nowLocal(),
+    gateDateTime: depotNowInput(),
     deliveryHeading: "IN_FULL" as "IN_EMPTY" | "IN_FULL",
     condition: "GOOD" as "GOOD" | "DAMAGED",
     damageRemarks: "",
@@ -93,7 +87,7 @@ export function GateInForm({
       const customerId = await resolveNameId(customer, "/api/customers/resolve");
       const shippingLineId = await resolveNameId(shippingLine, "/api/shipping-lines/resolve");
       const status = form.deliveryHeading === "IN_EMPTY" ? "EMPTY" : "FULL";
-      const occurredAt = form.gateDateTime ? new Date(form.gateDateTime).toISOString() : undefined;
+      const occurredAt = form.gateDateTime ? depotInputToISO(form.gateDateTime) : undefined;
       const res = await fetch("/api/gate-transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
