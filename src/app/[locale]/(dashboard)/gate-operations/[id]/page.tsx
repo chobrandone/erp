@@ -27,7 +27,7 @@ export default async function GateTransactionDetailPage({
     include: { containerType: true },
     orderBy: { containerNumber: "asc" },
   });
-  const containerOptions = allContainers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }));
+  const containerOptions = allContainers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})`, number: c.containerNumber }));
 
   return (
     <div>
@@ -65,6 +65,7 @@ export default async function GateTransactionDetailPage({
               id: transaction.id,
               type: transaction.type,
               containerId: transaction.containerId,
+              containerNumber: transaction.container.containerNumber,
               eirId: transaction.docNumber,
               truckPlate: transaction.truckPlate,
               driverName: transaction.driverName,

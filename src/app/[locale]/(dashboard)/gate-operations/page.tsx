@@ -43,7 +43,7 @@ export default async function GateOperationsPage({
     include: { containerType: true },
     orderBy: { containerNumber: "asc" },
   });
-  const containerOptions = allContainers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})` }));
+  const containerOptions = allContainers.map((c) => ({ id: c.id, label: `${c.containerNumber} (${c.containerType.code})`, number: c.containerNumber }));
 
   const cols: Column<(typeof transactions)[number]>[] = [
     { header: tc("documentNo"), accessor: (r) => r.docNumber },
@@ -66,6 +66,7 @@ export default async function GateOperationsPage({
               id: r.id,
               type: r.type,
               containerId: r.containerId,
+              containerNumber: r.container.containerNumber,
               eirId: r.docNumber,
               truckPlate: r.truckPlate,
               driverName: r.driverName,

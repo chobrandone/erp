@@ -11,6 +11,7 @@ type Transaction = {
   id: string;
   type: string;
   containerId: string;
+  containerNumber?: string | null;
   eirId?: string | null;
   truckPlate: string;
   driverName: string;
@@ -48,7 +49,7 @@ type Transaction = {
   createdAt: string; // ISO
 };
 
-type ContainerOption = { id: string; label: string };
+type ContainerOption = { id: string; label: string; number: string };
 
 const str = (v: unknown) => (v == null ? "" : String(v));
 
@@ -73,6 +74,7 @@ export function EditGateTransactionButton({
   const [form, setForm] = useState({
     type: (transaction.type === "GATE_OUT" ? "GATE_OUT" : "GATE_IN") as "GATE_IN" | "GATE_OUT",
     containerId: transaction.containerId,
+    containerNumber: str(transaction.containerNumber),
     eirId: str(transaction.eirId),
     gateDateTime: toDepotInput(transaction.createdAt),
     deliveryHeading: transaction.deliveryHeading ?? (transaction.type === "GATE_OUT" ? "OUT_FULL" : "IN_FULL"),
@@ -121,11 +123,33 @@ export function EditGateTransactionButton({
     });
   }
 
+  // Selecting a different container shows that container's current number
+  // (which can then be edited in place to rename the container).
+  function changeContainer(id: string) {
+    const picked = containers.find((c) => c.id === id);
+    setForm((f) => ({ ...f, containerId: id, containerNumber: picked ? picked.number : f.containerNumber }));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
     try {
+      // Rename the selected container first if its number was changed.
+      const picked = containers.find((c) => c.id === form.containerId);
+      const nextNumber = form.containerNumber.trim().toUpperCase();
+      if (nextNumber && picked && nextNumber !== picked.number.toUpperCase()) {
+        const cRes = await fetch(`/api/containers/${form.containerId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ containerNumber: nextNumber }),
+        });
+        if (!cRes.ok) {
+          setError((await cRes.json().catch(() => null))?.error ?? tc("saveFailed"));
+          setSubmitting(false);
+          return;
+        }
+      }
       const occurredAt = form.gateDateTime ? depotInputToISO(form.gateDateTime) : undefined;
       const res = await fetch(`/api/gate-transactions/${transaction.id}`, {
         method: "PATCH",
@@ -205,12 +229,16 @@ export function EditGateTransactionButton({
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-fg-muted mb-1.5">{tc("container")}</label>
-                  <select className={inputClass} value={form.containerId} onChange={(e) => set("containerId", e.target.value)}>
-                    {containers.length === 0 && <option value={form.containerId}>{form.containerId}</option>}
+                  <select className={inputClass} value={form.containerId} onChange={(e) => changeContainer(e.target.value)}>
+                    {containers.length === 0 && <option value={form.containerId}>{form.containerNumber || form.containerId}</option>}
                     {containers.map((c) => (
                       <option key={c.id} value={c.id}>{c.label}</option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-fg-muted mb-1.5">{tIn("containerNumber")}</label>
+                  <input className={inputClass} value={form.containerNumber} onChange={(e) => set("containerNumber", e.target.value.toUpperCase())} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-fg-muted mb-1.5">{tc("dateTime")}</label>
