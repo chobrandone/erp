@@ -46,7 +46,7 @@ export function GateInForm({
     photosAttached: false,
     remarks: "",
     // RTC / Port de Douala EIR (procès-verbal) fields
-    statut: "FCL" as "FCL" | "LCL",
+    statut: "FCL" as "FCL" | "LCL" | "EMPTY",
     navire: "",
     voyage: "",
     pod: "",
@@ -261,9 +261,10 @@ export function GateInForm({
           <select
             className={inputClass}
             value={form.statut}
-            onChange={(e) => update("statut", e.target.value as "FCL" | "LCL")}
+            onChange={(e) => update("statut", e.target.value as "FCL" | "LCL" | "EMPTY")}
           >
             <option value="FCL">FCL</option>
+            <option value="EMPTY">EMPTY</option>
           </select>
         </FormField>
         <FormField label="NAVIRE (Vessel)">

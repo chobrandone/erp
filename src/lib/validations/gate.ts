@@ -13,7 +13,7 @@ const eirFields = {
   payloadKg: z.coerce.number().optional(),
   navire: z.string().optional(),
   voyage: z.string().optional(),
-  statut: z.enum(["FCL", "LCL"]).optional(),
+  statut: z.enum(["FCL", "LCL", "EMPTY"]).optional(),
   pod: z.string().optional(),
   acconier: z.string().optional(),
   transitaire: z.string().optional(),

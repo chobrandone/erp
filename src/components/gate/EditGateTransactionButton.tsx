@@ -271,7 +271,8 @@ export function EditGateTransactionButton({
                   <label className="block text-xs font-medium text-fg-muted mb-1.5">STATUT</label>
                   <select className={inputClass} value={form.statut} onChange={(e) => set("statut", e.target.value)}>
                     <option value="FCL">FCL</option>
-                    <option value="LCL">LCL</option>
+                    <option value="EMPTY">EMPTY</option>
+                    {form.statut === "LCL" && <option value="LCL">LCL</option>}
                   </select>
                 </div>
                 <div>
