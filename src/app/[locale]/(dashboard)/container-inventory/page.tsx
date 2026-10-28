@@ -28,6 +28,7 @@ export default async function ContainerInventoryPage() {
 
   const rows = inventory.map((inv) => ({
     id: inv.id,
+    containerId: inv.container.id,
     containerNumber: inv.container.containerNumber,
     typeCode: inv.container.containerType.code,
     lineName: inv.container.shippingLine?.name ?? "-",
