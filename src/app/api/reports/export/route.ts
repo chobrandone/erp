@@ -31,22 +31,30 @@ export async function GET(req: NextRequest) {
           ...(dateRange ? { createdAt: dateRange } : {}),
           ...(q ? { OR: [{ docNumber: like(q) }, { truckPlate: like(q) }, { container: { containerNumber: like(q) } }] } : {}),
         },
-        include: { container: true, customer: true, shippingLine: true },
+        include: { container: { include: { containerType: true } }, customer: true, shippingLine: true },
         orderBy: { createdAt: "desc" },
       });
       const cols: ExcelColumn[] = [
         { header: "N° EIR", key: "doc", width: 18 }, { header: "Type", key: "type", width: 10 },
-        { header: "Conteneur", key: "cont", width: 16 }, { header: "Navire", key: "navire", width: 16 },
+        { header: "Conteneur", key: "cont", width: 16 }, { header: "Type ISO", key: "iso", width: 10 },
+        { header: "Navire", key: "navire", width: 16 },
         { header: "Armement BL", key: "line", width: 16 }, { header: "Client", key: "cust", width: 18 },
         { header: "Camion", key: "truck", width: 12 }, { header: "Chauffeur", key: "driver", width: 16 },
         { header: "Statut", key: "statut", width: 8 }, { header: "Destination", key: "dest", width: 16 },
         { header: "Date", key: "date", width: 18 },
       ];
-      return excelResponse("Gate", cols, rows.map((r) => ({
-        doc: r.docNumber, type: r.type, cont: r.container.containerNumber, navire: r.navire ?? "",
-        line: r.shippingLine?.name ?? "", cust: r.customer?.name ?? "", truck: r.truckPlate, driver: r.driverName,
-        statut: r.statut ?? "", dest: r.destination ?? "", date: d(r.createdAt),
-      })), "NS-SARL-Gate-Report");
+      return excelResponse("Gate", cols, rows.map((r) => {
+        // Empty vs full comes from the delivery heading (authoritative); fall back
+        // to the STATUT field. FCL = loaded, EMPTY = empty.
+        const isEmpty = r.deliveryHeading ? r.deliveryHeading.endsWith("EMPTY") : r.statut === "EMPTY";
+        const statut = isEmpty ? "EMPTY" : r.statut === "LCL" ? "LCL" : "FCL";
+        return {
+          doc: r.docNumber, type: r.type, cont: r.container.containerNumber,
+          iso: r.isoCode ?? r.container.isoCode ?? r.container.containerType.code, navire: r.navire ?? "",
+          line: r.shippingLine?.name ?? "", cust: r.customer?.name ?? "", truck: r.truckPlate, driver: r.driverName,
+          statut, dest: r.destination ?? "", date: d(r.createdAt),
+        };
+      }), "NS-SARL-Gate-Report");
     }
 
     case "inventory": {
